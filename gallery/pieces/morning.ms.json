@@ -1,0 +1,266 @@
+{
+  "schema": 1,
+  "name": "morning",
+  "key": "C major",
+  "tempo": 78,
+  "meter": "4/4",
+  "style": "orchestral",
+  "meta": {},
+  "sections": [
+    {
+      "name": "intro",
+      "bars": 4,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "A",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "B",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "V7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "17",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "19",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "21",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "sunup",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/4 2 4 7:1/2 6:1/4 4:1/4 2:1/2 r:1/2 0:1/4 2 4 5:1/2 4:1/4 2:1/4 0:1/2 r:1/2",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "deg": 6
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "rest": true
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "rest": true
+        }
+      ],
+      "note": "Nora's morning: small, plain, a little sleepy. Not derived from anything \u2014 this one is hers."
+    }
+  ],
+  "voices": [
+    {
+      "name": "bell",
+      "instrument": "celesta",
+      "role": "melody",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "play_1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 5,
+            "transform": [
+              "augment:2"
+            ],
+            "times": 2,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "at": 1,
+            "motif": "sunup"
+          }
+        }
+      ]
+    },
+    {
+      "name": "plucked_bass",
+      "instrument": "pizz_strings",
+      "role": "bass",
+      "octave": null,
+      "dynamic": "pp",
+      "muted": false,
+      "ops": [
+        {
+          "id": "bass_1",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "root_fifth",
+            "rhythm": null,
+            "octave": 3,
+            "dynamic": "pp",
+            "degree": 0,
+            "at": 1,
+            "bars": 8
+          }
+        }
+      ]
+    },
+    {
+      "name": "sparkle",
+      "instrument": "vibraphone",
+      "role": "harmony",
+      "octave": null,
+      "dynamic": "p",
+      "muted": false,
+      "ops": [
+        {
+          "id": "play_2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 4,
+            "transform": null,
+            "times": 2,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "at": 3,
+            "motif": "sunup"
+          }
+        }
+      ]
+    }
+  ]
+}

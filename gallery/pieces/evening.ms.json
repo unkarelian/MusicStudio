@@ -1,0 +1,321 @@
+{
+  "schema": 1,
+  "name": "evening",
+  "key": "C# minor",
+  "tempo": 60,
+  "meter": "4/4",
+  "style": "orchestral",
+  "meta": {},
+  "sections": [
+    {
+      "name": "A",
+      "bars": 4,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "B",
+      "bars": 4,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "A2",
+      "bars": 4,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "v",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "VII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "v",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "17",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "19",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "farce",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/4 4:1/4 6:1/2 4:1/4 3:1/4 2:1/2 1:1/4 2:1/4 4:1/2 3:1/4 1:1/4 0:1/2",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 6
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/2",
+          "deg": 0
+        }
+      ],
+      "note": "Jade's theme from MirrorScene (mirror_night.farce), imported intact. The music box plays it in the kitchen and nobody comments on it."
+    },
+    {
+      "name": "latch",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/1 4:1/1",
+      "steps": [
+        {
+          "dur": "1/1",
+          "deg": 0
+        },
+        {
+          "dur": "1/1",
+          "deg": 4
+        }
+      ],
+      "note": "Whatever is left of it, at nine o'clock. Same lineage as mirror_night's latch.",
+      "derived_from": "farce",
+      "lineage": [
+        "fragment:0,2",
+        "augment:4"
+      ]
+    }
+  ],
+  "voices": [
+    {
+      "name": "box",
+      "instrument": "music_box",
+      "role": "melody",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "play_1",
+          "kind": "play",
+          "enabled": true,
+          "note": "Jade's theme, stated plainly \u2014 the piece never says why it knows this tune.",
+          "params": {
+            "transpose": 0,
+            "octave": 5,
+            "transform": null,
+            "times": 1,
+            "every": 2,
+            "dynamic": "mp",
+            "articulation": "tenuto",
+            "anchor": null,
+            "at": 1,
+            "motif": "farce"
+          }
+        },
+        {
+          "id": "play_2",
+          "kind": "play",
+          "enabled": true,
+          "note": "The same tune, upside down \u2014 blue's relationship, heard in the kitchen without comment.",
+          "params": {
+            "transpose": 0,
+            "octave": 6,
+            "transform": [
+              "invert"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "at": 5,
+            "motif": "farce"
+          }
+        },
+        {
+          "id": "play_3",
+          "kind": "play",
+          "enabled": true,
+          "note": "Two notes at nine o'clock.",
+          "params": {
+            "transpose": 0,
+            "octave": 5,
+            "transform": null,
+            "times": 2,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "at": 9,
+            "motif": "latch"
+          }
+        },
+        {
+          "id": "rest_1",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": 8,
+            "until": 9
+          }
+        },
+        {
+          "id": "dynamics_1",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "mp",
+            "end": "pp",
+            "from": 5,
+            "until": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "under",
+      "instrument": "synth_pad",
+      "role": "pad",
+      "octave": -2,
+      "dynamic": "pp",
+      "muted": false,
+      "ops": [
+        {
+          "id": "drone_1",
+          "kind": "drone",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "degree": 0,
+            "octave": 1,
+            "dynamic": "ppp",
+            "retrigger": null,
+            "at": 1,
+            "bars": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "keys",
+      "instrument": "rhodes",
+      "role": "harmony",
+      "octave": null,
+      "dynamic": "ppp",
+      "muted": false,
+      "ops": [
+        {
+          "id": "chords_1",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "broken",
+            "rhythm": null,
+            "octave": 3,
+            "tones": 3,
+            "dynamic": "pp",
+            "spread": false,
+            "at": 1,
+            "bars": 10
+          }
+        }
+      ]
+    }
+  ]
+}

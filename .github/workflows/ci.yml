@@ -1,0 +1,31 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install
+        run: uv sync --all-extras
+      - name: Tests
+        run: uv run pytest tests/ -q
+      - name: Dogfood build must lint clean
+        run: |
+          uv run python examples/build_dusk.py
+          uv run ms -p gallery lint dusk
+
+  core-without-extras:
+    # The core promises no dependencies; prove it.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install (no extras)
+        run: uv sync
+      - name: Tests
+        run: uv run pytest tests/ -q

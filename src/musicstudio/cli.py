@@ -1,0 +1,384 @@
+"""Command line interface. ``ms --help`` for the verb list."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+
+from .lint import report
+from .studio import Studio
+
+
+def _val(raw: str):
+    """Parse a ``key=value`` value as JSON, falling back to a bare string."""
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return raw
+
+
+def _kwargs(pairs: list[str]) -> dict:
+    out = {}
+    for p in pairs:
+        if "=" not in p:
+            raise SystemExit(f"expected key=value, got {p!r}")
+        k, v = p.split("=", 1)
+        out[k] = _val(v)
+    return out
+
+
+def _bars(s: str | None):
+    if not s:
+        return None
+    parts = s.replace(" ", "").split("-")
+    return (int(parts[0]), int(parts[-1]))
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(
+        prog="ms", description="MusicStudio - a music studio for agents")
+    ap.add_argument("--project", "-p", default=".", help="project directory (default: cwd)")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    sub.add_parser("styles", help="list style profiles, their rules and form presets")
+    sub.add_parser("ops", help="list the op vocabulary")
+    sub.add_parser("transforms", help="list the motif development vocabulary")
+    p = sub.add_parser("instruments", help="list instruments, ranges and roles")
+    p.add_argument("--family")
+    sub.add_parser("ls", help="list pieces in the project")
+
+    p = sub.add_parser("new", help="create a piece")
+    p.add_argument("name")
+    p.add_argument("--key", default="C major")
+    p.add_argument("--tempo", type=int, default=90)
+    p.add_argument("--meter", default="4/4")
+    p.add_argument("--style", default="orchestral")
+    p.add_argument("--form", help="form preset from the style (e.g. cue, ternary, loop)")
+    p.add_argument("--loop", action="store_true",
+                   help="the piece repeats (game BGM), so it need not end on the tonic")
+    p.add_argument("--overwrite", action="store_true")
+
+    p = sub.add_parser("piece", help="change a piece's key, tempo, style or loop flag")
+    p.add_argument("name")
+    p.add_argument("--key"); p.add_argument("--tempo", type=int); p.add_argument("--style")
+    p.add_argument("--loop", action=argparse.BooleanOptionalAction, default=None)
+
+    p = sub.add_parser("delete", help="delete a piece (undoable)")
+    p.add_argument("name")
+
+    for verb, helptext in [("undo", "take back the last change to a piece"),
+                           ("redo", "re-apply a change that was undone"),
+                           ("history", "how many changes can be undone / redone")]:
+        q = sub.add_parser(verb, help=helptext)
+        q.add_argument("name")
+
+    p = sub.add_parser("section", help="add a section")
+    p.add_argument("name"); p.add_argument("section")
+    p.add_argument("--bars", type=int, default=8)
+    p.add_argument("--meter"); p.add_argument("--tempo", type=int)
+    p.add_argument("--key"); p.add_argument("--dynamic", default="mf")
+    p.add_argument("--note", default="")
+
+    p = sub.add_parser("setsection", help="change a section's fields")
+    p.add_argument("name"); p.add_argument("section")
+    p.add_argument("fields", nargs="+", metavar="KEY=VALUE",
+                   help="bars, meter, tempo, key, dynamic, note")
+
+    p = sub.add_parser("rmsection", help="remove a section")
+    p.add_argument("name"); p.add_argument("section")
+
+    p = sub.add_parser("harmony", help="set the chord scaffold, as bar=numeral pairs")
+    p.add_argument("name")
+    p.add_argument("chords", nargs="+", metavar="BAR=NUMERAL")
+    p.add_argument("--add", action="store_true", help="append instead of replacing")
+
+    p = sub.add_parser("voice", help="add a voice")
+    p.add_argument("name"); p.add_argument("voice"); p.add_argument("instrument")
+    p.add_argument("--role", default="melody")
+    p.add_argument("--octave", type=int); p.add_argument("--dynamic")
+    p.add_argument("--pan", type=float, help="-1 (left) .. 1 (right); default seats by instrument")
+
+    p = sub.add_parser("setvoice", help="change a voice's instrument, role, octave, "
+                                        "dynamic, muted or pan")
+    p.add_argument("name"); p.add_argument("voice")
+    p.add_argument("fields", nargs="+", metavar="KEY=VALUE")
+
+    p = sub.add_parser("rmvoice", help="remove a voice and its ops")
+    p.add_argument("name"); p.add_argument("voice")
+
+    p = sub.add_parser("motif", help="define a motif in degree notation")
+    p.add_argument("name"); p.add_argument("motif"); p.add_argument("source")
+    p.add_argument("--anchor", default="scale", choices=["scale", "chord"])
+    p.add_argument("--unit", default="1/8"); p.add_argument("--scale")
+    p.add_argument("--note", default="")
+
+    p = sub.add_parser("derive", help="make a named variation of a motif")
+    p.add_argument("name"); p.add_argument("motif"); p.add_argument("source_motif")
+    p.add_argument("transforms", nargs="+", metavar="TRANSFORM",
+                   help="e.g. invert retrograde augment:2 fragment:0,3")
+    p.add_argument("--note", default="")
+
+    p = sub.add_parser("rmmotif", help="remove a motif nothing plays")
+    p.add_argument("name"); p.add_argument("motif")
+
+    p = sub.add_parser("op", help="add an op to a voice")
+    p.add_argument("name"); p.add_argument("voice"); p.add_argument("kind")
+    p.add_argument("params", nargs="*", metavar="KEY=VALUE")
+    p.add_argument("--id"); p.add_argument("--index", type=int)
+    p.add_argument("--note", default="")
+
+    p = sub.add_parser("update", help="change an op's params")
+    p.add_argument("name"); p.add_argument("op_id")
+    p.add_argument("params", nargs="+", metavar="KEY=VALUE")
+
+    p = sub.add_parser("move", help="shift an op in time")
+    p.add_argument("name"); p.add_argument("op_id")
+    p.add_argument("--bars", type=int, default=0)
+    p.add_argument("--beats", type=float, default=0)
+
+    p = sub.add_parser("rm", help="remove an op")
+    p.add_argument("name"); p.add_argument("op_id")
+
+    p = sub.add_parser("toggle", help="enable or disable an op without deleting it")
+    p.add_argument("name"); p.add_argument("op_id")
+    p.add_argument("state", choices=["on", "off"])
+
+    p = sub.add_parser("reorder", help="move an op to a new index in its voice's log")
+    p.add_argument("name"); p.add_argument("op_id"); p.add_argument("index", type=int)
+    p.add_argument("--voice", help="move it onto another voice")
+
+    p = sub.add_parser("list", help="list a piece's ops")
+    p.add_argument("name"); p.add_argument("--voice")
+
+    p = sub.add_parser("show", help="the score: a pitch-by-time grid")
+    p.add_argument("name")
+    p.add_argument("--bars", "-b", help="e.g. 1-8")
+    p.add_argument("--res", default="1/8")
+    p.add_argument("--degrees", action="store_true", help="show scale degrees not voices")
+    p.add_argument("--voices", nargs="*")
+    p.add_argument("--upto", help="render only up to this op id")
+
+    for verb, helptext in [("chart", "the form and harmony at a glance"),
+                           ("motifs", "where every theme appears, and in what shape"),
+                           ("squint", "the arc: density, register and dynamics per bar"),
+                           ("stats", "counts, ranges and motif coverage"),
+                           ("lint", "the critique pass")]:
+        q = sub.add_parser(verb, help=helptext)
+        q.add_argument("name")
+
+    p = sub.add_parser("import", help="import a MIDI (exact) or audio (estimated) file")
+    p.add_argument("name"); p.add_argument("path")
+    p.add_argument("--kind", default="auto", choices=["auto", "midi", "audio"])
+    p.add_argument("--instrument", default="piano")
+    p.add_argument("--tempo", type=int)
+    p.add_argument("--overwrite", action="store_true")
+
+    p = sub.add_parser("findmotifs", help="discover repeated shapes, significance-tested")
+    p.add_argument("name")
+    p.add_argument("--min-notes", type=int, default=4)
+    p.add_argument("--max-notes", type=int, default=10)
+    p.add_argument("--p-max", type=float, default=0.05)
+
+    p = sub.add_parser("compare", help="find melodic shapes shared across pieces")
+    p.add_argument("names", nargs="+")
+    p.add_argument("--require", type=int, help="how many pieces must share it")
+    p.add_argument("--p-max", type=float, default=0.02)
+
+    p = sub.add_parser("adopt", help="turn a discovered pattern into a named motif")
+    p.add_argument("name"); p.add_argument("motif")
+    p.add_argument("--index", type=int, default=0)
+
+    p = sub.add_parser("part", help="one voice as an event list")
+    p.add_argument("name"); p.add_argument("voice"); p.add_argument("--bars", "-b")
+
+    p = sub.add_parser("midi", help="export a .mid")
+    p.add_argument("name"); p.add_argument("--out", "-o")
+    p = sub.add_parser("wav", help="export a .wav")
+    p.add_argument("name"); p.add_argument("--out", "-o")
+    p.add_argument("--mono", action="store_true", help="one channel, no stereo seating")
+    p.add_argument("--dry", action="store_true", help="no reverb")
+
+    args = ap.parse_args(argv)
+    s = Studio(args.project)
+
+    try:
+        return _dispatch(s, args)
+    except (KeyError, ValueError, IndexError, TypeError, RuntimeError, ImportError,
+            OSError) as exc:
+        msg = exc.args[0] if isinstance(exc, KeyError) and exc.args else exc
+        print(f"error: {msg}", file=sys.stderr)
+        return 2
+
+
+def _dispatch(s: Studio, a) -> int:
+    c = a.cmd
+    if c == "styles":
+        for st in s.describe_styles():
+            print(f"{st['name']}: {st['summary']}")
+            print(f"  forms: {', '.join(st['forms'])}")
+            for n in st["notes"]:
+                print(f"  - {n}")
+            print()
+        return 0
+    if c == "ops":
+        for op in s.describe_ops():
+            print(f"{op['kind']:<12} [{op['kind_of']}] {op['doc']}")
+            print(f"{'':<12} required: {op['required']}  optional: {sorted(op['optional'])}")
+        return 0
+    if c == "transforms":
+        for k, v in s.describe_transforms().items():
+            print(f"{k:<12} {v}")
+        return 0
+    if c == "instruments":
+        d = s.describe_instruments(a.family)
+        for i in d["instruments"]:
+            print(f"{i['name']:<18} {i['family']:<9} {i['range'][0]:>4}-{i['range'][1]:<4} "
+                  f"comfort {i['comfort'][0]:>4}-{i['comfort'][1]:<4} poly={i['polyphony']}")
+        print(f"\nroles: {', '.join(d['roles'])}")
+        return 0
+    if c == "ls":
+        for row in s.list_pieces():
+            print(json.dumps(row))
+        return 0
+    if c == "new":
+        p = s.create(a.name, key=a.key, tempo=a.tempo, meter=a.meter, style=a.style,
+                     form=a.form, overwrite=a.overwrite, loop=a.loop)
+        print(f"created {p.name}: {p.key.name}, q={p.tempo}, {p.meter}, style={p.style}"
+              + (", loop" if p.loop else ""))
+        print(f"sections: {[(x.name, x.bars) for x in p.sections] or 'none yet'}")
+        print(f"file: {s.path_for(p.name)}")
+        return 0
+    if c == "piece":
+        print(s.update_piece(a.name, key=a.key, tempo=a.tempo, style=a.style, loop=a.loop))
+        return 0
+    if c == "delete":
+        s.delete(a.name)
+        print(f"deleted {a.name} (undo brings it back)")
+        return 0
+    if c == "undo":
+        print(s.undo(a.name))
+        return 0
+    if c == "redo":
+        print(s.redo(a.name))
+        return 0
+    if c == "history":
+        print(json.dumps(s.history(a.name)))
+        return 0
+    if c == "setsection":
+        print(s.update_section(a.name, a.section, **_kwargs(a.fields)))
+        return 0
+    if c == "rmsection":
+        print(s.remove_section(a.name, a.section))
+        return 0
+    if c == "setvoice":
+        print(s.set_voice(a.name, a.voice, **_kwargs(a.fields)))
+        return 0
+    if c == "rmvoice":
+        print(s.remove_voice(a.name, a.voice))
+        return 0
+    if c == "rmmotif":
+        print(json.dumps(s.remove_motif(a.name, a.motif)))
+        return 0
+    if c == "toggle":
+        print(s.set_op_enabled(a.name, a.op_id, a.state == "on"))
+        return 0
+    if c == "reorder":
+        print(s.reorder_op(a.name, a.op_id, a.index, a.voice))
+        return 0
+    if c == "section":
+        print(s.add_section(a.name, a.section, bars=a.bars, meter=a.meter, tempo=a.tempo,
+                            key=a.key, dynamic=a.dynamic, note=a.note))
+        return 0
+    if c == "harmony":
+        entries = []
+        for pair in a.chords:
+            if "=" not in pair:
+                raise ValueError(f"expected BAR=NUMERAL, got {pair!r}")
+            at, numeral = pair.split("=", 1)
+            entries.append([at, numeral])
+        print(s.set_harmony(a.name, entries, replace=not a.add))
+        return 0
+    if c == "voice":
+        print(s.add_voice(a.name, a.voice, a.instrument, role=a.role, octave=a.octave,
+                          dynamic=a.dynamic, pan=a.pan))
+        return 0
+    if c == "motif":
+        print(json.dumps(s.add_motif(a.name, a.motif, a.source, anchor=a.anchor,
+                                     unit=a.unit, scale=a.scale, note=a.note), indent=2))
+        return 0
+    if c == "derive":
+        print(json.dumps(s.derive_motif(a.name, a.motif, a.source_motif, a.transforms,
+                                        note=a.note), indent=2))
+        return 0
+    if c == "op":
+        print(s.add_op(a.name, a.voice, a.kind, id=a.id, index=a.index, note=a.note,
+                       **_kwargs(a.params)))
+        return 0
+    if c == "update":
+        print(s.update_op(a.name, a.op_id, **_kwargs(a.params)))
+        return 0
+    if c == "move":
+        print(s.move_op(a.name, a.op_id, a.bars, a.beats))
+        return 0
+    if c == "rm":
+        print(s.remove_op(a.name, a.op_id))
+        return 0
+    if c == "list":
+        for row in s.list_ops(a.name, a.voice):
+            print(json.dumps(row))
+        return 0
+    if c == "show":
+        print(s.score(a.name, bars=_bars(a.bars), res=a.res,
+                      glyphs="degree" if a.degrees else "voice",
+                      voices=a.voices or None, upto=a.upto))
+        return 0
+    if c == "import":
+        r = s.import_music(a.name, a.path, kind=a.kind, instrument=a.instrument,
+                           tempo=a.tempo, overwrite=a.overwrite)
+        print(r["summary"])
+        print(f"trust: {r['trust']}")
+        for w in r["warnings"]:
+            print(f"  ! {w}")
+        return 0
+    if c == "findmotifs":
+        print(s.find_motifs(a.name, min_notes=a.min_notes, max_notes=a.max_notes,
+                            p_max=a.p_max)["report"])
+        return 0
+    if c == "compare":
+        print(s.compare(a.names, require=a.require, p_max=a.p_max)["report"])
+        return 0
+    if c == "adopt":
+        print(json.dumps(s.adopt_pattern(a.name, a.motif, a.index), indent=2))
+        return 0
+    if c == "chart":
+        print(s.chart(a.name))
+        return 0
+    if c == "motifs":
+        print(s.motifs(a.name))
+        return 0
+    if c == "squint":
+        print(s.squint(a.name))
+        return 0
+    if c == "stats":
+        print(json.dumps(s.stats(a.name), indent=2))
+        return 0
+    if c == "part":
+        print(s.voice(a.name, a.voice, bars=_bars(a.bars)))
+        return 0
+    if c == "lint":
+        findings = s.lint(a.name)
+        print(report(findings))
+        return 1 if any(f.severity == "error" for f in findings) else 0
+    if c == "midi":
+        print(s.export_midi(a.name, a.out))
+        return 0
+    if c == "wav":
+        print(s.export_wav(a.name, a.out, stereo=not a.mono,
+                           reverb=False if a.dry else None))
+        return 0
+    raise ValueError(f"unhandled command {c!r}")  # pragma: no cover
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

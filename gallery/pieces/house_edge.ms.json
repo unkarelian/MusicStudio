@@ -1,0 +1,462 @@
+{
+  "schema": 1,
+  "name": "house_edge",
+  "key": "Bb major",
+  "tempo": 150,
+  "meter": "4/4",
+  "style": "freeform",
+  "meta": {},
+  "sections": [
+    {
+      "name": "intro",
+      "bars": 4,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "A",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "B",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "4",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "Imaj7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "ii",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "12",
+      "chord": "V7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "ii",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "16",
+      "chord": "Imaj7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "17",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "19",
+      "chord": "V7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "20",
+      "chord": "V7",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "fortuna",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0 2 4 2 3 4 6:1/4 4 2 0:1/4",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 3
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        }
+      ]
+    }
+  ],
+  "voices": [
+    {
+      "name": "bass",
+      "instrument": "synth_bass",
+      "role": "bass",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "bass_1",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "ostinato",
+            "rhythm": null,
+            "octave": 0,
+            "dynamic": null,
+            "degree": 0,
+            "at": 1,
+            "bars": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "comp",
+      "instrument": "rhodes",
+      "role": "harmony",
+      "octave": null,
+      "dynamic": "mp",
+      "muted": false,
+      "ops": [
+        {
+          "id": "chords_1",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "broken",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": null,
+            "spread": false,
+            "at": 1,
+            "bars": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "lead",
+      "instrument": "clarinet",
+      "role": "melody",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "lead_theme",
+          "kind": "play",
+          "enabled": true,
+          "note": "A: the theme, plainly",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mf",
+            "articulation": "legato",
+            "anchor": null,
+            "at": 5,
+            "motif": "fortuna"
+          }
+        },
+        {
+          "id": "lead_seq",
+          "kind": "play",
+          "enabled": true,
+          "note": "A: restated up a fourth, leaps filled",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": [
+              "transpose:3",
+              "fill"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "mf",
+            "articulation": "legato",
+            "anchor": null,
+            "at": 9,
+            "motif": "fortuna"
+          }
+        },
+        {
+          "id": "lead_invert",
+          "kind": "play",
+          "enabled": true,
+          "note": "B: the crash flipped into a rise",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": [
+              "invert"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "f",
+            "articulation": "legato",
+            "anchor": null,
+            "at": 15,
+            "motif": "fortuna"
+          }
+        },
+        {
+          "id": "lead_retro",
+          "kind": "play",
+          "enabled": true,
+          "note": "B: backwards into the loop",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": [
+              "retrograde",
+              "transpose:4"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "mf",
+            "articulation": "legato",
+            "anchor": null,
+            "at": 19,
+            "motif": "fortuna"
+          }
+        }
+      ]
+    },
+    {
+      "name": "echo",
+      "instrument": "celesta",
+      "role": "ornament",
+      "octave": 1,
+      "dynamic": "p",
+      "muted": false,
+      "ops": [
+        {
+          "id": "echo_tail",
+          "kind": "play",
+          "enabled": true,
+          "note": "the crash tail, tinkling back down",
+          "params": {
+            "transpose": 0,
+            "octave": 4,
+            "transform": [
+              "fragment:6,4"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "at": 6,
+            "motif": "fortuna"
+          }
+        },
+        {
+          "id": "echo_run",
+          "kind": "play",
+          "enabled": true,
+          "note": "the spike head, sequenced upward",
+          "params": {
+            "transpose": 0,
+            "octave": 6,
+            "transform": [
+              "fragment:0,4",
+              "sequence:2,2"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "at": 11,
+            "motif": "fortuna"
+          }
+        },
+        {
+          "id": "echo_high",
+          "kind": "play",
+          "enabled": true,
+          "note": "high sparkle under the B turn",
+          "params": {
+            "transpose": 0,
+            "octave": 4,
+            "transform": [
+              "fragment:0,4",
+              "transpose:7"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "at": 17,
+            "motif": "fortuna"
+          }
+        }
+      ]
+    },
+    {
+      "name": "pad",
+      "instrument": "strings",
+      "role": "pad",
+      "octave": null,
+      "dynamic": "p",
+      "muted": false,
+      "ops": [
+        {
+          "id": "chords_2",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": false,
+            "at": 5,
+            "bars": 16
+          }
+        },
+        {
+          "id": "dynamics_1",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "p",
+            "end": "mp",
+            "from": 13,
+            "until": 16
+          }
+        }
+      ]
+    },
+    {
+      "name": "hats",
+      "instrument": "hat",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": "pp",
+      "muted": false,
+      "ops": [
+        {
+          "id": "groove_1",
+          "kind": "groove",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/8",
+            "dynamic": null,
+            "at": 5,
+            "bars": 16,
+            "pattern": "x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x...|x...x...x...x..."
+          }
+        },
+        {
+          "id": "dynamics_2",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "pp",
+            "end": "mp",
+            "from": 9,
+            "until": 13
+          }
+        }
+      ]
+    }
+  ]
+}

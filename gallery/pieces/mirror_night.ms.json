@@ -1,0 +1,1021 @@
+{
+  "schema": 1,
+  "name": "mirror_night",
+  "key": "C# minor",
+  "tempo": 56,
+  "meter": "4/4",
+  "style": "ambient",
+  "meta": {},
+  "sections": [
+    {
+      "name": "boardwalk",
+      "bars": 12,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "alone",
+      "bars": 14,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "theeye",
+      "bars": 14,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "collapse",
+      "bars": 12,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "latchdoor",
+      "bars": 10,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "III",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "VII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "17",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "19",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "21",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "23",
+      "chord": "VII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "25",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "27",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "29",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "31",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "33",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "35",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "37",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "39",
+      "chord": "V7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "41",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "43",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "45",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "47",
+      "chord": "VII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "48",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "49",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "50",
+      "chord": "v",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "51",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "52",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "53",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "57",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "61",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "farce",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/4 4:1/4 6:1/2 4:1/4 3:1/4 2:1/2 1:1/4 2:1/4 4:1/2 3:1/4 1:1/4 0:1/2",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 6
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/2",
+          "deg": 0
+        }
+      ],
+      "note": "The performance. A plain sad lullaby, stiff on purpose."
+    },
+    {
+      "name": "blue",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/2 -4:1/2 -6:1/1 -4:1/2 -3:1/2 -2:1/1 -1:1/2 -2:1/2 -4:1/1 -3:1/2 -1:1/2 0:1/1",
+      "steps": [
+        {
+          "dur": "1/2",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "deg": -4
+        },
+        {
+          "dur": "1/1",
+          "deg": -6
+        },
+        {
+          "dur": "1/2",
+          "deg": -4
+        },
+        {
+          "dur": "1/2",
+          "deg": -3
+        },
+        {
+          "dur": "1/1",
+          "deg": -2
+        },
+        {
+          "dur": "1/2",
+          "deg": -1
+        },
+        {
+          "dur": "1/2",
+          "deg": -2
+        },
+        {
+          "dur": "1/1",
+          "deg": -4
+        },
+        {
+          "dur": "1/2",
+          "deg": -3
+        },
+        {
+          "dur": "1/2",
+          "deg": -1
+        },
+        {
+          "dur": "1/1",
+          "deg": 0
+        }
+      ],
+      "note": "The same theme, upside down and twice as slow. What is underneath is not something else.",
+      "derived_from": "farce",
+      "lineage": [
+        "invert:0",
+        "augment:2"
+      ]
+    },
+    {
+      "name": "crack",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0 4 6:1/4",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 6
+        }
+      ],
+      "note": "The head of the tune, too fast. The performance stuttering.",
+      "derived_from": "farce",
+      "lineage": [
+        "fragment:0,3",
+        "diminish:2"
+      ]
+    },
+    {
+      "name": "latch",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/1 4:1/1",
+      "steps": [
+        {
+          "dur": "1/1",
+          "deg": 0
+        },
+        {
+          "dur": "1/1",
+          "deg": 4
+        }
+      ],
+      "note": "Two notes. Whatever is left of it.",
+      "derived_from": "farce",
+      "lineage": [
+        "fragment:0,2",
+        "augment:4"
+      ]
+    }
+  ],
+  "voices": [
+    {
+      "name": "box",
+      "instrument": "music_box",
+      "role": "melody",
+      "octave": 6,
+      "dynamic": "p",
+      "muted": false,
+      "ops": [
+        {
+          "id": "state1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 2,
+            "every": 4,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "motif": "farce",
+            "at": "1"
+          }
+        },
+        {
+          "id": "state2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": [
+              "transpose:2"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "farce",
+            "at": "9"
+          }
+        },
+        {
+          "id": "alone1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 5,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "farce",
+            "at": "13"
+          }
+        },
+        {
+          "id": "alone2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 5,
+            "transform": [
+              "retrograde"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "farce",
+            "at": "17"
+          }
+        },
+        {
+          "id": "eye1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 3,
+            "every": 4,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "crack",
+            "at": "29"
+          }
+        },
+        {
+          "id": "coll",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": [
+              "diminish:2"
+            ],
+            "times": 4,
+            "every": 2,
+            "dynamic": "mf",
+            "articulation": null,
+            "anchor": null,
+            "motif": "farce",
+            "at": "41"
+          }
+        },
+        {
+          "id": "coll2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 1,
+            "octave": 6,
+            "transform": null,
+            "times": 2,
+            "every": 2,
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": null,
+            "motif": "crack",
+            "at": "49"
+          }
+        },
+        {
+          "id": "coll3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 3,
+            "octave": 6,
+            "transform": null,
+            "times": 2,
+            "every": 2,
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": null,
+            "motif": "crack",
+            "at": "50:3"
+          }
+        },
+        {
+          "id": "end1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 5,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ppp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "latch",
+            "at": "57"
+          }
+        },
+        {
+          "id": "end2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 6,
+            "transform": [
+              "invert"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "ppp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "latch",
+            "at": "61"
+          }
+        },
+        {
+          "id": "boxdyn",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "mp",
+            "end": "ff",
+            "from": "41",
+            "until": "52"
+          }
+        },
+        {
+          "id": "boxhum",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.35,
+            "timing": 18,
+            "seed": 7,
+            "from": null,
+            "until": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "ghost",
+      "instrument": "celesta",
+      "role": "ornament",
+      "octave": 6,
+      "dynamic": "pp",
+      "muted": false,
+      "ops": [
+        {
+          "id": "canon1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 6,
+            "transform": null,
+            "times": 2,
+            "every": 4,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "farce",
+            "at": "13:3"
+          }
+        },
+        {
+          "id": "canon2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 6,
+            "transform": [
+              "invert"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "farce",
+            "at": "27:3"
+          }
+        },
+        {
+          "id": "canon3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 6,
+            "transform": [
+              "diminish:2",
+              "invert"
+            ],
+            "times": 4,
+            "every": 2,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "farce",
+            "at": "41:3"
+          }
+        },
+        {
+          "id": "ghostdyn",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "pp",
+            "end": "mf",
+            "from": "41",
+            "until": "52"
+          }
+        },
+        {
+          "id": "ghosthum",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.4,
+            "timing": 26,
+            "seed": 3,
+            "from": null,
+            "until": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "pad",
+      "instrument": "synth_pad",
+      "role": "pad",
+      "octave": 3,
+      "dynamic": "pp",
+      "muted": false,
+      "ops": [
+        {
+          "id": "p1",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": 3,
+            "tones": 3,
+            "dynamic": "pp",
+            "spread": false,
+            "at": "5",
+            "bars": 22
+          }
+        },
+        {
+          "id": "p2",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": 3,
+            "tones": 4,
+            "dynamic": "pp",
+            "spread": false,
+            "at": "27",
+            "bars": 26
+          }
+        },
+        {
+          "id": "p3",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": 3,
+            "tones": 2,
+            "dynamic": "ppp",
+            "spread": false,
+            "at": "53",
+            "bars": 10
+          }
+        },
+        {
+          "id": "paddyn",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "pp",
+            "end": "mf",
+            "from": "27",
+            "until": "52"
+          }
+        }
+      ]
+    },
+    {
+      "name": "deep",
+      "instrument": "synth_pad",
+      "role": "bass",
+      "octave": 2,
+      "dynamic": "p",
+      "muted": false,
+      "ops": [
+        {
+          "id": "d1",
+          "kind": "drone",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "degree": 0,
+            "octave": 1,
+            "dynamic": "pp",
+            "retrigger": "1/1",
+            "at": "13",
+            "bars": 14
+          }
+        },
+        {
+          "id": "d2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 2,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "motif": "blue",
+            "at": "27"
+          }
+        },
+        {
+          "id": "d3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 2,
+            "transform": [
+              "retrograde"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "motif": "blue",
+            "at": "35"
+          }
+        },
+        {
+          "id": "d4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 2,
+            "transform": [
+              "diminish:2"
+            ],
+            "times": 2,
+            "every": 4,
+            "dynamic": "mf",
+            "articulation": null,
+            "anchor": null,
+            "motif": "blue",
+            "at": "44"
+          }
+        },
+        {
+          "id": "d5",
+          "kind": "drone",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "degree": 0,
+            "octave": 1,
+            "dynamic": "ppp",
+            "retrigger": "2/1",
+            "at": "53",
+            "bars": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "bell",
+      "instrument": "glockenspiel",
+      "role": "ornament",
+      "octave": 6,
+      "dynamic": "pp",
+      "muted": false,
+      "ops": [
+        {
+          "id": "b1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 6,
+            "transform": null,
+            "times": 3,
+            "every": 6,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "crack",
+            "at": "21"
+          }
+        },
+        {
+          "id": "b2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 4,
+            "octave": 6,
+            "transform": null,
+            "times": 3,
+            "every": 2,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "crack",
+            "at": "45"
+          }
+        },
+        {
+          "id": "b3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 6,
+            "transform": [
+              "augment:4",
+              "retrograde"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "ppp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "crack",
+            "at": "59"
+          }
+        }
+      ]
+    },
+    {
+      "name": "swell",
+      "instrument": "tremolo_strings",
+      "role": "harmony",
+      "octave": 4,
+      "dynamic": "pp",
+      "muted": false,
+      "ops": [
+        {
+          "id": "s1",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": 4,
+            "tones": 4,
+            "dynamic": "ppp",
+            "spread": false,
+            "at": "39",
+            "bars": 14
+          }
+        },
+        {
+          "id": "s2",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "ppp",
+            "end": "f",
+            "from": "39",
+            "until": "50"
+          }
+        },
+        {
+          "id": "s3",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "f",
+            "end": "pp",
+            "from": "51",
+            "until": "52"
+          }
+        }
+      ]
+    }
+  ]
+}

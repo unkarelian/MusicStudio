@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "name": "cc_eye_sting",
+  "key": "D minor",
+  "tempo": 60,
+  "meter": "4/4",
+  "style": "orchestral",
+  "meta": {},
+  "sections": [
+    {
+      "name": "notice",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    }
+  ],
+  "harmony": [],
+  "motifs": [],
+  "voices": [
+    {
+      "name": "low",
+      "instrument": "contrabass",
+      "role": "bass",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "pedal",
+          "kind": "events",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "at": null,
+            "transpose": 0,
+            "events": [
+              [
+                38,
+                0,
+                2240,
+                55
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "cluster",
+      "instrument": "tremolo_strings",
+      "role": "pad",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "open_cluster",
+          "kind": "events",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "at": null,
+            "transpose": 0,
+            "events": [
+              [
+                50,
+                216,
+                2024,
+                62
+              ],
+              [
+                51,
+                216,
+                2024,
+                58
+              ],
+              [
+                56,
+                216,
+                2024,
+                60
+              ],
+              [
+                57,
+                1100,
+                1140,
+                52
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "halo",
+      "instrument": "synth_pad",
+      "role": "pad",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "rub",
+          "kind": "events",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "at": null,
+            "transpose": 0,
+            "events": [
+              [
+                81,
+                400,
+                1840,
+                34
+              ],
+              [
+                82,
+                400,
+                1840,
+                30
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

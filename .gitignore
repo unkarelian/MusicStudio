@@ -1,0 +1,26 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# local, per-machine
+.claude/settings.local.json
+
+# render output and undo history are regenerated, not authored
+gallery/renders/
+.history/
+
+# Reference recordings are commercial tracks used only as local analysis input,
+# and the gallery pieces imported from them are transcriptions of those tracks.
+# Neither is ours to redistribute.
+*.ogg
+*.mp3
+*.flac
+*.wav
+gallery/pieces/ch4.ms.json
+gallery/pieces/joker.ms.json
+gallery/pieces/pink.ms.json
+gallery/pieces/spamton.ms.json

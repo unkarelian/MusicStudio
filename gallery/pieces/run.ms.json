@@ -1,0 +1,304 @@
+{
+  "schema": 1,
+  "name": "run",
+  "key": "D dorian",
+  "tempo": 96,
+  "meter": "4/4",
+  "style": "orchestral",
+  "meta": {},
+  "sections": [
+    {
+      "name": "A",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "B",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "C",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "B2",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "A2",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "ii",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "ii",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "17",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "19",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "21",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "23",
+      "chord": "v",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "nora_run",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0 4 7 4 5 4 2 0 0:1/1 0 4 7 9 7 5 4 2:1/2",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/1",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 9
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        }
+      ],
+      "note": "Nora's own figure \u2014 feet on wet tarmac. Not derived from farce; this one belongs to her body, not to Jade."
+    }
+  ],
+  "voices": [
+    {
+      "name": "feet",
+      "instrument": "marimba",
+      "role": "melody",
+      "octave": null,
+      "dynamic": "mp",
+      "muted": false,
+      "ops": [
+        {
+          "id": "play_1",
+          "kind": "play",
+          "enabled": true,
+          "note": "The ostinato: laps, in the rain, not thinking about place.",
+          "params": {
+            "transpose": 0,
+            "octave": 4,
+            "transform": null,
+            "times": 2,
+            "every": 2,
+            "dynamic": "mp",
+            "articulation": "staccato",
+            "anchor": null,
+            "at": 1,
+            "motif": "nora_run"
+          }
+        },
+        {
+          "id": "play_2",
+          "kind": "play",
+          "enabled": true,
+          "note": "The figure flips \u2014 the lap where running in the rain becomes better than running.",
+          "params": {
+            "transpose": 0,
+            "octave": 5,
+            "transform": [
+              "invert"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": null,
+            "at": 5,
+            "motif": "nora_run"
+          }
+        },
+        {
+          "id": "dynamics_1",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "f",
+            "end": "pp",
+            "from": 9,
+            "until": 12
+          }
+        },
+        {
+          "id": "rest_1",
+          "kind": "rest",
+          "enabled": true,
+          "note": "No resolution \u2014 the last lap just stops.",
+          "params": {
+            "from": 11,
+            "until": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "heart",
+      "instrument": "taiko",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": "pp",
+      "muted": false,
+      "ops": [
+        {
+          "id": "groove_1",
+          "kind": "groove",
+          "enabled": true,
+          "note": "The heartbeat under the laps.",
+          "params": {
+            "res": "1/16",
+            "dynamic": "pp",
+            "at": 1,
+            "bars": 8,
+            "pattern": "x...x...x...x..."
+          }
+        }
+      ]
+    }
+  ]
+}

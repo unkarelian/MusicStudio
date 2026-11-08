@@ -1,0 +1,292 @@
+{
+  "schema": 1,
+  "name": "school",
+  "key": "A minor",
+  "tempo": 104,
+  "meter": "4/4",
+  "style": "orchestral",
+  "meta": {},
+  "sections": [
+    {
+      "name": "intro",
+      "bars": 4,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "A",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "B",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "III",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "VII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "V7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "17",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "19",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "corridor",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0 0 4 4 5 4 2 0 2 2 4 5 7 5 4 2:1/2 r:1/2",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "rest": true
+        }
+      ],
+      "note": "The between-class tune: busy, slightly out of breath, loops without arriving."
+    }
+  ],
+  "voices": [
+    {
+      "name": "mari",
+      "instrument": "marimba",
+      "role": "melody",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "play_1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 4,
+            "transform": null,
+            "times": 2,
+            "every": null,
+            "dynamic": "mf",
+            "articulation": "staccato",
+            "anchor": null,
+            "at": 1,
+            "motif": "corridor"
+          }
+        },
+        {
+          "id": "play_2",
+          "kind": "play",
+          "enabled": true,
+          "note": "The tune comes back flipped in the second half \u2014 Connie's drill premonition.",
+          "params": {
+            "transpose": 0,
+            "octave": 4,
+            "transform": [
+              "invert"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": "staccato",
+            "anchor": null,
+            "at": 5,
+            "motif": "corridor"
+          }
+        }
+      ]
+    },
+    {
+      "name": "walk",
+      "instrument": "cello",
+      "role": "bass",
+      "octave": null,
+      "dynamic": "mf",
+      "muted": false,
+      "ops": [
+        {
+          "id": "bass_1",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "walking",
+            "rhythm": null,
+            "octave": 2,
+            "dynamic": "mf",
+            "degree": 0,
+            "at": 1,
+            "bars": 7
+          }
+        },
+        {
+          "id": "bass_2",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "root_fifth",
+            "rhythm": null,
+            "octave": 2,
+            "dynamic": "mf",
+            "degree": 0,
+            "at": 8,
+            "bars": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "hats",
+      "instrument": "hat",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": "p",
+      "muted": false,
+      "ops": [
+        {
+          "id": "groove_1",
+          "kind": "groove",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "pp",
+            "at": 1,
+            "bars": 8,
+            "pattern": "x.x.x.x.|x.x.x.x."
+          }
+        }
+      ]
+    }
+  ]
+}

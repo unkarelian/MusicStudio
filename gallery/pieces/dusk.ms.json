@@ -1,0 +1,757 @@
+{
+  "schema": 1,
+  "name": "dusk",
+  "key": "D minor",
+  "tempo": 76,
+  "meter": "4/4",
+  "style": "orchestral",
+  "loop": false,
+  "meta": {},
+  "sections": [
+    {
+      "name": "intro",
+      "bars": 4,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "pp",
+      "note": "one line, alone"
+    },
+    {
+      "name": "build",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mp",
+      "note": "theme states, then fragments"
+    },
+    {
+      "name": "climax",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": "F major",
+      "dynamic": "f",
+      "note": "the relative major - the theme finally opens out"
+    },
+    {
+      "name": "resolve",
+      "bars": 4,
+      "meter": "4/4",
+      "tempo": 66,
+      "key": null,
+      "dynamic": "p",
+      "note": "augmented, and back to the dark"
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "6",
+      "chord": "VII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "8",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9:3",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "10",
+      "chord": "III",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "V7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "12",
+      "chord": "V7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "14",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "16",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "17",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "18",
+      "chord": "I_1",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "19",
+      "chord": "V7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "20",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "21",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "22",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "23",
+      "chord": "V7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "24",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "hero",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0 2 4:1/4 3 2:1/2",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 3
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        }
+      ],
+      "note": "the main theme: rise a third, fall back and settle"
+    },
+    {
+      "name": "fate",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0 -1 -3:1/4",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": -1
+        },
+        {
+          "dur": "1/4",
+          "deg": -3
+        }
+      ],
+      "note": "three notes falling away - the answer to hero"
+    },
+    {
+      "name": "hero_climb",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0 2 4:1/4 1 3 5:1/4 2 4 6:1/4",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 3
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 6
+        }
+      ],
+      "note": "the head of the theme, sequenced up a step each time",
+      "derived_from": "hero",
+      "lineage": [
+        "fragment:0,3",
+        "sequence:3,1"
+      ]
+    },
+    {
+      "name": "hero_wide",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/4 2:1/4 4:1/2 3:1/4 2:1/1",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        },
+        {
+          "dur": "1/1",
+          "deg": 2
+        }
+      ],
+      "note": "the theme at half speed, for the end",
+      "derived_from": "hero",
+      "lineage": [
+        "augment:2"
+      ]
+    },
+    {
+      "name": "fate_up",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0 1 3:1/4",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        }
+      ],
+      "note": "fate turned upward - the same cell, hopeful",
+      "derived_from": "fate",
+      "lineage": [
+        "invert:0"
+      ]
+    }
+  ],
+  "voices": [
+    {
+      "name": "horn",
+      "instrument": "horn",
+      "role": "melody",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "i_fate",
+          "kind": "play",
+          "enabled": true,
+          "note": "the answering cell, before the theme it answers",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": "tenuto",
+            "anchor": null,
+            "motif": "fate",
+            "at": "3:3"
+          }
+        },
+        {
+          "id": "b_theme",
+          "kind": "play",
+          "enabled": true,
+          "note": "first full statement",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": null,
+            "articulation": "tenuto",
+            "anchor": null,
+            "motif": "hero",
+            "at": "5"
+          }
+        },
+        {
+          "id": "b_theme2",
+          "kind": "play",
+          "enabled": true,
+          "note": "restated a fourth higher, landing on VI's own root",
+          "params": {
+            "transpose": 3,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "hero",
+            "at": "7"
+          }
+        },
+        {
+          "id": "c_theme",
+          "kind": "play",
+          "enabled": true,
+          "note": "the theme in the relative major, unchanged - that is the point",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "f",
+            "articulation": "marcato",
+            "anchor": null,
+            "motif": "hero",
+            "at": "13"
+          }
+        },
+        {
+          "id": "c_answer",
+          "kind": "play",
+          "enabled": true,
+          "note": "fate, inverted - the cell that fell now rises",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": null,
+            "motif": "fate_up",
+            "at": "17"
+          }
+        },
+        {
+          "id": "r_theme",
+          "kind": "play",
+          "enabled": true,
+          "note": "augmented - the same shape, too slow to be triumphant",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "hero_wide",
+            "at": "21"
+          }
+        }
+      ]
+    },
+    {
+      "name": "violin",
+      "instrument": "violin",
+      "role": "counter",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "b_climb",
+          "kind": "play",
+          "enabled": true,
+          "note": "the head of the theme, sequenced upward into the climax",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "hero_climb",
+            "at": "9"
+          }
+        },
+        {
+          "id": "b_swell",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "the crescendo that carries into the climax",
+          "params": {
+            "start": "mp",
+            "end": "f",
+            "from": "9",
+            "until": "13"
+          }
+        },
+        {
+          "id": "c_double",
+          "kind": "double",
+          "enabled": true,
+          "note": "a third above, so the parallel motion is deliberate",
+          "params": {
+            "interval": 2,
+            "octaves": 0,
+            "dynamic": null,
+            "delay": null,
+            "from": "13",
+            "until": "17",
+            "source": "horn"
+          }
+        }
+      ]
+    },
+    {
+      "name": "cello",
+      "instrument": "cello",
+      "role": "bass",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "i_pedal",
+          "kind": "drone",
+          "enabled": true,
+          "note": "the ground the whole cue sits on",
+          "params": {
+            "degree": 0,
+            "octave": null,
+            "dynamic": "pp",
+            "retrigger": null,
+            "at": "1",
+            "bars": 4
+          }
+        },
+        {
+          "id": "b_bass",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "root_fifth",
+            "rhythm": "1/4",
+            "octave": null,
+            "dynamic": null,
+            "degree": 0,
+            "at": "5",
+            "bars": 8
+          }
+        },
+        {
+          "id": "c_bass",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "octaves",
+            "rhythm": "1/4",
+            "octave": null,
+            "dynamic": "f",
+            "degree": 0,
+            "at": "13",
+            "bars": 8
+          }
+        },
+        {
+          "id": "r_pedal",
+          "kind": "drone",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "degree": 0,
+            "octave": null,
+            "dynamic": "pp",
+            "retrigger": null,
+            "at": "21",
+            "bars": 4
+          }
+        }
+      ]
+    },
+    {
+      "name": "pad",
+      "instrument": "strings",
+      "role": "pad",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "b_pad",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": null,
+            "spread": false,
+            "at": "5",
+            "bars": 8
+          }
+        },
+        {
+          "id": "c_pad",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 4,
+            "dynamic": null,
+            "spread": false,
+            "at": "13",
+            "bars": 8
+          }
+        },
+        {
+          "id": "r_pad",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "pp",
+            "spread": false,
+            "at": "21",
+            "bars": 4
+          }
+        },
+        {
+          "id": "r_fade",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "p",
+            "end": "ppp",
+            "from": "21",
+            "until": "25"
+          }
+        }
+      ]
+    },
+    {
+      "name": "harp",
+      "instrument": "harp",
+      "role": "harmony",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "i_harp",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "arpeggio_up",
+            "rhythm": "1/8",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "pp",
+            "spread": false,
+            "at": "1",
+            "bars": 4
+          }
+        },
+        {
+          "id": "c_harp",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "arpeggio_up",
+            "rhythm": "1/8",
+            "octave": null,
+            "tones": 4,
+            "dynamic": null,
+            "spread": false,
+            "at": "13",
+            "bars": 8
+          }
+        },
+        {
+          "id": "r_fate",
+          "kind": "play",
+          "enabled": true,
+          "note": "the cue ends on the cell it opened with",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "fate",
+            "at": "23:3"
+          }
+        }
+      ]
+    },
+    {
+      "name": "drum",
+      "instrument": "timpani",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "b_drum",
+          "kind": "groove",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "mp",
+            "at": "9",
+            "bars": 4,
+            "pattern": "x...x...x...x.xx"
+          }
+        },
+        {
+          "id": "c_drum",
+          "kind": "groove",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "f",
+            "at": "13",
+            "bars": 8,
+            "pattern": "X...x...X...x..."
+          }
+        }
+      ]
+    }
+  ]
+}

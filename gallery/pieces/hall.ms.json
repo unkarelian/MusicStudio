@@ -1,0 +1,255 @@
+{
+  "schema": 1,
+  "name": "hall",
+  "key": "F major",
+  "tempo": 132,
+  "meter": "4/4",
+  "style": "orchestral",
+  "meta": {},
+  "sections": [
+    {
+      "name": "intro",
+      "bars": 4,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "build",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "climax",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "resolve",
+      "bars": 4,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "2",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "4",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "6",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "8",
+      "chord": "V7",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "twelve",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/4 0:1/4 4:1/4 0:1/4 2:1/4 4:1/2 0:1/4 0:1/4 4:1/4 6:1/4 5:1/4 4:1/2",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 6
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        }
+      ],
+      "note": "There's TWELVE. A tuba fanfare with all the subtlety of its owner."
+    }
+  ],
+  "voices": [
+    {
+      "name": "tuba",
+      "instrument": "tuba",
+      "role": "melody",
+      "octave": null,
+      "dynamic": "f",
+      "muted": false,
+      "ops": [
+        {
+          "id": "play_1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 2,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "f",
+            "articulation": "marcato",
+            "anchor": null,
+            "at": 1,
+            "motif": "twelve"
+          }
+        },
+        {
+          "id": "play_2",
+          "kind": "play",
+          "enabled": true,
+          "note": "The fanfare comes back upside down \u2014 she thinks she's winning.",
+          "params": {
+            "transpose": 0,
+            "octave": 2,
+            "transform": [
+              "invert"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": "marcato",
+            "anchor": null,
+            "at": 5,
+            "motif": "twelve"
+          }
+        }
+      ]
+    },
+    {
+      "name": "oompah",
+      "instrument": "rhodes",
+      "role": "harmony",
+      "octave": null,
+      "dynamic": "f",
+      "muted": false,
+      "ops": [
+        {
+          "id": "chords_1",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "block",
+            "rhythm": "1/4 1/4 1/4 1/4",
+            "octave": 3,
+            "tones": 3,
+            "dynamic": "f",
+            "spread": false,
+            "at": 1,
+            "bars": 8
+          }
+        }
+      ]
+    },
+    {
+      "name": "kick",
+      "instrument": "kick",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": "f",
+      "muted": false,
+      "ops": [
+        {
+          "id": "groove_1",
+          "kind": "groove",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "f",
+            "at": 1,
+            "bars": 8,
+            "pattern": "X...X...X...X..x"
+          }
+        }
+      ]
+    }
+  ]
+}
