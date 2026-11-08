@@ -284,3 +284,7 @@ uv run python examples/build_dusk.py     # the dogfood build; it must lint clean
 
 `CLAUDE.md` (mirrored as `AGENTS.md`) lists the invariants the design rests on;
 read it before changing `render.py`, `lint.py` or `analyze.py`.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
