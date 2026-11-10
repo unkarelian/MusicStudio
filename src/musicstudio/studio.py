@@ -450,12 +450,13 @@ class Studio:
     @_mutation
     def add_voice(self, name: str, voice: str, instrument: str, *, role: str = "melody",
                   octave: int | None = None, dynamic: str | None = None,
-                  pan: float | None = None) -> OpResult:
+                  pan: float | None = None, engine: str | None = None) -> OpResult:
         p = self.get(name)
         if any(v.name == voice for v in p.voices):
             raise ValueError(f"voice {voice!r} already exists")
         inst = get_instrument(instrument)
-        p.voices.append(Voice(voice, instrument, role, octave, dynamic, pan=pan))
+        p.voices.append(Voice(voice, instrument, role, octave, dynamic, pan=pan,
+                              engine=engine))
         msg = (f"added voice {voice!r}: {instrument} ({inst.family}), role={role}, "
                f"range {inst.low}-{inst.high}")
         if inst.notes:
@@ -481,9 +482,10 @@ class Studio:
         for k, val in fields.items():
             if val is None:
                 continue
-            if k not in ("instrument", "role", "octave", "dynamic", "muted", "pan"):
+            if k not in ("instrument", "role", "octave", "dynamic", "muted", "pan",
+                         "engine"):
                 raise ValueError(f"cannot set {k!r} on a voice; can set instrument, "
-                                 f"role, octave, dynamic, muted, pan")
+                                 f"role, octave, dynamic, muted, pan, engine")
             setattr(v, k, val)
         v.__post_init__()
         return self._result(p, None, f"updated voice {voice!r}: {sorted(fields)}",

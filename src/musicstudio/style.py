@@ -194,6 +194,40 @@ CHIPTUNE = StyleProfile(
     ),
 )
 
+ELECTRONIC = StyleProfile(
+    name="electronic",
+    summary=(
+        "Beat-driven and loop-based: breakbeat, jungle, downtempo, house. The "
+        "drums and the bass are the piece; harmony may sit on two chords for "
+        "sixteen bars and form is made by what enters, drops out and returns. "
+        "Voice-leading and cadence rules do not apply, but the low end does: one "
+        "thing at a time below 100 Hz."
+    ),
+    voice_leading=False,
+    low_interval_limit=True,
+    check_tessitura=False,
+    max_static_bars=16,
+    min_motif_coverage=0.2,
+    max_sonority=12,
+    require_cadence=False,
+    min_dynamic_range=6,
+    tempo_range=(70, 220),
+    form_presets={**COMMON_FORMS,
+                  "track": (("intro", 8), ("build", 8), ("drop", 16),
+                            ("breakdown", 8), ("drop2", 16), ("outro", 8)),
+                  "beat": (("intro", 4), ("A", 8), ("B", 8), ("A2", 8), ("outro", 4))},
+    notes=(
+        "Write the drums and the bass first; everything else is decoration on them.",
+        "The kick and the sub fight for the same octave. Leave a hole in one "
+        "where the other hits, or tune the kick above the bass note.",
+        "A drop is a subtraction first: take the drums or the bass away for a "
+        "bar or eight, then give it all back at once.",
+        "Vary the break every two or four bars -- a `chop` with one slot changed "
+        "is enough. A loop that never changes is a metronome.",
+        "Ghost notes ('o') and a little swing are what make programmed drums move.",
+    ),
+)
+
 FREEFORM = StyleProfile(
     name="freeform",
     summary="No house rules. Only unambiguous defects are reported.",
@@ -208,7 +242,8 @@ FREEFORM = StyleProfile(
 )
 
 STYLES: dict[str, StyleProfile] = {
-    s.name: s for s in (ORCHESTRAL, CHAMBER, AMBIENT, PIANO, CHIPTUNE, FREEFORM)
+    s.name: s for s in (ORCHESTRAL, CHAMBER, AMBIENT, PIANO, CHIPTUNE, ELECTRONIC,
+                        FREEFORM)
 }
 
 

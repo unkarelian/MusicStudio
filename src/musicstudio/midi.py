@@ -98,8 +98,13 @@ def trim_to_volume(db: float) -> int:
 
 def to_bytes(piece: Piece, rend: Render | None = None, *,
              velocity_curve: float | dict[str, float] = 1.0,
-             trims: dict[str, float] | None = None) -> bytes:
+             trims: dict[str, float] | None = None,
+             time_scale: float = 1.0) -> bytes:
     """The piece as a format-1 MIDI file.
+
+    ``time_scale`` stretches the whole file in time without touching a note: 1.26
+    makes it 26% slower. It exists so a sampled drum part can be rendered slow
+    and then played back fast, which pitches it up the way a sped-up break is.
 
     ``trims`` is ``{voice: dB}``, written as channel volume. It is how a
     sampler whose violin is quieter than its horn is brought back to the
@@ -127,12 +132,17 @@ def to_bytes(piece: Piece, rend: Render | None = None, *,
         meta.append((tick, b"\xff\x58\x04" + bytes([num, power, 24, 8])))
         meta.append((tick, b"\xff\x06" + _len(sec.name.encode("utf-8"))))
     tracks = [_track(meta)]
+    kit_sent = False
 
     for v in piece.voices:
         notes = [n for n in r.notes if n.voice == v.name]
         ch = chans[v.name]
         ev: list[tuple[int, bytes]] = [
             (0, b"\xff\x03" + _len(f"{v.name} ({v.instrument})".encode("utf-8")))]
+        if v.inst.percussive and v.instrument.startswith("kit") and not kit_sent:
+            # One drum channel, so one kit per piece: the first kit voice picks.
+            ev.append((0, bytes([0xC0 | ch, v.inst.program & 0x7F])))
+            kit_sent = True
         if not v.inst.percussive:
             ev.append((0, bytes([0xC0 | ch, v.inst.program & 0x7F])))
             # The seating plan travels with the file, so a sampler or a DAW puts
@@ -141,8 +151,8 @@ def to_bytes(piece: Piece, rend: Render | None = None, *,
             pan = max(0, min(127, int(round(64 + 63 * pans.get(v.name, 0.0)))))
             ev.append((0, bytes([0xB0 | ch, 10, pan])))
             ev.append((0, bytes([0xB0 | ch, 91, 30 if v.role == "bass" else 52])))
-            if trims is not None:
-                ev.append((0, bytes([0xB0 | ch, 7, trim_to_volume(trims.get(v.name, 0.0))])))
+        if trims is not None:
+            ev.append((0, bytes([0xB0 | ch, 7, trim_to_volume(trims.get(v.name, 0.0))])))
         curve = (velocity_curve.get(v.name, 1.0) if isinstance(velocity_curve, dict)
                  else velocity_curve)
         for n, end in zip(notes, _sounding_ends(notes)):
@@ -154,7 +164,9 @@ def to_bytes(piece: Piece, rend: Render | None = None, *,
             ev.append((end, bytes([0x80 | ch, pitch, 0])))
         tracks.append(_track(ev))
 
-    header = _chunk(b"MThd", struct.pack(">HHH", 1, len(tracks), TPQ))
+    # Fewer ticks per quarter in the header makes every tick last longer.
+    division = max(24, min(32767, round(TPQ / time_scale)))
+    header = _chunk(b"MThd", struct.pack(">HHH", 1, len(tracks), division))
     return header + b"".join(tracks)
 
 
@@ -164,8 +176,10 @@ def _len(b: bytes) -> bytes:
 
 def save_midi(piece: Piece, path: str | Path, rend: Render | None = None, *,
               velocity_curve: float | dict[str, float] = 1.0,
-              trims: dict[str, float] | None = None) -> Path:
+              trims: dict[str, float] | None = None,
+              time_scale: float = 1.0) -> Path:
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_bytes(to_bytes(piece, rend, velocity_curve=velocity_curve, trims=trims))
+    p.write_bytes(to_bytes(piece, rend, velocity_curve=velocity_curve, trims=trims,
+                           time_scale=time_scale))
     return p

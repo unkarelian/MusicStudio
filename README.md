@@ -264,11 +264,52 @@ produce no shared theme.
 A profile is a set of *checkable properties*, not a vibe. `orchestral` is the
 baseline: enforced ranges and tessitura, voice leading between every pair of
 parts, the low-interval limit. Also ships `chamber`, `ambient` (harmonic stasis
-is the idiom, so that check relaxes), `piano` (two hands, tenth span limit),
+is the idiom, so that check relaxes), `piano` (two hands, tenth span limit), `electronic` (beat-driven and loop-based:
+no cadence or voice-leading rules, but the low end is still policed),
 `chiptune` (four monophonic channels — chords have to be arpeggios) and
 `freeform`. Each carries form presets, which do for structure what canvas
 presets do for a sprite: `--form cue` gives you `intro / build / climax /
 resolve` before a note exists.
+
+## Beats
+
+The same idea — an editable description, not a recording — applied to drums,
+bass and sound, in the `electronic` style:
+
+```python
+add_voice("drums", "kit", role="percussion")          # or kit_808, kit_jazz ...
+add_op("drums", "beat", at="1", bars=16, tune=4, lanes={
+    "kick":  "x.x.......xx....|x.x.......x.....",
+    "snare": "....x..o.o..x..o|....x..o.o...x.o",     # o is a ghost note
+    "hat":   "xoxoxoxoxoxoxoxo"})
+add_op("drums", "chop", **{"from": "4", "until": "5"}, slices=8,
+       order="0 1 2 3 2 3 2*2 3*4")                    # retrigger, then a roll
+```
+
+A kit is one voice with a lane per drum. `chop` cuts whatever a voice plays into
+slices and re-orders them — `3*2` retriggers, `3r` reverses, `3^5` pitches up,
+`.` drops out — so a break is cut the way a sampler cuts one, except that it
+stays an edit: change a lane and every cut follows. `tune` plays the kit faster
+and higher, which is most of what makes a break sound like a break.
+
+A roll can climb as it goes: `3*8^0>12` is eight retriggers rising an octave.
+
+Under it: `sub_bass` (nearly a sine, slides between slurred notes),
+`reese_bass` (detuned saws under a filter), `electric_bass` and `upright_bass`.
+And on any voice, ops that shape sound rather than notes: `filter` (a lowpass
+or highpass sweep across a span — the build and the drop), `drive`, `compress`
+(denser, not louder), `crush` and `gain` (the fader, for after the others have
+changed the level). These are audio-only: the built-in render applies them, a
+MIDI file and a full SoundFont render cannot.
+
+A modelled kit is clean; a break is not. `add_voice(..., engine="soundfont")`
+plays that one voice from the installed SoundFont *inside* the built-in render:
+real recorded drums, tuned up by being played faster (rendered slow, then sped
+up, exactly as a break is), and then through the same compressor, drive and
+filter as anything else. Without a SoundFont the voice falls back to its model,
+so the piece still builds anywhere.
+
+`examples/build_undertow.py` is the worked example.
 
 ## Use it
 

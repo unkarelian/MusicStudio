@@ -1,0 +1,2042 @@
+{
+  "schema": 1,
+  "name": "undertow",
+  "key": "G minor",
+  "tempo": 112,
+  "meter": "4/4",
+  "style": "electronic",
+  "loop": false,
+  "meta": {},
+  "sections": [
+    {
+      "name": "intro",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "p",
+      "note": ""
+    },
+    {
+      "name": "rise",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mp",
+      "note": ""
+    },
+    {
+      "name": "beat",
+      "bars": 16,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "f",
+      "note": ""
+    },
+    {
+      "name": "breakdown",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mp",
+      "note": ""
+    },
+    {
+      "name": "drop",
+      "bars": 16,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    },
+    {
+      "name": "core",
+      "bars": 16,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    },
+    {
+      "name": "outro",
+      "bars": 6,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "p",
+      "note": ""
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "2",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "VI5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "4",
+      "chord": "iv5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "6",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "VI5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "8",
+      "chord": "iv5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "10",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "VI5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "12",
+      "chord": "iv5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "14",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "VI5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "16",
+      "chord": "iv5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "17",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "18",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "19",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "20",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "21",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "22",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "23",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "24",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "25",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "26",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "27",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "28",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "29",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "30",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "31",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "32",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "33",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "34",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "35",
+      "chord": "III",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "36",
+      "chord": "III",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "37",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "38",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "39",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "40",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "41",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "42",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "43",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "44",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "45",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "46",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "47",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "48",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "49",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "50",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "51",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "52",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "53",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "54",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "55",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "56",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "57",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "58",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "59",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "60",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "61",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "62",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "63",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "64",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "65",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "66",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "67",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "68",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "69",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "70",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "71",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "72",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "73",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "74",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "75",
+      "chord": "VI5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "76",
+      "chord": "iv5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "77",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "78",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "signal",
+      "anchor": "chord",
+      "unit": "1/8",
+      "source": "0 2 3 2 0 2 0:1/4",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 3
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        }
+      ],
+      "note": "the pulse: root, fifth, octave in eighths. Chord tones, so it turns with the cycle"
+    },
+    {
+      "name": "cry",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "7:1/4. b8 7:1/4 4:1/4 5:1/4. 4 2:1/2",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        }
+      ],
+      "note": "the tune: the tonic, a flat second above it, and a fall through the flat sixth"
+    },
+    {
+      "name": "cry_head",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "7:1/4. b8 7:1/4 9:1/4. b10 9:1/4",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/4.",
+          "deg": 9
+        },
+        {
+          "dur": "1/8",
+          "deg": 10,
+          "alt": -1
+        },
+        {
+          "dur": "1/4",
+          "deg": 9
+        }
+      ],
+      "note": "just the flat-second turn, twice, climbing: all that survives the core",
+      "derived_from": "cry",
+      "lineage": [
+        "fragment:0,3",
+        "sequence:2,2"
+      ]
+    },
+    {
+      "name": "toll",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/1 5:1/2. 4:1/4 2:1/1 r:1/1",
+      "steps": [
+        {
+          "dur": "1/1",
+          "deg": 4
+        },
+        {
+          "dur": "1/2.",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/1",
+          "deg": 2
+        },
+        {
+          "dur": "1/1",
+          "rest": true
+        }
+      ],
+      "note": "the opening: the fifth held, the flat sixth leaning on it, then down to the third -- three notes in four bars, and a bar of nothing"
+    },
+    {
+      "name": "pulse",
+      "anchor": "chord",
+      "unit": "1/8",
+      "source": "0:1/4. 0 r 0 0:1/4",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        }
+      ],
+      "note": "the bass: a long root and three short ones"
+    },
+    {
+      "name": "pound",
+      "anchor": "chord",
+      "unit": "1/8",
+      "source": "0 0 0 0 0 0 0 0",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        }
+      ],
+      "note": "the same root in straight eighths, under the core",
+      "derived_from": "pulse",
+      "lineage": [
+        "rhythmize:8"
+      ]
+    }
+  ],
+  "voices": [
+    {
+      "name": "keys",
+      "instrument": "piano",
+      "role": "counter",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "i_toll",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 2,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "toll",
+            "at": "1"
+          }
+        },
+        {
+          "id": "r_toll",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 2,
+            "every": null,
+            "dynamic": "mf",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "toll",
+            "at": "9"
+          }
+        },
+        {
+          "id": "b_toll",
+          "kind": "play",
+          "enabled": true,
+          "note": "the toll carries on over the beat; nothing brighter joins it",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 4,
+            "every": null,
+            "dynamic": "mf",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "toll",
+            "at": "17"
+          }
+        },
+        {
+          "id": "k_toll",
+          "kind": "play",
+          "enabled": true,
+          "note": "the opening again, alone and upside down: it leans upward now",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": [
+              "invert:4"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "toll",
+            "at": "33"
+          }
+        },
+        {
+          "id": "o_toll",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "toll",
+            "at": "73"
+          }
+        },
+        {
+          "id": "fx_keys_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "played softly for the tone, then brought forward",
+          "params": {
+            "db": 5
+          }
+        }
+      ]
+    },
+    {
+      "name": "keys_low",
+      "instrument": "piano",
+      "role": "counter",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "toll_octave",
+          "kind": "double",
+          "enabled": true,
+          "note": "from its second statement on, an octave below too",
+          "params": {
+            "interval": 0,
+            "octaves": -1,
+            "dynamic": null,
+            "delay": null,
+            "from": "5",
+            "until": "79",
+            "source": "keys"
+          }
+        },
+        {
+          "id": "fx_keys_low_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 3
+          }
+        }
+      ]
+    },
+    {
+      "name": "tone",
+      "instrument": "synth_lead",
+      "role": "harmony",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "d_signal",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 16,
+            "every": null,
+            "dynamic": "mf",
+            "articulation": "staccato",
+            "anchor": null,
+            "motif": "signal",
+            "at": "41"
+          }
+        },
+        {
+          "id": "c_signal",
+          "kind": "play",
+          "enabled": true,
+          "note": "the pulse upside down: it now falls from the root",
+          "params": {
+            "transpose": 0,
+            "octave": 4,
+            "transform": [
+              "invert"
+            ],
+            "times": 16,
+            "every": null,
+            "dynamic": "mf",
+            "articulation": "staccato",
+            "anchor": null,
+            "motif": "signal",
+            "at": "57"
+          }
+        },
+        {
+          "id": "fx_tone_grit",
+          "kind": "crush",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "rate": 14000,
+            "bits": 9
+          }
+        },
+        {
+          "id": "fx_tone_dark",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 2200,
+            "mode": "lowpass",
+            "resonance": 0.0,
+            "from": null,
+            "until": null,
+            "start": 2200
+          }
+        }
+      ]
+    },
+    {
+      "name": "lead",
+      "instrument": "supersaw",
+      "role": "melody",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "k_hold",
+          "kind": "phrase",
+          "enabled": true,
+          "note": "one held note per chord -- the flat second, then the leading tone -- behind a filter that opens as the roll climbs",
+          "params": {
+            "unit": "1/8",
+            "octave": null,
+            "transpose": 0,
+            "dynamic": "mf",
+            "articulation": "legato",
+            "anchor": "chord",
+            "at": "37",
+            "steps": "0:1/1~ 0:1/1 | 1:1/1~ 1:1/1"
+          }
+        },
+        {
+          "id": "d_cry",
+          "kind": "play",
+          "enabled": true,
+          "note": "on the two tonic bars of each cycle; the other two are the drums'",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 3,
+            "every": "4/1",
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": null,
+            "motif": "cry",
+            "at": "45"
+          }
+        },
+        {
+          "id": "c_head",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 4,
+            "transform": null,
+            "times": 4,
+            "every": "4/1",
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": null,
+            "motif": "cry_head",
+            "at": "57"
+          }
+        },
+        {
+          "id": "c_glitch",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the tune stutters too, every other bar",
+          "params": {
+            "slices": 8,
+            "from": "61",
+            "until": "73",
+            "order": "0 0*2 2 2*4 4 . 6*2 6*4^0>12 | _ _ _ _ _ _ _ _"
+          }
+        },
+        {
+          "id": "fx_lead_swell",
+          "kind": "filter",
+          "enabled": true,
+          "note": "it opens as the roll climbs",
+          "params": {
+            "end": 3500,
+            "mode": "lowpass",
+            "resonance": 0.4,
+            "from": "37",
+            "until": "41",
+            "start": 250
+          }
+        },
+        {
+          "id": "fx_lead",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.7
+          }
+        },
+        {
+          "id": "fx_lead_grit",
+          "kind": "crush",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "rate": 16000,
+            "bits": 10
+          }
+        },
+        {
+          "id": "fx_lead_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -3
+          }
+        }
+      ]
+    },
+    {
+      "name": "pad",
+      "instrument": "tremolo_strings",
+      "role": "pad",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "i_pad",
+          "kind": "chords",
+          "enabled": true,
+          "note": "root, fifth, octave: a drone with no third in it",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "1",
+            "bars": 8
+          }
+        },
+        {
+          "id": "r_pad",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "9",
+            "bars": 8
+          }
+        },
+        {
+          "id": "b_pad",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "17",
+            "bars": 16
+          }
+        },
+        {
+          "id": "k_pad",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "mp",
+            "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "33",
+            "bars": 8
+          }
+        },
+        {
+          "id": "k_swell",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "mp",
+            "end": "f",
+            "from": "37",
+            "until": "41"
+          }
+        },
+        {
+          "id": "d_pad",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "mp",
+            "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "41",
+            "bars": 32
+          }
+        },
+        {
+          "id": "o_pad",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "pp",
+            "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "73",
+            "bars": 6
+          }
+        },
+        {
+          "id": "fx_drone",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 2200,
+            "mode": "lowpass",
+            "resonance": 0.3,
+            "from": "1",
+            "until": "17",
+            "start": 300
+          }
+        },
+        {
+          "id": "fx_lift",
+          "kind": "filter",
+          "enabled": true,
+          "note": "the floor drops out before the drop",
+          "params": {
+            "end": 1200,
+            "mode": "highpass",
+            "resonance": 0.0,
+            "from": "37",
+            "until": "41",
+            "start": 80
+          }
+        }
+      ]
+    },
+    {
+      "name": "sub",
+      "instrument": "sub_bass",
+      "role": "bass",
+      "octave": 1,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "r_sub",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "pedal",
+            "rhythm": null,
+            "octave": null,
+            "dynamic": "mf",
+            "degree": 0,
+            "articulation": null,
+            "at": "9",
+            "bars": 8
+          }
+        },
+        {
+          "id": "b_sub",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 16,
+            "every": "1/1",
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": null,
+            "motif": "pulse",
+            "at": "17"
+          }
+        },
+        {
+          "id": "k_sub",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "pedal",
+            "rhythm": null,
+            "octave": null,
+            "dynamic": "mf",
+            "degree": 0,
+            "articulation": null,
+            "at": "37",
+            "bars": 4
+          }
+        },
+        {
+          "id": "d_sub",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 16,
+            "every": "1/1",
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "pulse",
+            "at": "41"
+          }
+        },
+        {
+          "id": "c_sub",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 16,
+            "every": "1/1",
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "pound",
+            "at": "57"
+          }
+        },
+        {
+          "id": "o_sub",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "pedal",
+            "rhythm": null,
+            "octave": null,
+            "dynamic": "mf",
+            "degree": 0,
+            "articulation": null,
+            "at": "73",
+            "bars": 6
+          }
+        },
+        {
+          "id": "fx_sub",
+          "kind": "drive",
+          "enabled": true,
+          "note": "a little, so the sub can be found on small speakers",
+          "params": {
+            "amount": 0.3
+          }
+        }
+      ]
+    },
+    {
+      "name": "reese",
+      "instrument": "reese_bass",
+      "role": "bass",
+      "octave": 2,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "r_reese",
+          "kind": "double",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "interval": 0,
+            "octaves": 1,
+            "dynamic": "mp",
+            "delay": null,
+            "from": "9",
+            "until": "17",
+            "source": "sub"
+          }
+        },
+        {
+          "id": "b_reese",
+          "kind": "double",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "interval": 0,
+            "octaves": 1,
+            "dynamic": "mf",
+            "delay": null,
+            "from": "17",
+            "until": "33",
+            "source": "sub"
+          }
+        },
+        {
+          "id": "d_reese",
+          "kind": "double",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "interval": 0,
+            "octaves": 1,
+            "dynamic": "f",
+            "delay": null,
+            "from": "41",
+            "until": "73",
+            "source": "sub"
+          }
+        },
+        {
+          "id": "fx_reese_in",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 500,
+            "mode": "lowpass",
+            "resonance": 0.4,
+            "from": "9",
+            "until": "17",
+            "start": 90
+          }
+        },
+        {
+          "id": "fx_reese_drop",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 2400,
+            "mode": "lowpass",
+            "resonance": 0.5,
+            "from": "41",
+            "until": "49",
+            "start": 200
+          }
+        },
+        {
+          "id": "fx_growl",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.85
+          }
+        }
+      ]
+    },
+    {
+      "name": "drums",
+      "instrument": "kit_room",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "r_drums",
+          "kind": "beat",
+          "enabled": true,
+          "note": "heard through the filter below, opening",
+          "params": {
+            "res": "1/16",
+            "dynamic": "mf",
+            "tune": 5,
+            "at": "13",
+            "bars": 4,
+            "lanes": {
+              "kick": "x.....x...x.....",
+              "snare": "....x..o....x..o",
+              "hat": "x.x.x.x.x.x.x.x.",
+              "open": "..............x."
+            }
+          }
+        },
+        {
+          "id": "r_fill",
+          "kind": "chop",
+          "enabled": true,
+          "note": "roll",
+          "params": {
+            "slices": 16,
+            "from": "16",
+            "until": "17",
+            "order": "0 1 2 3 4 5 6 7 8 9 10 11 4*2 4*2 4*4^0>7 4*4^7>12"
+          }
+        },
+        {
+          "id": "b_drums",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 5,
+            "at": "17",
+            "bars": 16,
+            "lanes": {
+              "kick": "x.....x...x.....",
+              "snare": "....x..o....x..o",
+              "hat": "x.x.x.x.x.x.x.x.",
+              "open": "..............x."
+            }
+          }
+        },
+        {
+          "id": "b_cut1",
+          "kind": "chop",
+          "enabled": true,
+          "note": "roll",
+          "params": {
+            "slices": 16,
+            "from": "20",
+            "until": "21",
+            "order": "0 1 2 3 4 5 6 7 8 9 10 11 4*2 4*2 4*4^0>7 4*4^7>12"
+          }
+        },
+        {
+          "id": "b_cut2",
+          "kind": "chop",
+          "enabled": true,
+          "note": "stumble",
+          "params": {
+            "slices": 16,
+            "from": "24",
+            "until": "25",
+            "order": "0 0 2 3 4 . 4*2 7 0*2 0*2 10 11 12 12*2 14 12*4"
+          }
+        },
+        {
+          "id": "b_cut3",
+          "kind": "chop",
+          "enabled": true,
+          "note": "roll",
+          "params": {
+            "slices": 16,
+            "from": "28",
+            "until": "29",
+            "order": "0 1 2 3 4 5 6 7 8 9 10 11 4*2 4*2 4*4^0>7 4*4^7>12"
+          }
+        },
+        {
+          "id": "b_cut4",
+          "kind": "chop",
+          "enabled": true,
+          "note": "hole",
+          "params": {
+            "slices": 16,
+            "from": "32",
+            "until": "33",
+            "order": ". . . . 4 . . . 0*2 0*2 0*4 0*4 4*8^0>12 . . ."
+          }
+        },
+        {
+          "id": "k_roll",
+          "kind": "beat",
+          "enabled": true,
+          "note": "the roll back in",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 5,
+            "at": "39",
+            "bars": 2,
+            "lanes": {
+              "snare": "x...x...x.x.x.x.|xxxxxxxxxxxxxxxx",
+              "kick": "x.......x......."
+            }
+          }
+        },
+        {
+          "id": "k_roll_swell",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "p",
+            "end": "ff",
+            "from": "39",
+            "until": "41"
+          }
+        },
+        {
+          "id": "k_climb",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the last bar accelerates and climbs more than an octave",
+          "params": {
+            "slices": 4,
+            "from": "40",
+            "until": "41",
+            "order": "0*4 1*4^0>4 2*8^4>9 3*8^9>14"
+          }
+        },
+        {
+          "id": "d_drums",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 5,
+            "at": "41",
+            "bars": 32,
+            "lanes": {
+              "kick": "x.x.......xx....|x.x.......x.....",
+              "snare": "....x..o.o..x..o|....x..o.o...x.o",
+              "hat": "xoxoxoxoxoxoxoxo",
+              "crash": "x..............................................................................................................................."
+            }
+          }
+        },
+        {
+          "id": "d_cut1",
+          "kind": "chop",
+          "enabled": true,
+          "note": "stumble",
+          "params": {
+            "slices": 16,
+            "from": "42",
+            "until": "43",
+            "order": "0 0 2 3 4 . 4*2 7 0*2 0*2 10 11 12 12*2 14 12*4"
+          }
+        },
+        {
+          "id": "d_cut2",
+          "kind": "chop",
+          "enabled": true,
+          "note": "roll",
+          "params": {
+            "slices": 16,
+            "from": "44",
+            "until": "45",
+            "order": "0 1 2 3 4 5 6 7 8 9 10 11 4*2 4*2 4*4^0>7 4*4^7>12"
+          }
+        },
+        {
+          "id": "d_cut3",
+          "kind": "chop",
+          "enabled": true,
+          "note": "stutter",
+          "params": {
+            "slices": 16,
+            "from": "46",
+            "until": "47",
+            "order": "0*2 . 0*2 . 4 4*2 . 4*4 8 9 4 4*2 12r 13 4*4^0>12 ."
+          }
+        },
+        {
+          "id": "d_cut4",
+          "kind": "chop",
+          "enabled": true,
+          "note": "snares",
+          "params": {
+            "slices": 16,
+            "from": "48",
+            "until": "49",
+            "order": "4 . 4 . 4*2 4*2 4*4 4*4^0>5 0*4 . . . 12*8^12>0 . 4 ."
+          }
+        },
+        {
+          "id": "d_cut5",
+          "kind": "chop",
+          "enabled": true,
+          "note": "stumble",
+          "params": {
+            "slices": 16,
+            "from": "50",
+            "until": "51",
+            "order": "0 0 2 3 4 . 4*2 7 0*2 0*2 10 11 12 12*2 14 12*4"
+          }
+        },
+        {
+          "id": "d_cut6",
+          "kind": "chop",
+          "enabled": true,
+          "note": "dive",
+          "params": {
+            "slices": 16,
+            "from": "52",
+            "until": "53",
+            "order": "0 1 4*2 3 0 1 4*2 7 0*4^0>-12 . 10 11 4*2^5 4*2^7 4*4^9 4*4^12"
+          }
+        },
+        {
+          "id": "d_cut7",
+          "kind": "chop",
+          "enabled": true,
+          "note": "stutter",
+          "params": {
+            "slices": 16,
+            "from": "54",
+            "until": "55",
+            "order": "0*2 . 0*2 . 4 4*2 . 4*4 8 9 4 4*2 12r 13 4*4^0>12 ."
+          }
+        },
+        {
+          "id": "d_cut8",
+          "kind": "chop",
+          "enabled": true,
+          "note": "stop",
+          "params": {
+            "slices": 16,
+            "from": "56",
+            "until": "57",
+            "order": "0 1 2 3 4 5 6 7 . . . . 12*4 . 4*4 ."
+          }
+        },
+        {
+          "id": "c_cut1",
+          "kind": "chop",
+          "enabled": true,
+          "note": "dive",
+          "params": {
+            "slices": 16,
+            "from": "57",
+            "until": "58",
+            "order": "0 1 4*2 3 0 1 4*2 7 0*4^0>-12 . 10 11 4*2^5 4*2^7 4*4^9 4*4^12"
+          }
+        },
+        {
+          "id": "c_cut2",
+          "kind": "chop",
+          "enabled": true,
+          "note": "stutter",
+          "params": {
+            "slices": 16,
+            "from": "58",
+            "until": "59",
+            "order": "0*2 . 0*2 . 4 4*2 . 4*4 8 9 4 4*2 12r 13 4*4^0>12 ."
+          }
+        },
+        {
+          "id": "c_cut3",
+          "kind": "chop",
+          "enabled": true,
+          "note": "stumble",
+          "params": {
+            "slices": 16,
+            "from": "59",
+            "until": "60",
+            "order": "0 0 2 3 4 . 4*2 7 0*2 0*2 10 11 12 12*2 14 12*4"
+          }
+        },
+        {
+          "id": "c_cut4",
+          "kind": "chop",
+          "enabled": true,
+          "note": "ladder",
+          "params": {
+            "slices": 16,
+            "from": "60",
+            "until": "61",
+            "order": "0 4 0 4 0*2 4*2 0*2 4*2 0*4 4*4 0*4 4*4 4*4^0>4 4*4^4>8 4*4^8>12 4*4^12"
+          }
+        },
+        {
+          "id": "c_cut5",
+          "kind": "chop",
+          "enabled": true,
+          "note": "dive",
+          "params": {
+            "slices": 16,
+            "from": "61",
+            "until": "62",
+            "order": "0 1 4*2 3 0 1 4*2 7 0*4^0>-12 . 10 11 4*2^5 4*2^7 4*4^9 4*4^12"
+          }
+        },
+        {
+          "id": "c_cut6",
+          "kind": "chop",
+          "enabled": true,
+          "note": "hole",
+          "params": {
+            "slices": 16,
+            "from": "62",
+            "until": "63",
+            "order": ". . . . 4 . . . 0*2 0*2 0*4 0*4 4*8^0>12 . . ."
+          }
+        },
+        {
+          "id": "c_cut7",
+          "kind": "chop",
+          "enabled": true,
+          "note": "stutter",
+          "params": {
+            "slices": 16,
+            "from": "63",
+            "until": "64",
+            "order": "0*2 . 0*2 . 4 4*2 . 4*4 8 9 4 4*2 12r 13 4*4^0>12 ."
+          }
+        },
+        {
+          "id": "c_cut8",
+          "kind": "chop",
+          "enabled": true,
+          "note": "snares",
+          "params": {
+            "slices": 16,
+            "from": "64",
+            "until": "65",
+            "order": "4 . 4 . 4*2 4*2 4*4 4*4^0>5 0*4 . . . 12*8^12>0 . 4 ."
+          }
+        },
+        {
+          "id": "c_cut9",
+          "kind": "chop",
+          "enabled": true,
+          "note": "stumble",
+          "params": {
+            "slices": 16,
+            "from": "65",
+            "until": "66",
+            "order": "0 0 2 3 4 . 4*2 7 0*2 0*2 10 11 12 12*2 14 12*4"
+          }
+        },
+        {
+          "id": "c_cut10",
+          "kind": "chop",
+          "enabled": true,
+          "note": "dive",
+          "params": {
+            "slices": 16,
+            "from": "66",
+            "until": "67",
+            "order": "0 1 4*2 3 0 1 4*2 7 0*4^0>-12 . 10 11 4*2^5 4*2^7 4*4^9 4*4^12"
+          }
+        },
+        {
+          "id": "c_cut11",
+          "kind": "chop",
+          "enabled": true,
+          "note": "ladder",
+          "params": {
+            "slices": 16,
+            "from": "67",
+            "until": "68",
+            "order": "0 4 0 4 0*2 4*2 0*2 4*2 0*4 4*4 0*4 4*4 4*4^0>4 4*4^4>8 4*4^8>12 4*4^12"
+          }
+        },
+        {
+          "id": "c_cut12",
+          "kind": "chop",
+          "enabled": true,
+          "note": "roll",
+          "params": {
+            "slices": 16,
+            "from": "68",
+            "until": "69",
+            "order": "0 1 2 3 4 5 6 7 8 9 10 11 4*2 4*2 4*4^0>7 4*4^7>12"
+          }
+        },
+        {
+          "id": "c_cut13",
+          "kind": "chop",
+          "enabled": true,
+          "note": "stutter",
+          "params": {
+            "slices": 16,
+            "from": "69",
+            "until": "70",
+            "order": "0*2 . 0*2 . 4 4*2 . 4*4 8 9 4 4*2 12r 13 4*4^0>12 ."
+          }
+        },
+        {
+          "id": "c_cut14",
+          "kind": "chop",
+          "enabled": true,
+          "note": "hole",
+          "params": {
+            "slices": 16,
+            "from": "70",
+            "until": "71",
+            "order": ". . . . 4 . . . 0*2 0*2 0*4 0*4 4*8^0>12 . . ."
+          }
+        },
+        {
+          "id": "c_cut15",
+          "kind": "chop",
+          "enabled": true,
+          "note": "ladder",
+          "params": {
+            "slices": 16,
+            "from": "71",
+            "until": "72",
+            "order": "0 4 0 4 0*2 4*2 0*2 4*2 0*4 4*4 0*4 4*4 4*4^0>4 4*4^4>8 4*4^8>12 4*4^12"
+          }
+        },
+        {
+          "id": "c_cut16",
+          "kind": "chop",
+          "enabled": true,
+          "note": "stop",
+          "params": {
+            "slices": 16,
+            "from": "72",
+            "until": "73",
+            "order": "0 1 2 3 4 5 6 7 . . . . 12*4 . 4*4 ."
+          }
+        },
+        {
+          "id": "c_stomp",
+          "kind": "beat",
+          "enabled": true,
+          "note": "four on the floor, untuned and unchopped, holding the bar together while the break falls apart over it",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "at": "57",
+            "bars": 16,
+            "lanes": {
+              "kick": "X...X...X...X..."
+            }
+          }
+        },
+        {
+          "id": "fx_wall",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 7000,
+            "mode": "lowpass",
+            "resonance": 0.35,
+            "from": "13",
+            "until": "17",
+            "start": 220
+          }
+        },
+        {
+          "id": "fx_dark",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 5500,
+            "mode": "lowpass",
+            "resonance": 0.0,
+            "from": "17",
+            "until": "79",
+            "start": 5500
+          }
+        },
+        {
+          "id": "fx_slab",
+          "kind": "compress",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "ratio": 8,
+            "threshold": -24,
+            "makeup": 0.0
+          }
+        },
+        {
+          "id": "fx_drums",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.55
+          }
+        },
+        {
+          "id": "fx_grit",
+          "kind": "crush",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "rate": 22050,
+            "bits": 12
+          }
+        },
+        {
+          "id": "fx_drums_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "drive and compression made them 10 dB hotter than the bass; `ms hear` and a stem table put them back level with it",
+          "params": {
+            "db": -7
+          }
+        },
+        {
+          "id": "feel_drums",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "timing": 4,
+            "seed": 0,
+            "from": null,
+            "until": null
+          }
+        }
+      ],
+      "engine": "soundfont"
+    }
+  ]
+}

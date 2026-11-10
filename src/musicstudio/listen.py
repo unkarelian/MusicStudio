@@ -85,9 +85,13 @@ def stems(piece: Piece, rend: Render | None = None, *, source: str = "models",
     if source == "models":
         voices = {v.name: v for v in piece.voices}
         pans = audio.pan_positions(piece)
+        fx = audio.voice_fx(piece, to_sec)
+        sampled = audio.sampled_stems(piece, r.notes, to_sec, total)
         for name, notes in by_voice.items():
-            left, right, _ = audio._synth_numpy(notes, voices, pans, to_sec, total,
-                                                0.72, True, 1.0)
+            left, right, _ = audio._synth_numpy(
+                notes, voices, pans, to_sec, total, 0.72, True, 1.0,
+                {k: v for k, v in fx.items() if k == name},
+                {k: v for k, v in sampled.items() if k == name})
             out[name] = np.stack([left, right], 1)
         return out, "the built-in instrument models"
     if source != "soundfont":
@@ -121,7 +125,8 @@ CACHE_DIR = Path("~/.cache/musicstudio")
 def calibrate(bank: str | Path, *, refresh: bool = False) -> dict[str, dict[str, float]]:
     """How to make a SoundFont balance the way the built-in models do.
 
-    Returns ``{"trim": {instrument: dB}, "curve": {instrument: exponent}}``.
+    Returns ``{"trim": {instrument: dB}, "curve": {instrument: exponent},
+    "offset": dB}``.
     Every instrument plays the same phrase soft and then loud, through the bank
     and through the models, and the loudnesses are compared:
 
@@ -146,15 +151,18 @@ def calibrate(bank: str | Path, *, refresh: bool = False) -> dict[str, dict[str,
     bank = Path(bank)
     stat = bank.stat()
     tag = hashlib.sha1(f"{bank.resolve()}|{stat.st_size}|{int(stat.st_mtime)}|"
-                       f"{synth.LEVEL}|v2".encode()).hexdigest()[:16]
+                       f"{synth.LEVEL}|v5".encode()).hexdigest()[:16]
     cache = CACHE_DIR.expanduser() / f"balance-{tag}.json"
     if cache.is_file() and not refresh:
         try:
             got = json.loads(cache.read_text())
-            return {"trim": dict(got["trim"]), "curve": dict(got["curve"])}
+            return {"trim": dict(got["trim"]), "curve": dict(got["curve"]),
+                    "offset": float(got["offset"])}
         except (ValueError, OSError, KeyError):
             pass
-    names = [n for n in synth.MODELS if not INSTRUMENTS[n].percussive]
+    # Pitched instruments one by one; and the drum channel once, as a kit
+    # playing a beat, since a bank's kit is as arbitrary in level as its horn.
+    names = [n for n in synth.MODELS if not INSTRUMENTS[n].percussive] + ["kit"]
     soft, loud, mid = DYNAMICS["p"], DYNAMICS["f"], DYNAMICS["mf"]
     span = 20 * math.log10(loud / soft)
     diff: dict[str, float] = {}
@@ -165,10 +173,19 @@ def calibrate(bank: str | Path, *, refresh: bool = False) -> dict[str, dict[str,
             p = Piece("calibrate", "C major", tempo=60, style="freeform")
             p.sections.append(Section("A", 4 * len(batch)))
             for k, name in enumerate(batch):
-                p.voices.append(Voice(name, name, "melody", pan=0.0))
+                drums = INSTRUMENTS[name].percussive
+                p.voices.append(Voice(name, name, "percussion" if drums else "melody",
+                                      pan=0.0))
                 for j, dyn in enumerate(("p", "f")):
-                    p.add_op(name, "phrase", id=f"c{k}{dyn}", at=str(1 + 4 * k + 2 * j),
-                             unit="1/4", steps="0 4 7 4", dynamic=dyn)
+                    if drums:
+                        p.add_op(name, "beat", id=f"c{k}{dyn}", at=str(1 + 4 * k + 2 * j),
+                                 bars=1, dynamic=dyn, res="1/8",
+                                 lanes={"kick": "x...x...", "snare": "..x...x.",
+                                        "hat": "xxxxxxxx"})
+                    else:
+                        p.add_op(name, "phrase", id=f"c{k}{dyn}",
+                                 at=str(1 + 4 * k + 2 * j), unit="1/4",
+                                 steps="0 4 7 4", dynamic=dyn)
             to_sec = audio._tick_seconds(p)
             left, right = audio.synthesize(p, reverb=False, models=True)
             path = audio.save_wav_soundfont(p, Path(tmp) / "c.wav", bank, room=False,
@@ -179,15 +196,21 @@ def calibrate(bank: str | Path, *, refresh: bool = False) -> dict[str, dict[str,
                 sampled = raw.reshape(-1, w.getnchannels()).astype(np.float64) / 32768.0
             modelled = np.stack([left, right], 1)
 
-            def level(buf, bar):
+            def level(buf, bar, weighted):
                 lo = int(to_sec(p.tick_of(bar)) * SR)
                 hi = int(to_sec(p.tick_of(bar + 2)) * SR) if bar + 2 <= p.total_bars \
                     else lo + 8 * SR
-                return _loudness(buf[lo:hi])
+                return _loudness(buf[lo:hi], weighted)
 
             for k, name in enumerate(batch):
-                m = [level(modelled, 1 + 4 * k + 2 * j) for j in (0, 1)]
-                s = [level(sampled, 1 + 4 * k + 2 * j) for j in (0, 1)]
+                # A bass is matched on its energy, not its A-weighted loudness:
+                # the ear's curve all but ignores 50 Hz, so a modelled sub that
+                # is nearly a pure sine would "match" a sampled one only by
+                # turning the sample down until the low end was gone.
+                inst = INSTRUMENTS[name]
+                heard = inst.percussive or inst.centre >= 48
+                m = [level(modelled, 1 + 4 * k + 2 * j, heard) for j in (0, 1)]
+                s = [level(sampled, 1 + 4 * k + 2 * j, heard) for j in (0, 1)]
                 if min(m + s) <= 1e-12:
                     continue
                 m_soft, m_loud, s_soft, s_loud = (_db(x) for x in m + s)
@@ -202,11 +225,14 @@ def calibrate(bank: str | Path, *, refresh: bool = False) -> dict[str, dict[str,
                 m_mid = m_soft + m_slope * 20 * math.log10(mid / soft)
                 diff[name] = m_mid - s_mid
     if not diff:
-        return {"trim": {}, "curve": {}}
+        return {"trim": {}, "curve": {}, "offset": 0.0}
     centre = float(np.median(list(diff.values())))
     trims = {name: round(max(-MAX_TRIM_DB, min(MAX_TRIM_DB, d - centre)), 1)
              for name, d in diff.items()}
-    result = {"trim": trims, "curve": curve}
+    # `offset` is the bank's level as a whole against the models' (at the
+    # sampler gain the calibration ran at), for mixing a sampled voice into the
+    # built-in render; `trim` is each instrument's distance from that.
+    result = {"trim": trims, "curve": curve, "offset": round(centre, 2)}
     try:
         cache.parent.mkdir(parents=True, exist_ok=True)
         cache.write_text(json.dumps(result, indent=1))
@@ -232,14 +258,14 @@ def _db(power: float) -> float:
     return 10.0 * math.log10(power) if power > 1e-14 else -140.0
 
 
-def _loudness(seg) -> float:
-    """A-weighted mean power of a stereo segment."""
+def _loudness(seg, weighted: bool = True) -> float:
+    """Mean power of a stereo segment, A-weighted unless told otherwise."""
     if len(seg) < 64:
         return 0.0
     # Zero-padded to a power of two: a bar is an arbitrary number of samples,
     # and an FFT of an awkward length is many times slower for the same answer.
     size = 1 << int(math.ceil(math.log2(len(seg))))
-    w = _a_weight(np.fft.rfftfreq(size, 1.0 / SR))
+    w = _a_weight(np.fft.rfftfreq(size, 1.0 / SR)) if weighted else 1.0
     power = 0.0
     for ch in range(seg.shape[1]):
         spec = np.abs(np.fft.rfft(seg[:, ch], size)) ** 2

@@ -128,6 +128,20 @@ and every random number is seeded from `(voice, onset, pitch)` through `crc32`.
 `LEVEL` is calibrated so models on and off sit at the same loudness; if you
 change a model's `level`, re-check the balance of a full piece, not one note.
 
+Drums are notes like everything else: a kit voice's pitch is the General MIDI
+key of the drum, `beat` writes lanes and `chop` re-orders slices of whatever the
+voice already plays. Keep `chop` symbolic -- it must stay an edit of the op-log,
+not a bounce to audio. `filter`, `drive`, `compress`, `crush` and `gain` are
+`render.AUDIO_ONLY`: they return the notes untouched and are applied by
+`audio._apply_fx` to that voice's own bus, so they exist in the built-in render
+and not in MIDI. `compress` and `drive` are level-matched on purpose (same
+power, same peak): adding one must not remix the piece, and `gain` is the fader.
+A voice with `engine="soundfont"` is rendered by `audio.sampled_stems` (one
+FluidSynth run per voice, pitch groups laid end to end and resampled) and then
+joins its bus like any other; it must fall back to the model, with a warning,
+when FluidSynth or a bank is missing, because CI has neither. One drum
+channel means one kit per piece in MIDI; the first kit voice chooses it.
+
 `tension.py` and `listen.py` are the two views built for an agent that cannot
 listen. `tension` is a *model* (chord function, key distance, key profiles,
 interval expectation) and `listen` is a *measurement* of rendered stems; each

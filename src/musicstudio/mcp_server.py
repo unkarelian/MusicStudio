@@ -226,12 +226,16 @@ def ms_set_harmony(name: str, entries: list, replace: bool = True) -> str:
 @mcp.tool(description=(
     "Add a voice: a named part with an instrument and a role (melody, counter, "
     "harmony, bass, pad, ornament, percussion). The role decides the default "
-    "register and what the critique pass expects of it."))
+    "register and what the critique pass expects of it. engine='soundfont' plays "
+    "the voice from the installed SoundFont inside the built-in render, keeping "
+    "drum tuning and the filter/drive/compress/crush ops -- use it for a kit when "
+    "the drums should sound like a recorded break."))
 def ms_add_voice(name: str, voice: str, instrument: str, role: str = "melody",
                  octave: int | None = None, dynamic: str | None = None,
-                 pan: float | None = None) -> str:
+                 pan: float | None = None, engine: str | None = None) -> str:
     return _guard(lambda: str(_studio.add_voice(name, voice, instrument, role=role,
-                                                octave=octave, dynamic=dynamic, pan=pan)))
+                                                octave=octave, dynamic=dynamic, pan=pan,
+                                                engine=engine)))
 
 
 @mcp.tool(description=(

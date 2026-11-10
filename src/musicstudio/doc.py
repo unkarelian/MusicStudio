@@ -91,6 +91,52 @@ OP_SPECS: dict[str, OpSpec] = {
               "An unpitched pattern on a grid. 'x' hits, 'X' accents, '.' rests, "
               "'|' is a barline for the reader. res sets the grid step.",
               ["at", "bars", "pattern"], res="1/16", dynamic=None),
+        _spec("beat",
+              "A whole drum pattern on a kit voice: one lane per drum, all on one "
+              "grid. lanes is {'kick': 'x...x...', 'snare': '....x...', 'hat': "
+              "'x.x.x.x.'} -- 'x' hit, 'X' accent, 'o' ghost note, '.' rest, '|' a "
+              "barline for the reader. Lanes cycle independently, so a two-bar kick "
+              "under a one-beat hat is two short strings. Drums: kick snare rim clap "
+              "hat pedal open tom_lo tom_mid tom_hi ride bell crash splash tamb cow "
+              "shaker. tune shifts the whole kit in semitones (a sped-up break is "
+              "tune=3 to 7).",
+              ["at", "bars", "lanes"], res="1/16", dynamic=None, tune=0),
+        _spec("chop",
+              "Cut what this voice plays into slices and re-order them -- how a "
+              "break is chopped. slices is how many per bar; order names a source "
+              "slice for each output slot and cycles: '0 1 2 3 2 2 6 7'. A slot may "
+              "be '.' (silence), '_' (leave as written), '3*2' (the first half of "
+              "slice 3, twice: a retrigger), '3*4' (a roll), '3r' (backwards), "
+              "'3^5' (five semitones up), '3*8^0>12' (a roll that climbs an octave "
+              "as it goes). Works on any voice, bass included.",
+              ["from", "until", "order"], slices=8, modifier=True),
+        _spec("filter",
+              "Sweep a filter over this voice's sound: mode lowpass or highpass, "
+              "from `start` Hz to `end` Hz across the span, resonance 0-1. The "
+              "build-up and the drop. Audio only -- it shapes the built-in render "
+              "and is not written to MIDI.",
+              ["start"], end=None, mode="lowpass", resonance=0.0, modifier=True,
+              **{"from": None, "until": None}),
+        _spec("drive",
+              "Saturate this voice: amount 0-1, from warmth to distortion. Audio "
+              "only.", [], amount=0.4, modifier=True),
+        _spec("compress",
+              "Squash this voice's dynamics: everything above `threshold` (dB below "
+              "its own peak) is reduced by `ratio`, and the result is brought back "
+              "to the power it had -- denser, not louder. `makeup` adds dB on top. "
+              "What makes a drum break sound like one slab instead of separate "
+              "hits. Audio only.",
+              [], ratio=4.0, threshold=-18.0, makeup=0.0, modifier=True),
+        _spec("gain",
+              "Turn this voice up or down by `db` after its other processing: the "
+              "fader. Drive and compression change how loud a voice is as well as "
+              "how it sounds, and this puts it back where the mix wants it. Audio "
+              "only -- in a score, use dynamics.",
+              ["db"], modifier=True),
+        _spec("crush",
+              "Reduce this voice's sample rate (rate, Hz) and bit depth (bits): the "
+              "grit of an old sampler. Audio only.",
+              [], rate=11025, bits=10, modifier=True),
         _spec("double",
               "Double another voice at an interval, reading whatever that voice "
               "ended up playing. `source` is the voice to follow; interval counts "
@@ -267,9 +313,17 @@ class Voice:
     #: Stereo position for the WAV render, -1 (left) .. 1 (right). ``None`` lets
     #: the renderer seat the voice by role, the way an orchestra is laid out.
     pan: float | None = None
+    #: ``"soundfont"`` plays this voice from the installed SoundFont *inside*
+    #: the built-in render, so it still gets drum tuning, filters, drive and
+    #: the rest. ``None`` uses the instrument model. A sampled kit under the
+    #: studio's own processing is how a break is made to sound like a break.
+    engine: str | None = None
 
     def __post_init__(self) -> None:
         get_instrument(self.instrument)
+        if self.engine not in (None, "soundfont"):
+            raise ValueError(f"engine must be 'soundfont' or left unset, got "
+                             f"{self.engine!r}")
         if self.role not in ROLES:
             raise ValueError(f"unknown role {self.role!r}; have {list(ROLES)}")
         if self.dynamic is not None:
@@ -290,13 +344,16 @@ class Voice:
              "ops": [o.to_json() for o in self.ops]}
         if self.pan is not None:
             d["pan"] = self.pan
+        if self.engine:
+            d["engine"] = self.engine
         return d
 
     @classmethod
     def from_json(cls, d: dict) -> Voice:
         return cls(d["name"], d["instrument"], d.get("role", "melody"), d.get("octave"),
                    d.get("dynamic"), d.get("muted", False),
-                   [Op.from_json(o) for o in d.get("ops", [])], d.get("pan"))
+                   [Op.from_json(o) for o in d.get("ops", [])], d.get("pan"),
+                   d.get("engine"))
 
 
 # --------------------------------------------------------------------------
@@ -519,7 +576,8 @@ class Piece:
         if op.params.get(key) is None:
             raise ValueError(f"op {op_id!r} ({op.kind}) has no position to move")
         params = {key: self._shifted(op.params[key], bars, beats)}
-        if op.kind in ("dynamics", "articulate", "rest", "shape", "swing") or "until" in op.params:
+        if op.kind in ("dynamics", "articulate", "rest", "shape", "swing", "chop",
+                       "filter") or "until" in op.params:
             if op.params.get("until") is not None:
                 params["until"] = self._shifted(op.params["until"], bars, beats)
         return self.update_op(op_id, **params)

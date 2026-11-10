@@ -114,6 +114,7 @@ SEATS: dict[str, float] = {
 ROOMS: dict[str, tuple[float, float]] = {
     "orchestral": (2.0, 0.24), "chamber": (1.3, 0.18), "piano": (1.5, 0.16),
     "ambient": (3.6, 0.36), "chiptune": (0.35, 0.05), "freeform": (1.6, 0.18),
+    "electronic": (1.1, 0.12),
 }
 
 _tables: dict[tuple[str, int], array] = {}
@@ -305,8 +306,10 @@ def synthesize(piece: Piece, rend: Render | None = None, *, tail: float = 1.5,
                            "analysis`, or pass models=False")
     send = None
     if has_fast_path():
-        left, right, send = _synth_numpy(r.notes, voices, pans, to_sec, total, gain,
-                                         use_models, 1.0 if stereo else 0.0)
+        left, right, send = _synth_numpy(
+            r.notes, voices, pans, to_sec, total, gain, use_models,
+            1.0 if stereo else 0.0, voice_fx(piece, to_sec),
+            sampled_stems(piece, r.notes, to_sec, total) if use_models else None)
     else:
         left, right = _synth_python(r.notes, voices, pans, to_sec, total, gain)
     if use_reverb:
@@ -365,7 +368,128 @@ def _synth_python(notes, voices, pans, to_sec, total, gain):
     return left, right
 
 
-def _synth_numpy(notes, voices, pans, to_sec, total, gain, models=False, width=1.0):
+def voice_fx(piece: Piece, to_sec) -> dict[str, list[tuple]]:
+    """``{voice: [(kind, params, first sample, last sample)]}`` for the ops that
+    shape a voice's sound rather than its notes, in the order they were added."""
+    from .render import AUDIO_ONLY
+    out: dict[str, list[tuple]] = {}
+    for v in piece.voices:
+        for op in v.ops:
+            if op.kind not in AUDIO_ONLY or not op.enabled:
+                continue
+            lo = piece.tick_of(op.params["from"]) if op.params.get("from") else 0
+            hi = (piece.tick_of(op.params["until"]) if op.params.get("until")
+                  else piece.total_ticks)
+            out.setdefault(v.name, []).append(
+                (op.kind, op.params, int(to_sec(lo) * SR), int(to_sec(max(hi, lo)) * SR)))
+    return out
+
+
+def _sweep_filter(x, lo: int, hi: int, start: float, end: float, mode: str,
+                  resonance: float):
+    """A filter whose cutoff moves from ``start`` to ``end`` Hz across a span.
+
+    Done frame by frame in the frequency domain (overlap-add), because a
+    cutoff that moves cannot be one convolution. The slope is about 24 dB per
+    octave; resonance adds a peak at the cutoff, which is what makes a sweep
+    audible as a sweep rather than as the sound getting duller.
+    """
+    np = _np
+    hi = min(hi, len(x))
+    if hi - lo < 2048:
+        return x
+    size, hop = 2048, 512
+    seg = x[lo:hi]
+    count = 1 + (len(seg) - size) // hop
+    window = np.sqrt(np.hanning(size + 1)[:size])
+    f = np.fft.rfftfreq(size, 1.0 / SR)
+    out = np.zeros(len(seg))
+    norm = np.zeros(len(seg))
+    start, end = max(20.0, float(start)), max(20.0, float(end))
+    for k in range(count):
+        t = k / max(1, count - 1)
+        cut = start * (end / start) ** t                 # exponential: even in pitch
+        ratio = (f / cut) if mode == "lowpass" else (cut / np.maximum(f, 1.0))
+        gain = 1.0 / np.sqrt(1.0 + ratio ** 8)
+        if resonance:
+            gain = gain * (1.0 + 3.0 * resonance
+                           * np.exp(-0.5 * (np.log2(np.maximum(f, 1.0) / cut) / 0.12) ** 2))
+        a = k * hop
+        frame = np.fft.irfft(np.fft.rfft(seg[a:a + size] * window) * gain, size)
+        out[a:a + size] += frame * window
+        norm[a:a + size] += window ** 2
+    covered = norm > 1e-3
+    seg = np.where(covered, out / np.maximum(norm, 1e-3), seg)
+    y = x.copy()
+    y[lo:hi] = seg
+    return y
+
+
+def _apply_fx(left, right, chain):
+    """Run a voice's processing chain over its own bus."""
+    np = _np
+    for kind, params, lo, hi in chain:
+        if kind == "filter":
+            start = float(params["start"])
+            end = float(params["end"]) if params.get("end") is not None else start
+            mode = params.get("mode") or "lowpass"
+            if mode not in ("lowpass", "highpass"):
+                raise ValueError(f"filter mode must be lowpass or highpass, got {mode!r}")
+            res = max(0.0, min(1.0, float(params.get("resonance") or 0.0)))
+            left = _sweep_filter(left, lo, hi, start, end, mode, res)
+            right = _sweep_filter(right, lo, hi, start, end, mode, res)
+        elif kind == "drive":
+            amount = max(0.0, min(1.0, float(params.get("amount") or 0.0)))
+            peak = float(max(np.abs(left).max(initial=0.0), np.abs(right).max(initial=0.0)))
+            if amount and peak > 0:
+                g = 1.0 + amount * 9.0
+                # Level-matched at the peak, so drive adds harmonics and density
+                # rather than simply turning the voice up.
+                left = peak * np.tanh(g * left / peak) / math.tanh(g)
+                right = peak * np.tanh(g * right / peak) / math.tanh(g)
+        elif kind == "compress":
+            ratio = max(1.0, float(params.get("ratio") or 4.0))
+            thr_db = float(params.get("threshold") if params.get("threshold") is not None
+                           else -18.0)
+            peak = float(max(np.abs(left).max(initial=0.0), np.abs(right).max(initial=0.0)))
+            if ratio > 1.0 and peak > 0:
+                # Level follower: a fast attack and a slower release, done on
+                # short blocks so it costs nothing, then interpolated.
+                block = 64
+                n = len(left)
+                mag = np.maximum(np.abs(left), np.abs(right))
+                env = np.pad(mag, (0, (-n) % block)).reshape(-1, block).max(axis=1)
+                rel = math.exp(-block / (0.08 * SR))
+                for i in range(1, len(env)):
+                    env[i] = max(env[i], env[i - 1] * rel)
+                thr = peak * 10 ** (thr_db / 20.0)
+                over = np.maximum(env / thr, 1.0)
+                gain = over ** (1.0 / ratio - 1.0)
+                gain = np.interp(np.arange(n), np.arange(len(env)) * block + block / 2, gain)
+                # Make-up to the same power as before: compression is then a
+                # change of density and not of level, so it can be added to a
+                # voice without remixing the piece. `makeup` dB goes on top.
+                before = float(np.mean(left ** 2 + right ** 2))
+                left, right = left * gain, right * gain
+                after = float(np.mean(left ** 2 + right ** 2)) or 1.0
+                level = math.sqrt(before / after) * 10 ** (
+                    float(params.get("makeup") or 0.0) / 20.0)
+                left, right = left * level, right * level
+        elif kind == "gain":
+            level = 10 ** (float(params["db"]) / 20.0)
+            left, right = left * level, right * level
+        elif kind == "crush":
+            step = max(1, int(round(SR / max(500.0, float(params.get("rate") or SR)))))
+            levels = 2.0 ** (max(2, int(params.get("bits") or 16)) - 1)
+            peak = float(max(np.abs(left).max(initial=0.0), np.abs(right).max(initial=0.0))) or 1.0
+            for buf in (left, right):
+                held = np.repeat(buf[::step], step)[:len(buf)]
+                buf[:len(held)] = np.round(held / peak * levels) / levels * peak
+    return left, right
+
+
+def _synth_numpy(notes, voices, pans, to_sec, total, gain, models=False, width=1.0,
+                 fx=None, sampled=None):
     """The fast path. Returns ``(left, right, (send_left, send_right))``; the
     sends are what goes to the room, which is less than everything for the
     instruments whose low end would turn a reverb tail to mud."""
@@ -380,17 +504,39 @@ def _synth_numpy(notes, voices, pans, to_sec, total, gain, models=False, width=1
         from . import synth
         links = synth.slur_links(notes, to_sec)
 
-    def place(sig, start, pan, send):
+    # A voice with processing on it is rendered to its own bus first, so the
+    # filter hears that voice alone; everyone else goes straight to the mix.
+    fx = fx or {}
+    sampled = sampled or {}
+    buses = {name: [np.zeros(total), np.zeros(total), 1.0] for name in fx}
+    # A voice played from the SoundFont arrives already rendered; it takes its
+    # place on a bus like any other and goes through the same processing.
+    for name, (s_left, s_right) in sampled.items():
+        send = 1.0
+        if models:
+            send = synth.send_of(voices[name].instrument)
+        buses[name] = [s_left * (gain / 0.72), s_right * (gain / 0.72), send]
+        fx.setdefault(name, [])
+
+    def place(sig, start, pan, send, voice=None):
         length = min(len(sig), total - start)
         if length <= 0:
             return
         gl, gr = _gains(max(-1.0, min(1.0, pan)))
+        if voice in buses:
+            bus = buses[voice]
+            bus[0][start:start + length] += sig[:length] * gl
+            bus[1][start:start + length] += sig[:length] * gr
+            bus[2] = send
+            return
         left[start:start + length] += sig[:length] * gl
         right[start:start + length] += sig[:length] * gr
         send_l[start:start + length] += sig[:length] * (gl * send)
         send_r[start:start + length] += sig[:length] * (gr * send)
 
     for n in notes:
+        if n.voice in sampled:
+            continue
         voice = voices[n.voice]
         if models and synth.has_model(voice.instrument):
             start = int(to_sec(n.start) * SR)
@@ -400,13 +546,13 @@ def _synth_numpy(notes, voices, pans, to_sec, total, gain, models=False, width=1
             ctx = synth.NoteCtx(
                 voice.instrument, n.voice, n.pitch, to_sec(n.start),
                 max(0.03, to_sec(n.end) - to_sec(n.start)), n.velocity, frm, onward,
-                (n.voice, n.start, n.pitch))
+                (n.voice, n.start, n.pitch), n.tune)
             seat = pans.get(n.voice, 0.0)
             # ``width`` is 0 for a mono render: a section is spread around its
             # seat only when there is a stage to spread it on.
             for sig, offset in synth.render_note(ctx, total - start):
                 place(sig * (gain / 0.72), start, seat + offset * width,
-                      synth.send_of(voice.instrument))
+                      synth.send_of(voice.instrument), n.voice)
             continue
         plan = _note_plan(n, voice, to_sec, total, gain)
         if plan is None:
@@ -436,7 +582,13 @@ def _synth_numpy(notes, voices, pans, to_sec, total, gain, models=False, width=1
                 parts = _partials_under(spec, freq)
                 norm = sum(a for _, a in parts) or 1.0
                 sig = sum((a / norm) * np.sin(2 * np.pi * p * cycles) for p, a in parts)
-        place(sig * env * amp, start, pans.get(n.voice, 0.0), 1.0)
+        place(sig * env * amp, start, pans.get(n.voice, 0.0), 1.0, n.voice)
+    for name, (bus_l, bus_r, send) in buses.items():
+        bus_l, bus_r = _apply_fx(bus_l, bus_r, fx[name])
+        left += bus_l
+        right += bus_r
+        send_l += bus_l * send
+        send_r += bus_r * send
     return left, right, (send_l, send_r)
 
 
@@ -484,7 +636,12 @@ def _reverb(left, right, decay: float, wet: float, send=None):
     return outs[0], outs[1]
 
 
-def _master(left, right, ceiling: float = 0.95):
+#: How many dB over the ceiling a mix may be pushed into the limiter, by style.
+#: Orchestral music keeps its peaks; a breakbeat track is meant to be a slab.
+MASTER_PUSH = {"electronic": 9.0}
+
+
+def _master(left, right, ceiling: float = 0.95, push: float = 3.5):
     """Hold the loudest moments under the ceiling without turning the rest down.
 
     Scaling a whole piece by its single highest peak lets one drum stroke make
@@ -497,7 +654,7 @@ def _master(left, right, ceiling: float = 0.95):
     peak = float(max(np.abs(left).max(initial=0.0), np.abs(right).max(initial=0.0)))
     if peak <= ceiling:
         return left, right
-    scale = min(1.0, ceiling / peak * 1.5)        # leave at most ~3.5 dB to the limiter
+    scale = min(1.0, ceiling / peak * 10 ** (push / 20.0))   # the rest is the limiter's
     left, right = left * scale, right * scale
     block = 128
     n = len(left)
@@ -530,7 +687,8 @@ def save_wav(piece: Piece, path: str | Path, rend: Render | None = None, *,
     left, right = synthesize(piece, rend, stereo=stereo, reverb=reverb, models=models)
     channels = 2 if stereo else 1
     if _np is not None:
-        l_arr, r_arr = _master(_np.asarray(left), _np.asarray(right))
+        l_arr, r_arr = _master(_np.asarray(left), _np.asarray(right),
+                               push=MASTER_PUSH.get(piece.style, 3.5))
         peak = float(max(_np.abs(l_arr).max(initial=0.0), _np.abs(r_arr).max(initial=0.0)))
         scale = 32767.0 * (0.95 / peak if peak > 0.95 else 1.0)
         frames = (_np.stack([l_arr, r_arr], 1) if stereo else l_arr[:, None])
@@ -607,6 +765,134 @@ def find_soundfont(path: str | os.PathLike | None = None) -> Path:
     return min(found, key=rank)
 
 
+def soundfont_available() -> bool:
+    """Whether a sampled render is possible here: FluidSynth and a bank."""
+    if shutil.which("fluidsynth") is None:
+        return False
+    try:
+        find_soundfont()
+    except FileNotFoundError:
+        return False
+    return True
+
+
+def sampled_stems(piece: Piece, notes, to_sec, total: int) -> dict[str, tuple]:
+    """Render the voices marked ``engine='soundfont'`` from the SoundFont.
+
+    Returns ``{voice: (left, right)}`` at the built-in render's level, ready for
+    that voice's bus. Notes are grouped by their ``tune``: each group is
+    rendered *slowed down* by its pitch ratio and then played back faster, so a
+    kit tuned up five semitones is shorter and higher exactly as a sped-up
+    break is, and a roll that climbs is a set of such renders.
+
+    Without FluidSynth or a bank this returns nothing and the voices fall back
+    to their instrument models, so a piece still renders everywhere.
+    """
+    np = _np
+    wanted = [v for v in piece.voices if v.engine == "soundfont" and not v.muted]
+    if not wanted or np is None:
+        return {}
+    if not soundfont_available():
+        import warnings
+        warnings.warn("voices with engine='soundfont' are being played by the "
+                      "instrument models: FluidSynth or a SoundFont is missing "
+                      "(`ms soundfont install`)", stacklevel=2)
+        return {}
+    from .listen import calibrate
+    from .midi import _chunk, _track
+    import struct
+    bank = find_soundfont()
+    cal = calibrate(bank)
+    pans = pan_positions(piece)
+    out: dict[str, tuple] = {}
+    rate = 960                      # ticks per second: 480 per quarter at 120 bpm
+    with tempfile.TemporaryDirectory() as tmp:
+        for v in wanted:
+            mine = [n for n in notes if n.voice == v.name]
+            if not mine:
+                continue
+            key = "kit" if v.inst.percussive else v.instrument
+            level = 10 ** ((cal.get("offset", 0.0) + cal["trim"].get(key, 0.0)) / 20.0)
+            curve = cal["curve"].get(key, SAMPLER_VELOCITY_CURVE)
+            groups: dict[float, list] = {}
+            for n in mine:
+                groups.setdefault(round(n.tune * 2) / 2, []).append(n)
+            # One FluidSynth run for the whole voice: every pitch group is laid
+            # end to end in a single file, each slowed by its own ratio, and
+            # cut apart again afterwards. Loading the bank is the slow part.
+            ch = 9 if v.inst.percussive else 0
+            events: list[tuple[int, bytes]] = [(0, bytes([0xC0 | ch, v.inst.program & 0x7F]))]
+            layout = []
+            cursor = 0.0
+            for tune, group in sorted(groups.items()):
+                ratio = 2.0 ** (tune / 12.0)
+                first = min(to_sec(n.start) for n in group)
+                last = max(to_sec(n.end) for n in group)
+                length = (last - first + 2.5) * ratio
+                ends: dict[int, int] = {}
+                for n in sorted(group, key=lambda n: n.start):
+                    on = int((cursor + (to_sec(n.start) - first) * ratio) * rate)
+                    off = max(on + 1, int((cursor + (to_sec(n.end) - first) * ratio) * rate))
+                    pitch = max(0, min(127, n.pitch))
+                    if ends.get(pitch, -1) > on:      # one note-off per pitch
+                        events.append((on, bytes([0x80 | ch, pitch, 0])))
+                    vel = max(1, min(127, round(127 * (max(1, n.velocity) / 127) ** curve)))
+                    events.append((on, bytes([0x90 | ch, pitch, vel])))
+                    events.append((off, bytes([0x80 | ch, pitch, 0])))
+                    ends[pitch] = off
+                layout.append((ratio, first, cursor, length))
+                cursor += length
+            meta = _track([(0, b"\xff\x51\x03" + struct.pack(">I", 500000)[1:])])
+            mid = Path(tmp) / "stem.mid"
+            mid.write_bytes(_chunk(b"MThd", struct.pack(">HHH", 1, 2, 480))
+                            + meta + _track(events))
+            wav = Path(tmp) / "stem.wav"
+            _fluidsynth(mid, wav, bank, gain=0.4, room=None)
+            with wave.open(str(wav), "rb") as w:
+                raw = np.frombuffer(w.readframes(w.getnframes()), dtype="<i2")
+                data = raw.reshape(-1, w.getnchannels()).astype(np.float64) / 32768.0
+            if data.shape[1] == 1:
+                data = np.repeat(data, 2, axis=1)
+            left, right = np.zeros(total), np.zeros(total)
+            gl, gr = (1.0, 1.0) if v.inst.percussive else \
+                tuple(g * math.sqrt(2) for g in _gains(pans.get(v.name, 0.0)))
+            for ratio, first, at, length in layout:
+                seg = data[int(at * SR):int((at + length) * SR)]
+                start = int(first * SR)
+                for x, buf, g in ((seg[:, 0], left, gl), (seg[:, 1], right, gr)):
+                    if ratio != 1.0 and len(x) > 1:
+                        x = np.interp(np.arange(0.0, len(x) - 1, ratio), np.arange(len(x)), x)
+                    k = min(total - start, len(x))
+                    if k > 0:
+                        buf[start:start + k] += x[:k] * (level * g)
+            out[v.name] = (left, right)
+    return out
+
+
+def _fluidsynth(mid: Path, out: Path, bank: Path, *, gain: float,
+                room: tuple[float, float] | None) -> None:
+    """One FluidSynth run: a MIDI file in, a WAV out. ``room`` is ``(size,
+    wet)`` or ``None`` for the sampler's bare output."""
+    exe = shutil.which("fluidsynth")
+    if exe is None:
+        raise RuntimeError("a SoundFont render needs FluidSynth on PATH "
+                           "(https://www.fluidsynth.org); the built-in render "
+                           "needs nothing -- leave --soundfont off to use it")
+    size, wet = room if room is not None else (1.0, 0.0)
+    cmd = [exe, "-ni", "-q", "-g", f"{gain:g}", "-r", str(SR), "-O", "s16",
+           "-T", "wav", "-F", str(out),
+           "-o", f"synth.reverb.active={1 if room is not None else 0}",
+           "-o", f"synth.reverb.room-size={min(1.0, 0.3 + size / 8):.2f}",
+           "-o", f"synth.reverb.level={min(1.0, wet * 1.4):.2f}",
+           "-o", "synth.reverb.damp=0.35", "-o", "synth.reverb.width=0.9",
+           "-o", "synth.chorus.active=0", "-o", "synth.polyphony=512",
+           str(bank), str(mid)]
+    done = subprocess.run(cmd, capture_output=True, text=True)
+    if done.returncode != 0 or not out.is_file():
+        raise RuntimeError(f"fluidsynth failed ({done.returncode}): "
+                           f"{(done.stderr or done.stdout).strip()[:400]}")
+
+
 def save_wav_soundfont(piece: Piece, path: str | Path, soundfont: str | Path | None = None,
                        rend: Render | None = None, *, gain: float = 0.4,
                        room: bool = True, normalize: bool = True,
@@ -614,53 +900,39 @@ def save_wav_soundfont(piece: Piece, path: str | Path, soundfont: str | Path | N
                        velocity_curve: float | None = None) -> Path:
     """Render through FluidSynth with sampled instruments.
 
+    The MIDI export is the single source of truth here -- the same notes, the
+    same tempo map and the same seating the synthesized render uses -- so the
+    two renders are one performance heard through two sets of instruments.
+    ``room=False`` and ``normalize=False`` give the sampler's bare output, which
+    is what a measurement wants and a listener does not.
+
     ``balance`` matches the bank to the built-in models, instrument by
     instrument: how loud each one is, and how much louder it gets when played
     harder (see ``listen.calibrate``). Every bank records its violin, horn and
     strings at its own levels, and a piece balanced against one set comes out
     with the tune buried in another. Needs numpy; without it a single fixed
     velocity curve is used for everything.
-
-    The MIDI export is the single source of truth here -- the same notes, the
-    same tempo map and the same seating the synthesized render uses -- so the
-    two renders are one performance heard through two sets of instruments.
-    ``room=False`` and ``normalize=False`` give the sampler's bare output, which
-    is what a measurement wants and a listener does not.
     """
     from .midi import save_midi
-    exe = shutil.which("fluidsynth")
-    if exe is None:
-        raise RuntimeError("a SoundFont render needs FluidSynth on PATH "
-                           "(https://www.fluidsynth.org); the built-in render "
-                           "needs nothing -- leave --soundfont off to use it")
     sf = find_soundfont(soundfont)
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    size, wet = ROOMS.get(piece.style, ROOMS["freeform"])
     trims = None
     curve: float | dict = (SAMPLER_VELOCITY_CURVE if velocity_curve is None
                            else velocity_curve)
     if balance and has_fast_path():
         from .listen import calibrate
         cal = calibrate(sf)
-        trims = {v.name: cal["trim"].get(v.instrument, 0.0) for v in piece.voices}
-        curve = {v.name: cal["curve"].get(v.instrument, SAMPLER_VELOCITY_CURVE)
-                 for v in piece.voices}
+        # Every drum shares the one drum channel, so they share the kit's figures.
+        key = {v.name: "kit" if v.inst.percussive else v.instrument for v in piece.voices}
+        trims = {name: cal["trim"].get(k, 0.0) for name, k in key.items()}
+        curve = {name: cal["curve"].get(k, SAMPLER_VELOCITY_CURVE)
+                 for name, k in key.items()}
     with tempfile.TemporaryDirectory() as tmp:
         mid = save_midi(piece, Path(tmp) / "piece.mid", rend,
                         velocity_curve=curve, trims=trims)
-        cmd = [exe, "-ni", "-q", "-g", f"{gain:g}", "-r", str(SR), "-O", "s16",
-               "-T", "wav", "-F", str(out),
-               "-o", f"synth.reverb.active={1 if room else 0}",
-               "-o", f"synth.reverb.room-size={min(1.0, 0.3 + size / 8):.2f}",
-               "-o", f"synth.reverb.level={min(1.0, wet * 1.4):.2f}",
-               "-o", "synth.reverb.damp=0.35", "-o", "synth.reverb.width=0.9",
-               "-o", "synth.chorus.active=0", "-o", "synth.polyphony=512",
-               str(sf), str(mid)]
-        done = subprocess.run(cmd, capture_output=True, text=True)
-        if done.returncode != 0 or not out.is_file():
-            raise RuntimeError(f"fluidsynth failed ({done.returncode}): "
-                               f"{(done.stderr or done.stdout).strip()[:400]}")
+        _fluidsynth(mid, out, sf, gain=gain,
+                    room=ROOMS.get(piece.style, ROOMS["freeform"]) if room else None)
     if normalize:
         _normalize_wav(out)
     return out

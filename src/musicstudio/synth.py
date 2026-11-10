@@ -225,9 +225,25 @@ class Bell:
 
 @dataclass(frozen=True)
 class Drum:
+    #: One drum, or ``"kit"``: then each note's key says which drum it is.
     kind: str = "snare"
     level: float = 1.0
     send: float = 0.6
+    #: ``"acoustic"`` or ``"machine"`` -- the 808's sine kick and tin hats.
+    flavour: str = "acoustic"
+
+
+#: General MIDI key -> ``(drum, level, pan)`` inside a kit. The pans are a
+#: drummer's-eye layout, narrow: a kit is one instrument, not a stereo effect.
+KIT: dict[int, tuple[str, float, float]] = {
+    36: ("kick", 1.5, 0.0), 35: ("kick", 1.5, 0.0), 38: ("snare", 1.0, 0.0),
+    40: ("snare", 1.0, 0.0), 37: ("rim", 0.8, 0.05), 39: ("clap", 0.9, 0.0),
+    42: ("hat", 0.5, 0.22), 44: ("pedal", 0.4, 0.22), 46: ("open", 0.55, 0.22),
+    45: ("tom_lo", 1.2, 0.3), 41: ("tom_lo", 1.2, 0.3), 47: ("tom_mid", 1.1, 0.1),
+    48: ("tom_mid", 1.1, 0.1), 50: ("tom_hi", 1.0, -0.15), 51: ("ride", 0.6, -0.3),
+    53: ("bell", 0.6, -0.3), 49: ("crash", 1.2, -0.25), 55: ("splash", 0.9, 0.3),
+    54: ("tambourine", 0.55, 0.3), 56: ("cow", 0.6, -0.1), 70: ("shaker", 0.4, 0.35),
+}
 
 
 def _strings(**kw) -> Sustained:
@@ -375,6 +391,41 @@ MODELS: dict[str, Sustained | Plucked | Bell | Drum] = {
     "crash": Drum("crash", level=1.3, send=0.8),
     "taiko": Drum("taiko", level=1.7, send=0.8),
     "tambourine": Drum("tambourine", level=0.6),
+    "kit": Drum("kit", level=1.25, send=0.45),
+    "kit_room": Drum("kit", level=1.3, send=0.7),
+    "kit_power": Drum("kit", level=1.45, send=0.55),
+    "kit_jazz": Drum("kit", level=1.05, send=0.55),
+    "kit_brush": Drum("kit", level=0.85, send=0.55),
+    "kit_electronic": Drum("kit", level=1.25, send=0.3, flavour="machine"),
+    "kit_808": Drum("kit", level=1.25, send=0.3, flavour="machine"),
+    # Many saws, far enough apart to beat against each other: the detuning is
+    # the sound, so there is no vibrato and almost no envelope.
+    "supersaw": Sustained(dark=1.05, bright=0.85, lowpass=4200, lowpass_bright=7000,
+                          attack=0.012, release=0.14, bloom=0.02, settle=1.0,
+                          drift=4.0, glide=0.04, unison=7, detune=26.0, spread=0.5,
+                          level=0.9, send=0.5),
+    # -- basses ------------------------------------------------------------
+    # A sub is a sine with just enough second harmonic to be found on small
+    # speakers; it slides between slurred notes, which is half its character.
+    "sub_bass": Sustained(dark=5.0, bright=2.6, lowpass=400, attack=0.012,
+                          release=0.09, bloom=0.02, settle=0.97, drift=0.3,
+                          glide=0.09, level=0.9, send=0.1),
+    # Three saws a few cents apart under a low filter: the slow phasing between
+    # them is the "reese" growl, and it needs no vibrato to move.
+    "reese_bass": Sustained(dark=1.2, bright=0.9, lowpass=700, lowpass_bright=1700,
+                            attack=0.02, release=0.12, bloom=0.25, settle=1.0,
+                            drift=1.5, glide=0.05, unison=3, detune=22.0, spread=0.12,
+                            level=0.8, send=0.15),
+    "electric_bass": Plucked(slope=0.95, position=0.22, lowpass=3000,
+                             formants=((90, 0.5, 0.8), (700, 0.6, 0.4)), decay=2.2,
+                             decay_track=0.3, damping=0.55, vel_tilt=0.9, release=0.07,
+                             click=0.12, click_band=(600.0, 3000.0), thump=0.1,
+                             level=0.9, send=0.25),
+    "upright_bass": Plucked(slope=1.45, position=0.3, lowpass=1500,
+                            formants=((100, 0.4, 1.2), (220, 0.35, 0.9)), decay=1.1,
+                            decay_track=0.3, damping=0.9, vel_tilt=0.7, release=0.1,
+                            click=0.08, click_band=(400.0, 2200.0), thump=0.3,
+                            level=0.95, send=0.3),
 }
 
 #: Base amplitude for a unit-RMS table, set so a mezzo-forte note sits where the
@@ -411,6 +462,8 @@ class NoteCtx:
     #: Whether the next note takes over without a gap.
     slur_out: bool = False
     key: tuple = field(default_factory=tuple)
+    #: Semitones a drum stroke is played away from its own pitch.
+    tune: float = 0.0
 
     @property
     def vel(self) -> float:
@@ -475,7 +528,7 @@ def render_note(ctx: NoteCtx, limit: int) -> list[tuple[np.ndarray, float]]:
         return [(_plucked(ctx, model, limit), 0.0)]
     if isinstance(model, Bell):
         return [(_bell(ctx, model, limit), 0.0)]
-    return [(_drum(ctx, model, limit), 0.0)]
+    return [_drum(ctx, model, limit)]
 
 
 def _amp(ctx: NoteCtx, level: float) -> float:
@@ -661,9 +714,14 @@ def _bell(ctx: NoteCtx, m: Bell, limit: int) -> np.ndarray:
             continue
         k = min(n, int(8.0 * base * life * SR) + 1)
         phase = (np.cumsum(f * bend[:k]) / SR if bend is not None else f * t[:k])
+        # Phase follows the clock, not the note: a bar struck again while it
+        # is still ringing then adds to itself. With a random phase per stroke
+        # the second could cancel the first, and `hear` found repeated notes
+        # that came out 14 dB down.
+        phase = phase + (f * ctx.start) % 1.0
         # A soft stroke excites the fundamental and little else.
         out[:k] += (amp * v ** (0.45 * i) / norm * np.exp(-t[:k] / (base * life))
-                    * np.sin(2 * np.pi * (phase + rng.uniform(0, 1))))
+                    * np.sin(2 * np.pi * phase))
     k = min(n, int(0.0012 * SR))
     out[:k] *= np.arange(k) / k
     if m.tremolo:
@@ -683,13 +741,14 @@ def _bell(ctx: NoteCtx, m: Bell, limit: int) -> np.ndarray:
     return out * _amp(ctx, m.level) * 1.0
 
 
-def _hit(kind: str, variant: int) -> np.ndarray:
+def _hit(kind: str, variant: int, flavour: str = "acoustic") -> np.ndarray:
     """One drum stroke at unit level, cached. Two variants, so repeated hits
     are not the same sample twice -- the 'machine gun' that gives loops away."""
-    key = (kind, variant)
+    key = (kind, variant, flavour)
     if key in _hits:
         return _hits[key]
-    rng = _rng("drum", kind, variant)
+    rng = _rng("drum", kind, variant, flavour)
+    machine = flavour == "machine"
 
     def noise(seconds, lo, hi):
         n = int(seconds * SR)
@@ -704,7 +763,22 @@ def _hit(kind: str, variant: int) -> np.ndarray:
         f = f_end + (f_start - f_end) * np.exp(-tt / tau)
         return np.sin(2 * np.pi * np.cumsum(f) / SR), tt
 
-    if kind == "kick":
+    def metal(seconds, lo, hi, count, life):
+        """A cluster of inharmonic modes: what a cymbal is, as far as an ear cares."""
+        tt = np.arange(int(seconds * SR)) / SR
+        out = np.zeros(len(tt))
+        for fm in rng.uniform(lo, hi, count):
+            out += np.sin(2 * np.pi * fm * tt + rng.uniform(0, 6.28)) \
+                * np.exp(-tt / rng.uniform(life * 0.3, life))
+        return out / math.sqrt(count), tt
+
+    if kind == "kick" and machine:
+        # The 808 kick is nearly all sub: a sine that barely drops and rings on.
+        body, tt = sweep(0.9, 110.0, 47.0, 0.022)
+        out = body * np.exp(-tt / 0.32)
+        c = int(0.01 * SR)
+        out[:c] += noise(0.01, 1500.0, 7000.0) * np.exp(-tt[:c] / 0.0015) * 0.3
+    elif kind == "kick":
         body, tt = sweep(0.5, 150.0, 48.0, 0.035)
         out = body * np.exp(-tt / 0.16)
         c = int(0.02 * SR)
@@ -715,38 +789,71 @@ def _hit(kind: str, variant: int) -> np.ndarray:
         out = body * np.exp(-tt / 0.42) + 0.35 * second * np.exp(-tt / 0.2)
         c = int(0.15 * SR)
         out[:c] += noise(0.15, 150.0, 1800.0) * np.exp(-tt[:c] / 0.022) * 0.7
+    elif kind.startswith("tom"):
+        base = {"tom_lo": 82.0, "tom_mid": 118.0, "tom_hi": 165.0}[kind]
+        body, tt = sweep(0.7, base * 1.5, base, 0.03)
+        second, _ = sweep(0.7, base * 2.3, base * 1.55, 0.03)
+        out = body * np.exp(-tt / 0.2) + 0.3 * second * np.exp(-tt / 0.09)
+        c = int(0.06 * SR)
+        out[:c] += noise(0.06, 300.0, 4000.0) * np.exp(-tt[:c] / 0.008) * 0.45
     elif kind == "snare":
         tt = np.arange(int(0.4 * SR)) / SR
         det = rng.uniform(0.98, 1.02)
-        out = (np.sin(2 * np.pi * 186.0 * det * tt) + 0.6 * np.sin(2 * np.pi * 332.0 * det * tt)) \
-            * np.exp(-tt / 0.055) * 0.7
-        out += noise(0.4, 1200.0, 9500.0) * np.exp(-tt / 0.095) * 0.75
-    elif kind in ("hat", "tambourine"):
-        seconds = 0.14 if kind == "hat" else 0.35
+        tone = np.sin(2 * np.pi * 186.0 * det * tt) + 0.6 * np.sin(2 * np.pi * 332.0 * det * tt)
+        if machine:
+            out = tone * np.exp(-tt / 0.03) * 0.9 \
+                + noise(0.4, 2500.0, 11000.0) * np.exp(-tt / 0.07) * 0.6
+        else:
+            out = tone * np.exp(-tt / 0.055) * 0.7 \
+                + noise(0.4, 1200.0, 9500.0) * np.exp(-tt / 0.095) * 0.75
+    elif kind == "rim":
+        tt = np.arange(int(0.12 * SR)) / SR
+        out = (np.sin(2 * np.pi * 1720.0 * tt) + 0.7 * np.sin(2 * np.pi * 760.0 * tt)) \
+            * np.exp(-tt / 0.012) + noise(0.12, 2000.0, 8000.0) * np.exp(-tt / 0.006) * 0.5
+    elif kind == "clap":
+        # Several hands, not quite together, and then the room.
+        tt = np.arange(int(0.35 * SR)) / SR
+        body = noise(0.35, 900.0, 4500.0)
+        out = body * np.exp(-tt / 0.09) * 0.5
+        for delay in (0.0, 0.011, 0.021, 0.03):
+            d = int(delay * SR)
+            out[d:] += body[:len(out) - d] * np.exp(-tt[:len(out) - d] / 0.006)
+    elif kind in ("hat", "pedal", "open", "tambourine", "shaker"):
+        seconds = {"hat": 0.14, "pedal": 0.09, "open": 0.55, "tambourine": 0.35,
+                   "shaker": 0.12}[kind]
+        life = {"hat": 0.028, "pedal": 0.016, "open": 0.16, "tambourine": 0.07,
+                "shaker": 0.035}[kind]
         tt = np.arange(int(seconds * SR)) / SR
-        out = noise(seconds, 6500.0, 14000.0) * np.exp(-tt / (0.028 if kind == "hat" else 0.07))
+        out = noise(seconds, 6500.0, 14000.0) * np.exp(-tt / life)
+        if machine and kind in ("hat", "open", "pedal"):
+            # Six square-ish oscillators at fixed odd ratios: the tin of a machine hat.
+            for fm in (2050.0, 3080.0, 4170.0, 5430.0, 6790.0, 8210.0):
+                out += 0.35 * np.sign(np.sin(2 * np.pi * fm * tt)) * np.exp(-tt / life)
+        if kind == "shaker":
+            out *= np.minimum(1.0, tt / 0.012)         # the beads take a moment
         if kind == "tambourine":
             # Jingles settle after the hand does: a few late, smaller rattles.
             for delay in (0.022, 0.05, 0.085):
                 d = int(delay * rng.uniform(0.85, 1.15) * SR)
                 out[d:] += 0.45 * noise(seconds, 7000.0, 13000.0)[:len(out) - d] \
                     * np.exp(-tt[:len(out) - d] / 0.045)
-    else:                                           # ride, crash
-        seconds = 1.6 if kind == "ride" else 2.4
-        tt = np.arange(int(seconds * SR)) / SR
-        # Cymbals are dozens of inharmonic modes; a cluster of detuned partials
-        # under shaped noise is the cheapest thing that does not sound like hiss.
-        out = np.zeros(len(tt))
-        modes = rng.uniform(2800.0, 9500.0, 14) if kind == "ride" else rng.uniform(1800.0, 11000.0, 22)
-        for fm in modes:
-            out += np.sin(2 * np.pi * fm * tt + rng.uniform(0, 6.28)) \
-                * np.exp(-tt / rng.uniform(0.25, 0.9 if kind == "ride" else 1.3))
-        out /= math.sqrt(len(modes))
-        if kind == "ride":
-            out += 1.2 * noise(seconds, 5000.0, 12000.0) * np.exp(-tt / 0.3)
-            out[:int(0.03 * SR)] *= 1.8
-        else:
-            out = 0.6 * out + 1.6 * noise(seconds, 2500.0, 12000.0) * np.exp(-tt / 0.55)
+    elif kind == "cow":
+        tt = np.arange(int(0.3 * SR)) / SR
+        out = (np.sign(np.sin(2 * np.pi * 540.0 * tt)) + np.sign(np.sin(2 * np.pi * 800.0 * tt))) \
+            * np.exp(-tt / 0.07)
+    elif kind == "bell":
+        out, tt = metal(1.2, 2500.0, 6500.0, 8, 0.6)
+        out += 0.8 * np.sin(2 * np.pi * 3100.0 * tt) * np.exp(-tt / 0.35)
+    elif kind == "ride":
+        out, tt = metal(1.6, 2800.0, 9500.0, 14, 0.9)
+        out += 1.2 * noise(1.6, 5000.0, 12000.0) * np.exp(-tt / 0.3)
+        out[:int(0.03 * SR)] *= 1.8
+    elif kind == "splash":
+        out, tt = metal(0.9, 3000.0, 12000.0, 18, 0.4)
+        out = 0.6 * out + 1.6 * noise(0.9, 4000.0, 13000.0) * np.exp(-tt / 0.2)
+    else:                                           # crash
+        out, tt = metal(2.4, 1800.0, 11000.0, 22, 1.3)
+        out = 0.6 * out + 1.6 * noise(2.4, 2500.0, 12000.0) * np.exp(-tt / 0.55)
     k = min(len(out), 32)
     out[:k] *= np.arange(k) / k
     peak = float(np.abs(out).max()) or 1.0
@@ -754,12 +861,19 @@ def _hit(kind: str, variant: int) -> np.ndarray:
     return _hits[key]
 
 
-def _drum(ctx: NoteCtx, m: Drum, limit: int) -> np.ndarray:
+def _drum(ctx: NoteCtx, m: Drum, limit: int) -> tuple[np.ndarray, float]:
     rng = _rng(*ctx.key)
-    hit = _hit(m.kind, int(rng.integers(0, 2)))
+    kind, level, pan = (KIT.get(ctx.pitch, ("snare", 1.0, 0.0)) if m.kind == "kit"
+                        else (m.kind, 1.0, 0.0))
+    hit = _hit(kind, int(rng.integers(0, 2)), m.flavour)
+    if ctx.tune:
+        # Pitching a drum is playing it at another speed: higher is shorter.
+        ratio = 2.0 ** (ctx.tune / 12.0)
+        at = np.arange(0.0, len(hit) - 1, ratio)
+        hit = np.interp(at, np.arange(len(hit)), hit)
     n = min(len(hit), limit)
     if n <= 8:
-        return np.zeros(0)
+        return np.zeros(0), pan
     v = ctx.vel
     out = hit[:n].copy()
     # A soft stroke is duller as well as quieter: fade the first millisecond in
@@ -767,4 +881,4 @@ def _drum(ctx: NoteCtx, m: Drum, limit: int) -> np.ndarray:
     if v < 0.6:
         k = min(n, int((0.6 - v) * 0.006 * SR) + 1)
         out[:k] *= np.linspace(0.0, 1.0, k) ** 2
-    return out * (LEVEL * m.level * 1.6 * v ** 1.5 * rng.uniform(0.93, 1.05))
+    return out * (LEVEL * m.level * level * 1.6 * v ** 1.5 * rng.uniform(0.93, 1.05)), pan

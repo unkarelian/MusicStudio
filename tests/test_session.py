@@ -582,3 +582,236 @@ def test_sampler_trims_and_curves_reach_the_midi_file():
     at = plain.index(bytes([0x90])) + 2
     assert lifted[at] > plain[at]
     assert to_bytes(p, velocity_curve={"someone_else": 0.5}) == plain
+
+
+# --------------------------------------------------------------------------
+# kits, chopping, basses, processing
+# --------------------------------------------------------------------------
+
+from musicstudio import lint as run_lint  # noqa: E402
+from musicstudio.ensemble import KIT_DRUMS  # noqa: E402
+
+AMEN = {"kick": "x.x.......xx....", "snare": "....x..o.o..x..o", "hat": "x.x.x.x.x.x.x.x."}
+
+
+def _groove(**beat) -> Piece:
+    p = Piece("brk", "A minor", tempo=160, style="electronic")
+    p.sections.append(Section("A", 2))
+    p.voices.append(Voice("drums", "kit", "percussion"))
+    p.add_op("drums", "beat", id="b", at="1", bars=2, **{"lanes": AMEN, **beat})
+    return p
+
+
+def test_a_beat_is_one_voice_playing_a_whole_kit():
+    notes = render(_groove()).notes
+    by_drum = {name: [n for n in notes if n.pitch == key] for name, key in KIT_DRUMS.items()}
+    assert len(by_drum["kick"]) == 8 and len(by_drum["hat"]) == 16
+    assert [n.start for n in by_drum["kick"]][:4] == [0, 240, 1200, 1320]
+    snare = sorted(by_drum["snare"], key=lambda n: n.start)
+    assert snare[1].velocity < snare[0].velocity * 0.6           # 'o' is a ghost
+    assert all(n.percussive for n in notes)
+    # Kick and hat together is one drummer, not a polyphony error.
+    assert "polyphony_exceeded" not in {f.code for f in run_lint(_groove())}
+    from musicstudio.midi import to_bytes
+    kit808 = _groove()
+    kit808.get_voice("drums").instrument = "kit_808"
+    assert bytes([0xC9, 25]) in to_bytes(kit808)                  # the kit, on the drum channel
+
+
+def test_beat_and_groove_say_which_of_them_a_voice_wants():
+    p = _groove()
+    with pytest.raises(ValueError, match="beat"):
+        p.add_op("drums", "groove", id="g", at="1", bars=1, pattern="x...")
+        render(p)
+    p.remove_op("g")
+    p.voices.append(Voice("sn", "snare", "percussion"))
+    with pytest.raises(ValueError, match="kit"):
+        p.add_op("sn", "beat", id="b2", at="1", bars=1, lanes=AMEN)
+        render(p)
+    p.remove_op("b2")
+    with pytest.raises(ValueError, match="unknown drum"):
+        p.update_op("b", lanes={"gong": "x..."})
+        render(p)
+
+
+def _hits(p: Piece) -> list[tuple[int, int]]:
+    return sorted((n.start, n.pitch) for n in render(p).notes)
+
+
+def test_chop_reorders_slices_and_the_plain_order_changes_nothing():
+    plain = _hits(_groove())
+    p = _groove()
+    p.add_op("drums", "chop", id="c", **{"from": "1", "until": "3"},
+             slices=8, order="0 1 2 3 4 5 6 7")
+    assert _hits(p) == plain
+    # Slot 4 takes slice 2: the snare's backbeat lands where slice 4 was.
+    p.update_op("c", order="0 1 2 3 2 5 6 7")
+    moved = _hits(p)
+    assert (960, KIT_DRUMS["snare"]) in moved and moved != plain
+    # Silence, and leaving a slot as written.
+    p.update_op("c", order=". _ _ _ _ _ _ _")
+    assert [h for h in _hits(p) if h[0] < 240] == [] \
+        and [h for h in _hits(p) if 240 <= h[0] < 1920] == [h for h in plain if 240 <= h[0] < 1920]
+    # Only the span is touched.
+    p.update_op("c", order=".", **{"until": "2"})
+    assert [h for h in _hits(p) if h[0] >= 1920] == [h for h in plain if h[0] >= 1920]
+    assert [h for h in _hits(p) if h[0] < 1920] == []
+
+
+def test_chop_retriggers_pitches_and_reverses():
+    p = _groove()
+    p.add_op("drums", "chop", id="c", **{"from": "1", "until": "2"}, slices=8,
+             order="0*2 . . . . . . .")
+    first = [n for n in render(p).notes if n.start < 240]
+    # Slice 0 holds a kick and a hat on its first sixteenth; its first half, twice.
+    assert sorted(n.start for n in first) == [0, 0, 120, 120]
+    p.update_op("c", order="0^7 . . . . . . .")
+    assert {n.tune for n in render(p).notes if n.start < 240} == {7.0}
+    p.update_op("c", order="1r . . . . . . .")
+    # Slice 1 has its kick and hat on its first sixteenth; backwards, on its last.
+    assert {n.start for n in render(p).notes if n.start < 240} == {120}
+    with pytest.raises(ValueError, match="chop token"):
+        p.update_op("c", order="9")
+        render(p)
+
+
+def test_processing_ops_shape_the_sound_and_leave_the_notes_alone():
+    np = pytest.importorskip("numpy")
+    p = Piece("fx", "A minor", tempo=120, style="electronic")
+    p.sections.append(Section("A", 2))
+    p.voices.append(Voice("pad", "synth_lead", "melody", pan=0.0))
+    p.add_op("pad", "phrase", id="f", steps="0:1/1 | 0:1/1", at="1", octave=3)
+    before = render(p).notes
+    dry, _ = audio.synthesize(p, reverb=False)
+
+    def high_share(x, a, b):
+        seg = x[int(a * audio.SR):int(b * audio.SR)]
+        spec = np.abs(np.fft.rfft(seg)) ** 2
+        f = np.fft.rfftfreq(len(seg), 1 / audio.SR)
+        return spec[f > 1500].sum() / spec.sum()
+
+    p.add_op("pad", "filter", id="lp", start=250, end=250, **{"from": "1", "until": "2"})
+    assert render(p).notes == before
+    wet, _ = audio.synthesize(p, reverb=False)
+    assert len(wet) == len(dry)
+    assert high_share(wet, 0.3, 1.7) < high_share(dry, 0.3, 1.7) * 0.05      # bar 1: closed
+    assert high_share(wet, 2.3, 3.7) == pytest.approx(high_share(dry, 2.3, 3.7), rel=0.05)
+
+    p.remove_op("lp")
+    p.voices[0].instrument = "sub_bass"
+    clean, _ = audio.synthesize(p, reverb=False)
+    p.add_op("pad", "drive", id="d", amount=1.0)
+    driven, _ = audio.synthesize(p, reverb=False)
+    assert high_share(driven, 0.3, 1.7) > high_share(clean, 0.3, 1.7) * 20   # harmonics appear
+    assert np.abs(driven).max() == pytest.approx(np.abs(clean).max(), rel=0.02)
+    p.update_op("d", amount=0.0)
+    p.add_op("pad", "crush", id="c", rate=4000, bits=6)
+    crushed, _ = audio.synthesize(p, reverb=False)
+    assert high_share(crushed, 0.3, 1.7) > high_share(clean, 0.3, 1.7) * 5
+    with pytest.raises(ValueError, match="filter mode"):
+        p.add_op("pad", "filter", id="bad", start=200, mode="bandpass")
+        audio.synthesize(p, reverb=False)
+
+
+def test_a_sub_bass_is_nearly_all_fundamental_and_a_reese_is_not():
+    np = pytest.importorskip("numpy")
+    from musicstudio import synth
+
+    def low_share(name):
+        ctx = synth.NoteCtx(name, "b", 33, 0.0, 1.0, 90, None, False, ("b", 0, 33))
+        x = sum(sig for sig, _ in synth.render_note(ctx, 10 ** 7))
+        spec = np.abs(np.fft.rfft(x)) ** 2
+        f = np.fft.rfftfreq(len(x), 1 / synth.SR)
+        return spec[f < 100].sum() / spec.sum()
+
+    assert low_share("sub_bass") > 0.95 > low_share("reese_bass")
+    assert low_share("electric_bass") < low_share("sub_bass")
+
+
+def test_a_tuned_drum_is_shorter_and_every_kit_drum_sounds():
+    np = pytest.importorskip("numpy")
+    from musicstudio import synth
+
+    def stroke(inst, key, tune=0.0):
+        ctx = synth.NoteCtx(inst, "d", key, 0.0, 0.1, 100, None, False, ("d", 0, key), tune)
+        return synth.render_note(ctx, 10 ** 7)[0][0]
+
+    assert len(stroke("kit", 38, 7.0)) < len(stroke("kit", 38)) * 0.7
+    for inst in ("kit", "kit_808"):
+        for key in set(KIT_DRUMS.values()):
+            x = stroke(inst, key)
+            assert np.isfinite(x).all() and np.abs(x).max() > 0.01, (inst, key)
+    assert not np.array_equal(stroke("kit", 36), stroke("kit_808", 36))
+
+
+def test_a_roll_can_climb_and_a_chopped_line_stays_one_note_at_a_time():
+    p = _groove()
+    p.add_op("drums", "chop", id="c", **{"from": "1", "until": "2"}, slices=4,
+             order="1*4^0>12 . . .")
+    roll = sorted((n for n in render(p).notes if n.start < 480 and n.pitch == 38),
+                  key=lambda n: n.start)
+    assert [n.tune for n in roll] == [0.0, 4.0, 8.0, 12.0]
+    assert [n.start for n in roll] == [0, 120, 240, 360]
+    # A monophonic line that is stuttered must not overlap itself.
+    q = _line("0:1/2 2:1/2 | 4:1/1")
+    q.add_op("v", "chop", id="c", **{"from": "1", "until": "2"}, slices=4,
+             order="0*2 0*4 2 _")
+    line = sorted(render(q).notes, key=lambda n: n.start)
+    assert all(a.end <= b.start for a, b in zip(line, line[1:]))
+    assert "polyphony_exceeded" not in {f.code for f in run_lint(q)}
+
+
+def _line(steps: str) -> Piece:
+    p = Piece("mono", "C major", tempo=100, style="electronic")
+    p.sections.append(Section("A", 2))
+    p.voices.append(Voice("v", "synth_lead", "melody", octave=4))
+    p.add_op("v", "phrase", id="f", steps=steps, at="1", octave=4)
+    return p
+
+
+def test_compression_makes_a_voice_denser_and_not_louder_and_gain_is_a_fader():
+    np = pytest.importorskip("numpy")
+    plain, _ = audio.synthesize(_groove(), reverb=False)
+    p = _groove()
+    p.add_op("drums", "compress", id="k", ratio=8, threshold=-24)
+    squashed, _ = audio.synthesize(p, reverb=False)
+
+    def power(x):
+        return float(np.mean(np.asarray(x) ** 2))
+
+    def crest(x):
+        return float(np.abs(x).max() / np.sqrt(power(x)))
+
+    assert power(squashed) == pytest.approx(power(plain), rel=0.02)
+    assert crest(squashed) < crest(plain) * 0.75
+    p.add_op("drums", "gain", id="g", db=-6)
+    quieter, _ = audio.synthesize(p, reverb=False)
+    assert power(quieter) == pytest.approx(power(squashed) / 10 ** 0.6, rel=0.02)
+    assert render(p).notes == render(_groove()).notes        # sound, not notes
+
+
+def test_a_voice_marked_for_the_soundfont_falls_back_when_there_is_none(monkeypatch):
+    pytest.importorskip("numpy")
+    p = _groove()
+    modelled, _ = audio.synthesize(p, reverb=False)
+    p.get_voice("drums").engine = "soundfont"
+    assert Piece.from_json(p.to_json()).get_voice("drums").engine == "soundfont"
+    monkeypatch.setattr(audio, "soundfont_available", lambda: False)
+    with pytest.warns(UserWarning, match="instrument models"):
+        fallback, _ = audio.synthesize(p, reverb=False)
+    assert (fallback == modelled).all()
+    with pytest.raises(ValueError, match="engine"):
+        Voice("x", "kit", "percussion", engine="tape")
+
+
+def test_time_scale_stretches_the_midi_file_without_touching_a_note():
+    from musicstudio.midi import to_bytes
+    p = _tiny()
+    plain, slow = to_bytes(p), to_bytes(p, time_scale=1.5)
+    assert struct_division(plain) == 480 and struct_division(slow) == 320
+    assert plain[14:] == slow[14:]                          # every event identical
+
+
+def struct_division(data: bytes) -> int:
+    import struct
+    return struct.unpack(">H", data[12:14])[0]

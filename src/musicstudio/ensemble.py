@@ -124,7 +124,21 @@ INSTRUMENTS: dict[str, Instrument] = {i.name: i for i in [
     # -- synth ------------------------------------------------------------
     _i("synth_pad", "synth", "C1", "C7", "C2", "C6", 89, polyphony=8, timbre="pad"),
     _i("synth_lead", "synth", "C2", "C7", "C4", "C6", 81, polyphony=1, timbre="saw"),
+    _i("supersaw", "synth", "C1", "C7", "C2", "C6", 81, polyphony=4, timbre="saw",
+       notes=("Seven saws spread a quarter-tone wide: thick, harsh and wide. The "
+              "opposite of a chip lead -- it sounds like a wall, not a whistle.",)),
     _i("synth_bass", "synth", "C0", "C4", "C1", "C3", 38, polyphony=1, timbre="saw"),
+    _i("sub_bass", "synth", "C0", "C3", "D1", "G2", 39, polyphony=1, timbre="tri",
+       notes=("Nearly a sine: felt more than heard, and inaudible on small speakers. "
+              "Keep it between D1 and G2 and let something brighter carry the line.",)),
+    _i("reese_bass", "synth", "C0", "C4", "E1", "C3", 38, polyphony=1, timbre="saw",
+       notes=("Detuned saws under a low filter: it growls and slowly phases. A long "
+              "note is its idiom; it smears fast lines.",)),
+    _i("electric_bass", "plucked", "E1", "G4", "E1", "G3", 33, polyphony=1, timbre="pluck",
+       notes=("Fingered bass guitar. Notes speak at once and die away: write the "
+              "rests, they are half the groove.",)),
+    _i("upright_bass", "plucked", "E1", "G4", "E1", "D3", 32, polyphony=1, timbre="pluck",
+       notes=("Plucked double bass. Short sustain and a woody thump; walk it.",)),
     # -- chip -------------------------------------------------------------
     _i("pulse", "chip", "C1", "C8", "C3", "C6", 80, polyphony=1, timbre="pulse50"),
     _i("pulse25", "chip", "C1", "C8", "C3", "C6", 80, polyphony=1, timbre="pulse25"),
@@ -140,7 +154,37 @@ INSTRUMENTS: dict[str, Instrument] = {i.name: i for i in [
     _i("taiko", "drums", "A1", "A1", "A1", "A1", 0, timbre="noise", percussive=True, drum_key=41),
     _i("tambourine", "drums", "F#2", "F#2", "F#2", "F#2", 0, timbre="noise", percussive=True, drum_key=54),
     _i("noise", "chip", "D1", "D1", "D1", "D1", 0, timbre="noise", percussive=True, drum_key=38),
+    # -- drum kits: one player, the whole set --------------------------------
+    # The program number is the General MIDI kit, sent on the drum channel.
+    _i("kit", "drums", "B0", "B5", "B0", "B5", 0, polyphony=8, timbre="noise",
+       percussive=True,
+       notes=("A whole kit as one voice. Write it with the `beat` op, one lane per "
+              "drum; rearrange it with `chop`.",)),
+    _i("kit_room", "drums", "B0", "B5", "B0", "B5", 8, polyphony=8, timbre="noise",
+       percussive=True),
+    _i("kit_power", "drums", "B0", "B5", "B0", "B5", 16, polyphony=8, timbre="noise",
+       percussive=True),
+    _i("kit_electronic", "drums", "B0", "B5", "B0", "B5", 24, polyphony=8, timbre="noise",
+       percussive=True),
+    _i("kit_808", "drums", "B0", "B5", "B0", "B5", 25, polyphony=8, timbre="noise",
+       percussive=True,
+       notes=("Drum machine: a kick that is mostly sub, a snappy snare, tin hats.",)),
+    _i("kit_jazz", "drums", "B0", "B5", "B0", "B5", 32, polyphony=8, timbre="noise",
+       percussive=True),
+    _i("kit_brush", "drums", "B0", "B5", "B0", "B5", 40, polyphony=8, timbre="noise",
+       percussive=True),
 ]}
+
+#: The drums of a kit, by the name a `beat` lane uses, as General MIDI keys.
+KIT_DRUMS: dict[str, int] = {
+    "kick": 36, "snare": 38, "rim": 37, "clap": 39, "hat": 42, "pedal": 44,
+    "open": 46, "tom_lo": 45, "tom_mid": 47, "tom_hi": 50, "ride": 51, "bell": 53,
+    "crash": 49, "splash": 55, "tamb": 54, "cow": 56, "shaker": 70,
+}
+
+
+def is_kit(instrument: str) -> bool:
+    return instrument.startswith("kit")
 
 #: What a voice is for. Lint uses this: a melody voice that never states a motif
 #: is a finding, and a bass voice wandering above the harmony is another.

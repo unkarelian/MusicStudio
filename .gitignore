@@ -20,6 +20,11 @@ gallery/renders/
 *.mp3
 *.flac
 *.wav
+*.mkv
+*.webm
+*.opus
+*.m4a
+reference/
 gallery/pieces/ch4.ms.json
 gallery/pieces/joker.ms.json
 gallery/pieces/pink.ms.json

@@ -50,6 +50,11 @@ ARTICULATIONS: dict[str, tuple[float, int]] = {
 }
 
 
+#: Ops that shape the sound and leave the notes alone. ``audio.voice_fx`` reads
+#: them; here they are deliberately nothing.
+AUDIO_ONLY = ("filter", "drive", "compress", "crush", "gain")
+
+
 @dataclass
 class Note:
     """One sounding note, with the provenance that made it.
@@ -78,6 +83,9 @@ class Note:
     #: Part of an ornament rather than the written line, so the critique pass
     #: can judge the line itself and not the decoration on it.
     ornament: bool = False
+    #: Semitones a drum stroke is pitched away from itself: a break played
+    #: faster comes out higher. Only the audio render can honour it.
+    tune: float = 0.0
 
     @property
     def end(self) -> int:
@@ -157,6 +165,12 @@ def _apply(piece, voice, op, notes, cache, out, stack) -> list[Note]:
         return notes + _op_drone(piece, voice, op)
     if k == "groove":
         return notes + _op_groove(piece, voice, op)
+    if k == "beat":
+        return notes + _op_beat(piece, voice, op)
+    if k == "chop":
+        return _op_chop(piece, voice, op, notes)
+    if k in AUDIO_ONLY:
+        return notes
     if k == "events":
         return notes + _op_events(piece, voice, op)
     if k == "double":
@@ -637,6 +651,10 @@ def _op_groove(piece: Piece, voice: Voice, op: Op) -> list[Note]:
                          f"use 'x' hit, 'X' accent, 'o' ghost, '.' rest")
     inst = voice.inst
     pitch = inst.drum_key if inst.drum_key is not None else inst.centre
+    from .ensemble import is_kit
+    if is_kit(voice.instrument):
+        raise ValueError(f"{voice.name!r} is a kit: write it with `beat`, which "
+                         f"takes one lane per drum, rather than `groove`")
     notes: list[Note] = []
     tick, i = start, 0
     while tick < end:
@@ -649,6 +667,136 @@ def _op_groove(piece: Piece, voice: Voice, op: Op) -> list[Note]:
         tick += grid
         i += 1
     return notes
+
+
+def _op_beat(piece: Piece, voice: Voice, op: Op) -> list[Note]:
+    """A kit pattern: every lane is one drum on the same grid."""
+    from .ensemble import KIT_DRUMS, is_kit
+    if not is_kit(voice.instrument):
+        raise ValueError(
+            f"beat writes a whole kit, and {voice.name!r} is a {voice.instrument}; "
+            f"give the voice a kit instrument (kit, kit_808, kit_jazz ...), or use "
+            f"`groove` for a single drum")
+    lanes = op.params["lanes"]
+    if isinstance(lanes, str):
+        # 'kick: x...x... / snare: ....x...' for the command line.
+        lanes = {k.strip(): v.strip() for k, _, v in
+                 (part.partition(":") for part in lanes.replace("\n", "/").split("/"))
+                 if k.strip()}
+    if not isinstance(lanes, dict) or not lanes:
+        raise ValueError("beat needs lanes, e.g. {'kick': 'x...x...', 'snare': '....x...'}")
+    start, end = _span(piece, op)
+    grid = ticks(op.params.get("res") or "1/16")
+    tune = float(op.params.get("tune") or 0)
+    notes: list[Note] = []
+    for drum, source in lanes.items():
+        if drum not in KIT_DRUMS:
+            raise ValueError(f"unknown drum {drum!r}; a kit has {sorted(KIT_DRUMS)}")
+        pattern = str(source).replace("|", "").replace(" ", "")
+        bad = set(pattern) - set("xXoO.-")
+        if not pattern or bad:
+            raise ValueError(f"lane {drum!r} must be made of 'x' hit, 'X' accent, "
+                             f"'o' ghost and '.' rest; got {source!r}")
+        tick, i = start, 0
+        while tick < end:
+            ch = pattern[i % len(pattern)]
+            if ch in "xXoO":
+                # A ghost note is far quieter than "one dynamic down": it is felt.
+                accent = 1 if ch == "X" else 0
+                vel = _velocity(piece, voice, op, tick, accent)
+                if ch in "oO":
+                    vel = max(1, int(vel * 0.45))
+                notes.append(Note(voice.name, KIT_DRUMS[drum], tick, grid, vel, op.id,
+                                  percussive=True, tune=tune))
+            tick += grid
+            i += 1
+    return notes
+
+
+def _op_chop(piece: Piece, voice: Voice, op: Op, notes: list[Note]) -> list[Note]:
+    """Cut the bar into slices and play them in another order.
+
+    This is break-chopping done on the notes rather than on a recording, so it
+    stays an edit: change the order and the same break is cut differently. The
+    slices are equal divisions of the bar; a token names which source slice
+    lands in each output slot.
+    """
+    lo, hi = _span(piece, op, "from", "until")
+    per_bar = int(op.params.get("slices") or 8)
+    if per_bar < 1:
+        raise ValueError("chop needs at least one slice per bar")
+    order = _parse_order(op.params["order"], per_bar)
+    keep = [n for n in notes if not (lo <= n.start < hi)]
+    inside = [n for n in notes if lo <= n.start < hi]
+    out: list[Note] = []
+    slot = 0
+    tick = lo
+    while tick < hi:
+        bar, _ = piece.position_of(tick)
+        bar_lo = piece.tick_of(bar)
+        size = piece.section_of_tick(tick).bar_ticks // per_bar
+        index = (tick - bar_lo) // size
+        src, repeat, tune, backwards, tune_to = order[slot % len(order)]
+        slot += 1
+        here = tick
+        tick += size
+        if src is None:
+            continue
+        if src == "_":
+            out += [n for n in inside if here <= n.start < here + size]
+            continue
+        src_lo = bar_lo + src * size
+        piece_len = size // repeat
+        source = [n for n in inside if src_lo <= n.start < src_lo + piece_len]
+        for k in range(repeat):
+            for n in source:
+                offset = n.start - src_lo
+                if backwards:
+                    offset = max(0, piece_len - offset - min(n.dur, piece_len))
+                at = here + k * piece_len + offset
+                # A roll may climb (or fall) as it goes: the pitch runs from
+                # `tune` on the first repeat to `tune_to` on the last.
+                shift = tune if tune_to is None or repeat < 2 else \
+                    tune + (tune_to - tune) * k / (repeat - 1)
+                room = here + (k + 1) * piece_len - at if repeat > 1 else here + size - at
+                out.append(replace(n, start=at, dur=max(1, min(n.dur, room)),
+                                   tune=n.tune + shift, op=n.op))
+        del index
+    if voice.inst.polyphony == 1 and not voice.inst.percussive:
+        # One note at a time: a slice moved in front of a held note cuts it off,
+        # as it would on the instrument.
+        out.sort(key=lambda n: n.start)
+        out = [replace(a, dur=max(1, min(a.dur, b.start - a.start)))
+               for a, b in zip(out, out[1:])] + out[-1:]
+    return keep + out
+
+
+def _parse_order(source, per_bar: int) -> list[tuple]:
+    """``'0 1 2*2 . 3r 6^5 _'`` -> ``(slice, repeats, semitones, backwards,
+    semitones at the end of a roll)``."""
+    import re
+    out = []
+    for tok in str(source).replace("|", " ").split():
+        if tok == ".":
+            out.append((None, 1, 0.0, False, None))
+            continue
+        if tok == "_":
+            out.append(("_", 1, 0.0, False, None))
+            continue
+        m = re.match(r"^(\d+)(r?)(?:\*(\d+))?(?:\^(-?\d+(?:\.\d+)?)"
+                     r"(?:>(-?\d+(?:\.\d+)?))?)?(r?)$", tok)
+        if not m or int(m.group(1)) >= per_bar or (m.group(3) and int(m.group(3)) < 1):
+            raise ValueError(
+                f"bad chop token {tok!r}: a slice number below {per_bar}, optionally "
+                f"'*2' to retrigger, '^5' to pitch, '^0>12' to climb across a roll, "
+                f"'r' to reverse -- or '.' for silence and '_' to leave the slot "
+                f"as written")
+        out.append((int(m.group(1)), int(m.group(3) or 1), float(m.group(4) or 0),
+                    bool(m.group(2) or m.group(6)),
+                    float(m.group(5)) if m.group(5) is not None else None))
+    if not out:
+        raise ValueError("chop order is empty")
+    return out
 
 
 def _op_events(piece: Piece, voice: Voice, op: Op) -> list[Note]:

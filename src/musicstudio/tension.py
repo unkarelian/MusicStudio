@@ -342,9 +342,17 @@ def reading(piece: Piece, curve: list[BarTension]) -> list[str]:
 
     # Was the loudest stretch prepared? Look at the bars leading into the
     # first bar of the section (or run) that holds the energy peak.
-    first = loudest.bar
-    while first > 1 and curve[first - 2].energy >= loudest.energy * 0.85:
-        first -= 1
+    # The passage starts where its section does, if the section is loud from
+    # its first bar; otherwise where the energy first comes near the peak.
+    # (Bar-to-bar energy wobbles too much to find an entrance by walking back.)
+    start = next((a for sec, a, _ in piece.section_bounds()
+                  if a <= loudest.bar < a + sec.bars), loudest.bar)
+    if curve[start - 1].energy >= loudest.energy * 0.7:
+        first = start
+    else:
+        first = loudest.bar
+        while first > start and curve[first - 2].energy >= loudest.energy * 0.85:
+            first -= 1
     before = curve[max(0, first - 5):first - 1]
     if len(before) >= 2:
         rise = before[-1].tension - before[0].tension
