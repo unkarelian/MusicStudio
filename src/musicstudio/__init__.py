@@ -21,7 +21,7 @@ from .studio import OpResult, Studio
 from .style import STYLES, StyleProfile, get_style
 from .theory import Chord, Key, parse_chord, pitch_name, ticks
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __all__ = [
     "Key", "Chord", "parse_chord", "pitch_name", "ticks",
     "Motif", "Step", "make_motif", "apply_transform", "similarity", "TRANSFORMS",

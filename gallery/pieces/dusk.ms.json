@@ -552,6 +552,7 @@
             "octave": null,
             "dynamic": null,
             "degree": 0,
+            "articulation": null,
             "at": "5",
             "bars": 8
           }
@@ -567,6 +568,7 @@
             "octave": null,
             "dynamic": "f",
             "degree": 0,
+            "articulation": null,
             "at": "13",
             "bars": 8
           }
@@ -607,6 +609,11 @@
             "tones": 3,
             "dynamic": null,
             "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
             "at": "5",
             "bars": 8
           }
@@ -623,6 +630,11 @@
             "tones": 4,
             "dynamic": null,
             "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
             "at": "13",
             "bars": 8
           }
@@ -639,6 +651,11 @@
             "tones": 3,
             "dynamic": "pp",
             "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
             "at": "21",
             "bars": 4
           }
@@ -677,6 +694,11 @@
             "tones": 3,
             "dynamic": "pp",
             "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
             "at": "1",
             "bars": 4
           }
@@ -693,6 +715,11 @@
             "tones": 4,
             "dynamic": null,
             "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
             "at": "13",
             "bars": 8
           }

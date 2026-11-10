@@ -137,7 +137,7 @@ INSTRUMENTS: dict[str, Instrument] = {i.name: i for i in [
     _i("hat", "drums", "F#1", "F#1", "F#1", "F#1", 0, timbre="noise", percussive=True, drum_key=42),
     _i("ride", "drums", "D#2", "D#2", "D#2", "D#2", 0, timbre="noise", percussive=True, drum_key=51),
     _i("crash", "drums", "C#2", "C#2", "C#2", "C#2", 0, timbre="noise", percussive=True, drum_key=49),
-    _i("taiko", "drums", "A1", "A1", "A1", "A1", 0, timbre="noise", percussive=True, drum_key=117),
+    _i("taiko", "drums", "A1", "A1", "A1", "A1", 0, timbre="noise", percussive=True, drum_key=41),
     _i("tambourine", "drums", "F#2", "F#2", "F#2", "F#2", 0, timbre="noise", percussive=True, drum_key=54),
     _i("noise", "chip", "D1", "D1", "D1", "D1", 0, timbre="noise", percussive=True, drum_key=38),
 ]}

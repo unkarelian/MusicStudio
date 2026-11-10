@@ -1,6 +1,6 @@
 [project]
 name = "musicstudio"
-version = "0.2.0"
+version = "0.3.0"
 description = "A music studio built for agents: motifs as first-class objects, degree-space pitch, harmonic scaffolds, and a critique pass."
 readme = "README.md"
 license = "MIT"

@@ -50,9 +50,21 @@ you are writing a cue, use the tools; do not hand-write note lists.
   edit instead of leaving it in the cache for the next save. `get()` reloads when
   the file's mtime or size changed, because the MCP server and a build script can
   hold the same piece at once.
-- **Seeded means seeded.** Anything random in the render (`humanize`) derives its
-  seed from stable data -- `zlib.crc32`, never `hash()`, which Python salts per
-  process. `test_humanize_is_reproducible_across_processes` holds this.
+- **Seeded means seeded.** Anything random in the render (`humanize`, and every
+  instrument model in `synth.py`) derives its seed from stable data --
+  `zlib.crc32`, never `hash()`, which Python salts per process.
+  `test_humanize_is_reproducible_across_processes` and
+  `test_every_instrument_has_a_voice_and_a_stable_one` hold this.
+- **Decoration never moves the line.** An ornament is a mark on a step, realized
+  in degree space at render time; the written note keeps its onset and its end,
+  and graces borrow from the note *before*. The elaborating transforms
+  (`embellish`, `dot`, `displace`, `thin`) keep total duration for the same
+  reason `fill` does. Ornament notes carry `Note.ornament`, and voice-leading
+  lint judges the line without them -- a trill is not a run of parallels.
+- **`then` keeps one parent.** A theme joined from cells descends from its
+  first cell (`derived_from`), and names the others in its lineage. That is what
+  `Piece.heard_within` reads, so a cell that only ever sounds inside a longer
+  theme is not reported as unused.
 
 ## Working on it
 
@@ -60,6 +72,7 @@ you are writing a cue, use the tools; do not hand-write note lists.
 uv sync --all-extras
 uv run pytest tests/ -q
 uv run python examples/build_dusk.py     # the dogfood build; it must lint clean
+uv run python examples/build_lanterns.py # the long build; it must lint clean too
 ```
 
 To judge a musical change, render and actually listen — the ASCII views tell you
@@ -67,7 +80,12 @@ whether the writing is correct, not whether the music works:
 
 ```bash
 uv run ms -p gallery wav dusk -o /tmp/check.wav
+uv run ms -p gallery wav dusk -o /tmp/check.wav --soundfont   # sampled, if installed
 ```
+
+If you cannot listen, measure: render each voice alone (mute the others) and
+compare RMS per section. A pad as loud as the tune it accompanies shows in the
+numbers long before anyone hears it, and that is how `lanterns` was balanced.
 
 `squint` is the fastest way to see whether a change helped: if density, register
 and dynamics are flat across the bars, the piece is flat regardless of what the
@@ -91,9 +109,25 @@ octave that centres a line in the instrument's tessitura. Read the module
 docstring before changing either — both are load-bearing.
 
 `audio.py` has two synthesis paths, pure stdlib and numpy, that must render the
-same piece: same length, same seating, same envelopes (`_envelope_np` is checked
-sample-for-sample against `_envelope`). Reverb and vibrato are numpy-only extras on
-top, never a different arrangement of the notes.
+same *arrangement*: same length, same seating, same note onsets and loudness
+contour (`_envelope_np` is checked sample-for-sample against `_envelope`, and
+`test_instrument_models_change_the_sound_and_not_the_music` holds the rest).
+Reverb, the limiter and the instrument models are numpy-only extras on top,
+never a different arrangement of the notes.
+
+`synth.py` holds the instrument models -- what a note sounds like once it is
+decided that it sounds. Read its docstring first: each mechanism (moving
+spectrum, fixed formants, onset noise, slurs, inharmonic partials) is there
+because its absence is audible, and the formant numbers are measured resonance
+regions, not taste. Two rules: a model may not move, lengthen or re-seat a note,
+and every random number is seeded from `(voice, onset, pitch)` through `crc32`.
+`LEVEL` is calibrated so models on and off sit at the same loudness; if you
+change a model's `level`, re-check the balance of a full piece, not one note.
+
+`soundfonts.py` is the only place the studio fetches anything. Every download is
+pinned by SHA-256 and verified before it is unpacked, a custom URL must bring
+its own hash, and the bank's licence is written beside it. Do not add a bank
+without a hash, and do not commit one: they are tens of megabytes of recordings.
 
 `ingest.py` holds the MIDI parser (running status and all) and the audio melody
 tracker. Read `_confidence` before touching the tracker: it encodes the two ways

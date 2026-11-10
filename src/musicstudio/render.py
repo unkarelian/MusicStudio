@@ -16,6 +16,17 @@ inaudibly low far more often than it is wrong in any other way.
 
 **Ties join, they do not overlap.** A tied step absorbs the next step's
 duration and sounds one note, which is what the notation means.
+
+**Ornaments are degrees too.** A trill, a mordent or a grace note is written as
+a mark on a step and realized here, each of its notes resolved against the key
+at its own onset like any other. The written note keeps its onset and its end;
+graces and runs take their time from the note *before*, as a player does. So
+decorating a theme cannot move it, and cannot take it out of key.
+
+**Chords can be led.** ``chords`` with ``lead=True`` picks, for every change of
+harmony, the inversion nearest to where the hands already are. Stacking every
+chord in root position makes all the voices jump in parallel at every change,
+which is the surest way to make an accompaniment sound programmed.
 """
 
 from __future__ import annotations
@@ -24,7 +35,7 @@ from dataclasses import dataclass, field, replace
 
 from .doc import Op, Piece, Voice
 from .ensemble import suggest_register
-from .motif import Motif, Step, apply_transform, parse_steps
+from .motif import Motif, Step, apply_transform, parse_ornament, parse_steps
 from .theory import Chord, Key, beat_ticks, dynamic_velocity, ticks
 
 #: ``(length ratio, velocity delta)``. The default leaves a sliver of silence so
@@ -61,6 +72,12 @@ class Note:
     form: str = ""
     degree: int | None = None
     percussive: bool = False
+    #: Joined to the note that follows, under one bow or one breath. The audio
+    #: render glides into the next note instead of attacking it again.
+    slur: bool = False
+    #: Part of an ornament rather than the written line, so the critique pass
+    #: can judge the line itself and not the decoration on it.
+    ornament: bool = False
 
     @property
     def end(self) -> int:
@@ -150,6 +167,10 @@ def _apply(piece, voice, op, notes, cache, out, stack) -> list[Note]:
         return _op_articulate(piece, voice, op, notes)
     if k == "humanize":
         return _op_humanize(piece, voice, op, notes)
+    if k == "shape":
+        return _op_shape(piece, voice, op, notes)
+    if k == "swing":
+        return _op_swing(piece, voice, op, notes)
     if k == "rest":
         lo, hi = _span(piece, op, "from", "until")
         return [n for n in notes if not (lo <= n.start < hi)]
@@ -231,7 +252,7 @@ def _emit_steps(piece: Piece, voice: Voice, op: Op, steps, start: int, octave: i
                 motif: str | None = None, form: str = "", played: str | None = None,
                 default_art: str = "normal") -> list[Note]:
     """Walk a run of steps onto the timeline. Ties absorb the following step."""
-    ratio, vel_delta = _articulation(op, default_art)
+    op_art = op.params.get("articulation") or default_art
     notes: list[Note] = []
     tick = start
     i = 0
@@ -244,22 +265,95 @@ def _emit_steps(piece: Piece, voice: Voice, op: Op, steps, start: int, octave: i
             dur += steps[i].dur
             s = replace(s, tie=steps[i].tie)
         if not s.is_rest:
-            pitch = _pitch_of(piece, s, tick, octave, transpose, anchor, scale)
-            if pitch is not None:
-                notes.append(Note(
-                    voice.name, pitch, tick, max(1, int(dur * ratio)),
-                    _velocity(piece, voice, op, tick, s.accent) + vel_delta,
-                    op.id, motif, played, form, s.deg))
+            art = s.art or op_art
+            ratio, vel_delta = ARTICULATIONS.get(art, ARTICULATIONS[default_art])
+            vel = _velocity(piece, voice, op, tick, s.accent) + vel_delta
+            sounding = max(1, int(dur * ratio))
+
+            def emit(deg_off: int, at: int, length: int, v: int, *, orn: bool,
+                     slur: bool, _s=s) -> None:
+                step = _s if not deg_off else replace(_s, deg=_s.deg + deg_off, alt=0)
+                pitch = _pitch_of(piece, step, max(0, at), octave, transpose, anchor, scale)
+                if pitch is not None:
+                    notes.append(Note(
+                        voice.name, pitch, max(0, at), max(1, length),
+                        max(1, min(127, v)), op.id, motif, played, form, step.deg,
+                        slur=slur, ornament=orn))
+
+            figure = _ornament(s.orn, tick, sounding) if s.orn else None
+            if not figure:
+                emit(0, tick, sounding, vel, orn=False, slur=art == "legato")
+            else:
+                lead_in = min((at for _, at, _, _ in figure), default=tick)
+                if lead_in < tick:
+                    # Graces borrow from the note before, as a player's do.
+                    for k, prev in enumerate(notes):
+                        if prev.start < lead_in < prev.end:
+                            notes[k] = replace(prev, dur=lead_in - prev.start, slur=True)
+                for off, at, length, main in figure:
+                    emit(off, at, length, vel if main else vel - 7, orn=not main,
+                         slur=(not main) or art == "legato")
         tick += dur
         i += 1
     return notes
+
+
+#: A 32nd note: the speed of a trill and of a grace note.
+_ORN_UNIT = 60
+
+
+def _ornament(mark: str, tick: int, sounding: int) -> list[tuple[int, int, int, bool]] | None:
+    """Realize an ornament as ``(degree offset, onset, length, is_main)`` notes.
+
+    Returns ``None`` when the note is too short to decorate, which leaves it
+    plain rather than squeezing a figure into a value that cannot hold one.
+    The written note always starts on its own beat and ends where it would
+    have ended, so nothing after it moves.
+    """
+    kind, n = parse_ornament(mark)
+    u = _ORN_UNIT
+    if kind == "gr":
+        return [(n or -1, tick - u, u, False), (0, tick, sounding, True)]
+    if kind == "run":
+        n = n or -3
+        step = 1 if n < 0 else -1
+        offs = list(range(n, 0, step))
+        return ([(o, tick - (len(offs) - k) * u, u, False) for k, o in enumerate(offs)]
+                + [(0, tick, sounding, True)])
+    if kind in ("mord", "lmord"):
+        if sounding < 4 * u:
+            u = sounding // 4
+        if u < 20:
+            return None
+        nb = 1 if kind == "mord" else -1
+        return [(0, tick, u, False), (nb, tick + u, u, False),
+                (0, tick + 2 * u, sounding - 2 * u, True)]
+    if kind == "turn":
+        if sounding < 6 * u:
+            return None
+        return [(1, tick, u, False), (0, tick + u, u, False), (-1, tick + 2 * u, u, False),
+                (0, tick + 3 * u, sounding - 3 * u, True)]
+    if kind == "tr":
+        if sounding < 6 * u:
+            return _ornament("mord", tick, sounding)
+        # Trill for most of the note, then settle on it: a trill that runs to
+        # the very end has no arrival, and the arrival is what a trill is for.
+        pairs = max(2, min((sounding * 2 // 3) // (2 * u), 12))
+        out = []
+        for k in range(pairs):
+            out.append((0, tick + 2 * k * u, u, False))
+            out.append((1, tick + (2 * k + 1) * u, u, False))
+        out.append((0, tick + 2 * pairs * u, sounding - 2 * pairs * u, True))
+        return out
+    return None
 
 
 def _resolved_motif(piece: Piece, op: Op) -> tuple[Motif, str]:
     """The motif an op plays, after any inline development, plus a form label."""
     m = piece.get_motif(op.params["motif"])
     for t in op.params.get("transform") or []:
-        m = apply_transform(m, t) if isinstance(t, str) else apply_transform(m, **t)
+        m = (apply_transform(m, t, resolve=piece.get_motif) if isinstance(t, str)
+             else apply_transform(m, resolve=piece.get_motif, **t))
     return m, "+".join(m.lineage)
 
 
@@ -323,7 +417,12 @@ def _op_chords(piece: Piece, voice: Voice, op: Op) -> list[Note]:
     tones = max(2, int(op.params.get("tones") or 3))
     voicing = op.params.get("voicing") or "block"
     ratio, vel_delta = _articulation(op, "legato" if voicing == "pad" else "normal")
+    lead = bool(op.params.get("lead"))
+    ring = bool(op.params.get("ring"))
+    roll = ticks(op.params["roll"]) if op.params.get("roll") else 0
+    figure = _parse_figure(op.params.get("figure"))
     notes: list[Note] = []
+    prev: list[int] | None = None
     for s_start, s_end, numeral in piece.harmony_spans():
         lo, hi = max(s_start, start), min(s_end, end)
         if lo >= hi:
@@ -332,33 +431,117 @@ def _op_chords(piece: Piece, voice: Voice, op: Op) -> list[Note]:
         if chord is None:
             continue
         pitches = [chord.tone(key, i + chord.inversion, octave) for i in range(tones)]
-        if voicing == "pad":
-            for p in pitches:
-                notes.append(Note(voice.name, p, lo, max(1, int((hi - lo) * ratio)),
-                                  _velocity(piece, voice, op, lo) + vel_delta, op.id))
+        if lead and prev is not None:
+            pitches = _nearest_voicing(pitches, prev)
+        prev = list(pitches)
+        if op.params.get("spread") and len(pitches) >= 3:
+            # Open position: the third goes up an octave, so the chord breathes
+            # instead of sitting in one fist.
+            pitches = sorted([pitches[0]] + pitches[2:] + [pitches[1] + 12])
+        if voicing == "pad" and figure is None:
+            for k, p in enumerate(pitches):
+                at = min(lo + k * roll, hi - 1)
+                notes.append(Note(voice.name, p, at, max(1, int((hi - at) * ratio)),
+                                  _velocity(piece, voice, op, lo) + vel_delta, op.id,
+                                  slur=True))
             continue
         pattern = _rhythm_ticks(op, beat_ticks(piece.section_of_tick(lo).meter))
-        seq = _voicing_sequence(voicing, pitches)
+        seq = figure if figure is not None else _voicing_sequence(voicing, pitches)
         tick, i = lo, 0
         while tick < hi:
             dur = pattern[i % len(pattern)]
             group = seq[i % len(seq)]
-            for p in group:
-                notes.append(Note(voice.name, p, tick, max(1, int(min(dur, hi - tick) * ratio)),
+            if figure is not None:
+                group = [_figure_pitch(pitches, k) for k in group]
+            for k, p in enumerate(group):
+                at = min(tick + k * roll, hi - 1)
+                length = (hi - at) if ring else min(dur, hi - tick) - (at - tick)
+                notes.append(Note(voice.name, p, at, max(1, int(length * ratio)),
                                   _velocity(piece, voice, op, tick) + vel_delta, op.id))
             tick += dur
             i += 1
+    if ring:
+        notes = _stop_restruck(notes)
     return notes
+
+
+def _nearest_voicing(pitches: list[int], prev: list[int]) -> list[int]:
+    """The same chord tones, turned to whichever inversion is closest to the
+    last chord played.
+
+    Candidates are the rotations of the voicing across three octaves; the cost
+    is how far the hands move, plus a pull back toward the register the op
+    asked for so that a long progression cannot drift up or down the keyboard
+    one step at a time. Only the arrangement changes -- the tones sounded are
+    exactly the ones the unled voicing would sound.
+    """
+    home = sum(pitches) / len(pitches)
+    best, best_cost = pitches, None
+    for shift in (-12, 0, 12):
+        for turn in range(len(pitches)):
+            cand = sorted([p + shift for p in pitches[turn:]]
+                          + [p + shift + 12 for p in pitches[:turn]])
+            move = (sum(abs(a - b) for a, b in zip(cand, prev)) if len(cand) == len(prev)
+                    else abs(sum(cand) / len(cand) - sum(prev) / len(prev)) * len(cand))
+            cost = move + 0.6 * abs(sum(cand) / len(cand) - home)
+            if best_cost is None or cost < best_cost:
+                best, best_cost = cand, cost
+    return best
+
+
+def _parse_figure(source) -> list[list[int | None]] | None:
+    """``'0 2 1 2'`` or ``'0 1+2 1+2'``: chord-tone indices, low to high.
+
+    ``+`` strikes tones together and ``.`` is a rest, so an oom-pah-pah is
+    ``'0 1+2 1+2'`` and an Alberti bass is ``'0 2 1 2'``. Indices past the top of
+    the voicing carry on up the chord into the next octave.
+    """
+    if not source:
+        return None
+    out: list[list[int]] = []
+    for tok in str(source).replace("|", " ").split():
+        if tok in (".", "r"):
+            out.append([])
+            continue
+        try:
+            out.append([int(t) for t in tok.split("+")])
+        except ValueError:
+            raise ValueError(
+                f"bad figure token {tok!r}; a figure is chord-tone indices like "
+                f"'0 2 1 2', with '+' for tones struck together ('0 1+2 1+2') and "
+                f"'.' for a rest") from None
+    if not any(out):
+        raise ValueError("figure has no notes in it")
+    return out
+
+
+def _figure_pitch(pitches: list[int], index: int) -> int:
+    octv, i = divmod(index, len(pitches))
+    return pitches[i] + 12 * octv
+
+
+def _stop_restruck(notes: list[Note]) -> list[Note]:
+    """A ringing string struck again starts over; it does not sound twice."""
+    last: dict[int, int] = {}
+    out = sorted(notes, key=lambda n: n.start)
+    for i, n in enumerate(out):
+        j = last.get(n.pitch)
+        if j is not None and out[j].end > n.start:
+            out[j] = replace(out[j], dur=max(1, n.start - out[j].start))
+        last[n.pitch] = i
+    return out
 
 
 def _voicing_sequence(voicing: str, pitches: list[int]) -> list[list[int]]:
     """A voicing is a cycle of note-groups; the rhythm decides how fast it turns."""
-    if voicing == "block":
+    if voicing in ("block", "pad"):
         return [pitches]
     if voicing == "arpeggio_up":
         return [[p] for p in pitches]
     if voicing == "arpeggio_down":
         return [[p] for p in reversed(pitches)]
+    if voicing == "arpeggio_updown":
+        return [[p] for p in pitches + pitches[-2:0:-1]]
     if voicing == "broken":
         return [[pitches[0]], pitches[1:]] if len(pitches) > 1 else [pitches]
     if voicing == "alberti":
@@ -368,7 +551,7 @@ def _voicing_sequence(voicing: str, pitches: list[int]) -> list[list[int]]:
         lo, mid, hi = pitches[0], pitches[1], pitches[2]
         return [[lo], [hi], [mid], [hi]]
     raise ValueError(f"unknown voicing {voicing!r}; have block, pad, arpeggio_up, "
-                     f"arpeggio_down, broken, alberti")
+                     f"arpeggio_down, arpeggio_updown, broken, alberti")
 
 
 def _op_bass(piece: Piece, voice: Voice, op: Op) -> list[Note]:
@@ -549,7 +732,8 @@ def _op_articulate(piece: Piece, voice: Voice, op: Op, notes: list[Note]) -> lis
             # articulating twice is idempotent instead of shrinking every note.
             base = n.dur / ARTICULATIONS["normal"][0]
             out.append(replace(n, dur=max(1, int(base * ratio)),
-                               velocity=max(1, min(127, n.velocity + delta))))
+                               velocity=max(1, min(127, n.velocity + delta)),
+                               slur=style == "legato"))
         else:
             out.append(n)
     return out
@@ -575,6 +759,84 @@ def _op_humanize(piece: Piece, voice: Voice, op: Op, notes: list[Note]) -> list[
             vel = n.velocity + int(rng.uniform(-9, 9) * amount)
             out.append(replace(n, start=max(0, n.start + jitter),
                                velocity=max(1, min(127, vel))))
+        else:
+            out.append(n)
+    return out
+
+
+def _phrases(notes: list[Note], gap: int) -> list[list[Note]]:
+    """Split a line where it breathes: wherever the silence is at least ``gap``."""
+    out: list[list[Note]] = []
+    end = None
+    for n in sorted(notes, key=lambda n: (n.start, n.pitch)):
+        if end is None or n.start - end >= gap:
+            out.append([])
+        out[-1].append(n)
+        end = n.end if end is None else max(end, n.end)
+    return out
+
+
+def _op_shape(piece: Piece, voice: Voice, op: Op, notes: list[Note]) -> list[Note]:
+    """Phrase the line the way a player would without being told to.
+
+    Three things, all small and all deterministic: each phrase swells toward a
+    point past its middle and tapers off its last notes; higher notes are a
+    little stronger than lower ones; and the note on a downbeat carries slightly
+    more than the ones between. A line at one flat velocity is the single
+    clearest sign that nobody is playing it.
+    """
+    import math
+    lo, hi = _span(piece, op, "from", "until")
+    if op.params.get("from") is None:
+        lo, hi = 0, piece.total_ticks
+    amount = float(op.params.get("amount") if op.params.get("amount") is not None else 0.5)
+    peak = float(op.params.get("peak") if op.params.get("peak") is not None else 0.62)
+    peak = max(0.05, min(0.95, peak))
+    inside = [n for n in notes if lo <= n.start < hi and not n.percussive]
+    delta: dict[int, float] = {}
+    for phrase in _phrases(inside, ticks(op.params.get("breath") or "1/4")):
+        t0, t1 = phrase[0].start, max(n.start for n in phrase)
+        p_lo = min(n.pitch for n in phrase)
+        p_hi = max(n.pitch for n in phrase)
+        for n in phrase:
+            t = (n.start - t0) / (t1 - t0) if t1 > t0 else peak
+            # Rise to the peak, fall away after it; the fall is steeper because
+            # a phrase ending is a release, not a mirror of its beginning.
+            arc = (0.35 + 0.65 * math.sin(0.5 * math.pi * t / peak) if t <= peak
+                   else math.cos(0.5 * math.pi * (t - peak) / (1 - peak)) ** 1.3)
+            height = (n.pitch - p_lo) / (p_hi - p_lo) if p_hi > p_lo else 0.5
+            _, beat = piece.position_of(n.start)
+            metric = 1.0 if beat == 1 else 0.35 if float(beat).is_integer() else 0.0
+            delta[id(n)] = amount * (22 * (arc - 0.6) + 9 * (height - 0.5) + 5 * metric)
+    return [replace(n, velocity=max(1, min(127, int(round(n.velocity + delta[id(n)])))))
+            if id(n) in delta else n for n in notes]
+
+
+def _op_swing(piece: Piece, voice: Voice, op: Op, notes: list[Note]) -> list[Note]:
+    """Delay every off-beat subdivision, so pairs play long-short.
+
+    ``amount`` is the share of the pair the first note takes: 0.5 is straight,
+    0.67 is triplet swing. Notes are moved, never re-ordered, and a note that is
+    pushed late gives the time up from its own length.
+    """
+    lo, hi = _span(piece, op, "from", "until")
+    if op.params.get("from") is None:
+        lo, hi = 0, piece.total_ticks
+    res = ticks(op.params.get("res") or "1/8")
+    amount = float(op.params.get("amount") if op.params.get("amount") is not None else 0.62)
+    if not 0.5 <= amount <= 0.8:
+        raise ValueError(f"swing amount is the long note's share of the pair, "
+                         f"0.5 (straight) to 0.8; got {amount}")
+    shift = int(round((amount - 0.5) * 2 * res))
+    out = []
+    for n in notes:
+        if not (lo <= n.start < hi):
+            out.append(n)
+            continue
+        bar, _ = piece.position_of(n.start)
+        within = n.start - piece.tick_of(bar)
+        if within % res == 0 and (within // res) % 2 == 1:
+            out.append(replace(n, start=n.start + shift, dur=max(1, n.dur - shift)))
         else:
             out.append(n)
     return out

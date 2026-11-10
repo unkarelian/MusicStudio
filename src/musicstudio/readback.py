@@ -263,8 +263,13 @@ def motif_map(piece: Piece, rend: Render | None = None) -> str:
 
     # A derived motif reports its *root* on every note, so membership has to be
     # checked against the name the op actually named as well.
+    inside = piece.heard_within(played | {form for _, form in seen})
     unheard = [n for n in piece.motifs
-               if n not in played and not any(k[0] == n for k in seen)]
+               if n not in played and n not in inside and not any(k[0] == n for k in seen)]
+    joined = sorted(n for n in inside if n not in played and not any(k[0] == n for k in seen))
+    if joined:
+        out.append("")
+        out.append(f"  heard as part of a longer theme: {', '.join(joined)}")
     if unheard:
         out.append("")
         out.append(f"  never played: {', '.join(unheard)}")

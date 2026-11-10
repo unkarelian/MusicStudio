@@ -1,0 +1,2337 @@
+{
+  "schema": 1,
+  "name": "lanterns",
+  "key": "E minor",
+  "tempo": 80,
+  "meter": "4/4",
+  "style": "orchestral",
+  "loop": false,
+  "meta": {},
+  "sections": [
+    {
+      "name": "intro",
+      "bars": 4,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mp",
+      "note": ""
+    },
+    {
+      "name": "A",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "A2",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "B",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": "G major",
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "climax",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "f",
+      "note": ""
+    },
+    {
+      "name": "coda",
+      "bars": 7,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mp",
+      "note": "",
+      "tempo_end": 52
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "2",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "4",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "6",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "VII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "8",
+      "chord": "III",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "10",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "ii%7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11:3",
+      "chord": "V7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "12",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "14",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "VII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "16",
+      "chord": "III",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "17",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "18",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "19",
+      "chord": "ii%7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "19:3",
+      "chord": "V7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "20",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "20:3",
+      "chord": "VII7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "21",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "22",
+      "chord": "V_1",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "23",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "24",
+      "chord": "iii",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "25",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "26",
+      "chord": "I_1",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "27",
+      "chord": "ii7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "28",
+      "chord": "V7/vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "29",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "30",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "31",
+      "chord": "VII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "32",
+      "chord": "III",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "33",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "34",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "35",
+      "chord": "ii%7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "35:3",
+      "chord": "V7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "36",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "37",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "38",
+      "chord": "i_1",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "39",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "40",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "41",
+      "chord": "ii%7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "41:3",
+      "chord": "V7",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "42",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "43",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "call",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/4. 2 4:1/4 7:1/4 7 6 5:1/4 3:1/4. 5",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/4.",
+          "deg": 3
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        }
+      ],
+      "note": "the head: a long B, down a third, then up to the tonic"
+    },
+    {
+      "name": "rise",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "6:1/4. 3 6:1/4 8:1/4 9:1/4 8 6 4:1/2",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 3
+        },
+        {
+          "dur": "1/4",
+          "deg": 6
+        },
+        {
+          "dur": "1/4",
+          "deg": 8
+        },
+        {
+          "dur": "1/4",
+          "deg": 9
+        },
+        {
+          "dur": "1/8",
+          "deg": 8
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        }
+      ],
+      "note": "the same gesture a step higher, cresting on the high G"
+    },
+    {
+      "name": "reply",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "5:1/4. 4 5:1/4 7:1/4 10:1/4. 9 7:1/4 5:1/4",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/4.",
+          "deg": 10
+        },
+        {
+          "dur": "1/8",
+          "deg": 9
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        }
+      ],
+      "note": "the answer starts lower and reaches the top note of the theme"
+    },
+    {
+      "name": "close",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "8:1/4 7 5 #6:1/4. 8 7:1/2. r:1/4",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 8
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4.",
+          "deg": 6,
+          "alt": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 8
+        },
+        {
+          "dur": "1/2.",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "rest": true
+        }
+      ],
+      "note": "down through the leading tone to the tonic"
+    },
+    {
+      "name": "theme",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/4. 2 4:1/4 7:1/4 7 6 5:1/4 3:1/4. 5 6:1/4. 3 6:1/4 8:1/4 9:1/4 8 6 4:1/2 5:1/4. 4 5:1/4 7:1/4 10:1/4. 9 7:1/4 5:1/4 8:1/4 7 5 #6:1/4. 8 7:1/2. r:1/4",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/4.",
+          "deg": 3
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4.",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 3
+        },
+        {
+          "dur": "1/4",
+          "deg": 6
+        },
+        {
+          "dur": "1/4",
+          "deg": 8
+        },
+        {
+          "dur": "1/4",
+          "deg": 9
+        },
+        {
+          "dur": "1/8",
+          "deg": 8
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/4.",
+          "deg": 10
+        },
+        {
+          "dur": "1/8",
+          "deg": 9
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 8
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4.",
+          "deg": 6,
+          "alt": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 8
+        },
+        {
+          "dur": "1/2.",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "rest": true
+        }
+      ],
+      "note": "the whole eight-bar period, still traceable to its head",
+      "derived_from": "call",
+      "lineage": [
+        "then:rise",
+        "then:reply",
+        "then:close"
+      ]
+    },
+    {
+      "name": "rise_sung",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "6:1/4 5:1/16 4:1/16 3:1/16 4:1/32 5:1/32 6 7 8:1/4 9:1/4 8:1/16 7:1/16@gr+1 6:1/16 5:1/16 4:1/2",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 6
+        },
+        {
+          "dur": "1/16",
+          "deg": 5
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 3
+        },
+        {
+          "dur": "1/32",
+          "deg": 4
+        },
+        {
+          "dur": "1/32",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "deg": 8
+        },
+        {
+          "dur": "1/4",
+          "deg": 9
+        },
+        {
+          "dur": "1/16",
+          "deg": 8
+        },
+        {
+          "dur": "1/16",
+          "deg": 7,
+          "orn": "gr+1"
+        },
+        {
+          "dur": "1/16",
+          "deg": 6
+        },
+        {
+          "dur": "1/16",
+          "deg": 5
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        }
+      ],
+      "note": "the same gesture a step higher, cresting on the high G",
+      "derived_from": "rise",
+      "lineage": [
+        "embellish:passing",
+        "ornament:gr+1"
+      ]
+    },
+    {
+      "name": "reply_sung",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "5:1/4. 4 5 6 7 8:1/16@run-3 9:1/16 10:1/4. 9:1/16 8:1/16 7 6 5:1/4",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/16",
+          "deg": 8,
+          "orn": "run-3"
+        },
+        {
+          "dur": "1/16",
+          "deg": 9
+        },
+        {
+          "dur": "1/4.",
+          "deg": 10
+        },
+        {
+          "dur": "1/16",
+          "deg": 9
+        },
+        {
+          "dur": "1/16",
+          "deg": 8
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        }
+      ],
+      "note": "the answer starts lower and reaches the top note of the theme",
+      "derived_from": "reply",
+      "lineage": [
+        "embellish:passing",
+        "ornament:run-3"
+      ]
+    },
+    {
+      "name": "close_sung",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "8:1/4@gr 7 5 #6:1/4.@tr 8 7:1/2. r:1/4",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 8,
+          "orn": "gr"
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4.",
+          "deg": 6,
+          "alt": 1,
+          "orn": "tr"
+        },
+        {
+          "dur": "1/8",
+          "deg": 8
+        },
+        {
+          "dur": "1/2.",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "rest": true
+        }
+      ],
+      "note": "down through the leading tone to the tonic",
+      "derived_from": "close",
+      "lineage": [
+        "ornament:tr",
+        "ornament:gr"
+      ]
+    },
+    {
+      "name": "theme_sung",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/4@mord 3 2:1/16 3:1/16 4 5:1/16 6:1/16 7:1/4 7 6 5 4 3:1/4 4 5 6:1/4 5:1/16 4:1/16 3:1/16 4:1/32 5:1/32 6 7 8:1/4 9:1/4 8:1/16 7:1/16@gr+1 6:1/16 5:1/16 4:1/2 5:1/4. 4 5 6 7 8:1/16@run-3 9:1/16 10:1/4. 9:1/16 8:1/16 7 6 5:1/4 8:1/4@gr 7 5 #6:1/4.@tr 8 7:1/2. r:1/4",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 4,
+          "orn": "mord"
+        },
+        {
+          "dur": "1/8",
+          "deg": 3
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 3
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 5
+        },
+        {
+          "dur": "1/16",
+          "deg": 6
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 6
+        },
+        {
+          "dur": "1/16",
+          "deg": 5
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 3
+        },
+        {
+          "dur": "1/32",
+          "deg": 4
+        },
+        {
+          "dur": "1/32",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "deg": 8
+        },
+        {
+          "dur": "1/4",
+          "deg": 9
+        },
+        {
+          "dur": "1/16",
+          "deg": 8
+        },
+        {
+          "dur": "1/16",
+          "deg": 7,
+          "orn": "gr+1"
+        },
+        {
+          "dur": "1/16",
+          "deg": 6
+        },
+        {
+          "dur": "1/16",
+          "deg": 5
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/16",
+          "deg": 8,
+          "orn": "run-3"
+        },
+        {
+          "dur": "1/16",
+          "deg": 9
+        },
+        {
+          "dur": "1/4.",
+          "deg": 10
+        },
+        {
+          "dur": "1/16",
+          "deg": 9
+        },
+        {
+          "dur": "1/16",
+          "deg": 8
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 8,
+          "orn": "gr"
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4.",
+          "deg": 6,
+          "alt": 1,
+          "orn": "tr"
+        },
+        {
+          "dur": "1/8",
+          "deg": 8
+        },
+        {
+          "dur": "1/2.",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "rest": true
+        }
+      ],
+      "note": "the decorated repeat",
+      "derived_from": "call",
+      "lineage": [
+        "embellish:passing",
+        "ornament:mord",
+        "then:rise_sung",
+        "then:reply_sung",
+        "then:close_sung"
+      ]
+    },
+    {
+      "name": "under",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/2 2:1/2 0:1/1 -1:1/2 1:1/2 2:1/2. r:1/4 0:1/2 2:1/2 3:1/2 0:1/2 1:1/2 -3:1/2 0:1/2 -1:1/2",
+      "steps": [
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        },
+        {
+          "dur": "1/1",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "deg": -1
+        },
+        {
+          "dur": "1/2",
+          "deg": 1
+        },
+        {
+          "dur": "1/2.",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "rest": true
+        },
+        {
+          "dur": "1/2",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 3
+        },
+        {
+          "dur": "1/2",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "deg": 1
+        },
+        {
+          "dur": "1/2",
+          "deg": -3
+        },
+        {
+          "dur": "1/2",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "deg": -1
+        }
+      ],
+      "note": "the counter-line: slow, mostly falling while the theme climbs"
+    },
+    {
+      "name": "lift",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "r 4 7 9 8:1/4 7 4 6:1/4. 4 8:1/4 r:1/4",
+      "steps": [
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 9
+        },
+        {
+          "dur": "1/4",
+          "deg": 8
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 8
+        },
+        {
+          "dur": "1/4",
+          "rest": true
+        }
+      ],
+      "note": "B's cell: an upbeat leap that leans on the ninth and lets go"
+    },
+    {
+      "name": "lift_echo",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "r:1/4 4:1/4 7:1/4 9:1/4",
+      "steps": [
+        {
+          "dur": "1/4",
+          "rest": true
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "deg": 9
+        }
+      ],
+      "note": "just the upbeat leap, twice as slow, for the coda",
+      "derived_from": "lift",
+      "lineage": [
+        "fragment:0,4",
+        "augment:2"
+      ]
+    },
+    {
+      "name": "call_wide",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/2. 2:1/4 4:1/2 7:1/2 7:1/4 6:1/4 5:1/2 3:1/2. 5:1/4",
+      "steps": [
+        {
+          "dur": "1/2.",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "deg": 6
+        },
+        {
+          "dur": "1/2",
+          "deg": 5
+        },
+        {
+          "dur": "1/2.",
+          "deg": 3
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        }
+      ],
+      "note": "the head at half speed",
+      "derived_from": "call",
+      "lineage": [
+        "augment:2"
+      ]
+    },
+    {
+      "name": "call_first",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/4. 2 4:1/4 7:1/4",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        }
+      ],
+      "note": "the first four notes, as a foreshadowing",
+      "derived_from": "call",
+      "lineage": [
+        "fragment:0,4"
+      ]
+    }
+  ],
+  "voices": [
+    {
+      "name": "violin",
+      "instrument": "violin",
+      "role": "melody",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "a2_theme",
+          "kind": "play",
+          "enabled": true,
+          "note": "the same theme, sung rather than stated",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": null,
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "theme_sung",
+            "at": "13"
+          }
+        },
+        {
+          "id": "b_turn",
+          "kind": "phrase",
+          "enabled": true,
+          "note": "connective tissue: up the ii7, then the dominant of E minor, trilling into the return",
+          "params": {
+            "unit": "1/8",
+            "octave": null,
+            "transpose": 0,
+            "dynamic": null,
+            "articulation": "legato",
+            "anchor": "scale",
+            "at": "27",
+            "steps": "1 3 5 7 8:1/4 7 5 | 6:1/4 #4:1/4 6 8 9:1/4@tr"
+          }
+        },
+        {
+          "id": "b_swell",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "mp",
+            "end": "f",
+            "from": "27",
+            "until": "29"
+          }
+        },
+        {
+          "id": "c_theme",
+          "kind": "play",
+          "enabled": true,
+          "note": "the theme returns, plain again and at full voice",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "theme",
+            "at": "29"
+          }
+        },
+        {
+          "id": "violin_shape",
+          "kind": "shape",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.8,
+            "peak": 0.62,
+            "breath": "1/4",
+            "from": null,
+            "until": null
+          }
+        },
+        {
+          "id": "violin_human",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "timing": 9,
+            "seed": 0,
+            "from": null,
+            "until": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "flute",
+      "instrument": "flute",
+      "role": "counter",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "i_hint",
+          "kind": "play",
+          "enabled": true,
+          "note": "the theme's first four notes, far off",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "call_first",
+            "at": "3"
+          }
+        },
+        {
+          "id": "b_lift1",
+          "kind": "play",
+          "enabled": true,
+          "note": "the new idea",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "lift",
+            "at": "21"
+          }
+        },
+        {
+          "id": "b_lift3",
+          "kind": "play",
+          "enabled": true,
+          "note": "over IV, back in the flute",
+          "params": {
+            "transpose": 3,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "lift",
+            "at": "25"
+          }
+        },
+        {
+          "id": "c_octave",
+          "kind": "double",
+          "enabled": true,
+          "note": "an octave above the violins",
+          "params": {
+            "interval": 0,
+            "octaves": 1,
+            "dynamic": "f",
+            "delay": null,
+            "from": "29",
+            "until": "37",
+            "source": "violin"
+          }
+        },
+        {
+          "id": "z_echo1",
+          "kind": "play",
+          "enabled": true,
+          "note": "B's leap, remembered",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "lift_echo",
+            "at": "38"
+          }
+        },
+        {
+          "id": "flute_shape",
+          "kind": "shape",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.6,
+            "peak": 0.62,
+            "breath": "1/4",
+            "from": null,
+            "until": null
+          }
+        },
+        {
+          "id": "flute_human",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "timing": 8,
+            "seed": 0,
+            "from": null,
+            "until": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "clarinet",
+      "instrument": "clarinet",
+      "role": "counter",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "b_lift2",
+          "kind": "play",
+          "enabled": true,
+          "note": "a third lower, in the clarinet",
+          "params": {
+            "transpose": -2,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "lift",
+            "at": "23"
+          }
+        },
+        {
+          "id": "b_thirds",
+          "kind": "double",
+          "enabled": true,
+          "note": "a third below, deliberately parallel",
+          "params": {
+            "interval": -2,
+            "octaves": 0,
+            "dynamic": null,
+            "delay": null,
+            "from": "25",
+            "until": "27",
+            "source": "flute"
+          }
+        },
+        {
+          "id": "z_echo2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": -4,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "lift_echo",
+            "at": "40"
+          }
+        },
+        {
+          "id": "clarinet_shape",
+          "kind": "shape",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.6,
+            "peak": 0.62,
+            "breath": "1/4",
+            "from": null,
+            "until": null
+          }
+        },
+        {
+          "id": "clarinet_human",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "timing": 8,
+            "seed": 0,
+            "from": null,
+            "until": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "horn",
+      "instrument": "horn",
+      "role": "counter",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "a2_under",
+          "kind": "play",
+          "enabled": true,
+          "note": "the counter-line, quietly, while the cello rests",
+          "params": {
+            "transpose": 0,
+            "octave": 3,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "under",
+            "at": "13"
+          }
+        },
+        {
+          "id": "c_under",
+          "kind": "play",
+          "enabled": true,
+          "note": "the counter-line an octave up, walking in quarters, and ending on the tonic this time",
+          "params": {
+            "transpose": 0,
+            "octave": 4,
+            "transform": [
+              "fragment:0,13",
+              "append:0:1/1",
+              "embellish:passing"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "f",
+            "articulation": "tenuto",
+            "anchor": null,
+            "motif": "under",
+            "at": "29"
+          }
+        },
+        {
+          "id": "horn_shape",
+          "kind": "shape",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "peak": 0.62,
+            "breath": "1/4",
+            "from": null,
+            "until": null
+          }
+        },
+        {
+          "id": "horn_human",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "timing": 8,
+            "seed": 0,
+            "from": null,
+            "until": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "cello",
+      "instrument": "cello",
+      "role": "melody",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "a_theme",
+          "kind": "play",
+          "enabled": true,
+          "note": "first statement, plain",
+          "params": {
+            "transpose": 0,
+            "octave": 3,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": null,
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "theme",
+            "at": "5"
+          }
+        },
+        {
+          "id": "c_cello",
+          "kind": "double",
+          "enabled": true,
+          "note": "and the cellos an octave below",
+          "params": {
+            "interval": 0,
+            "octaves": -1,
+            "dynamic": null,
+            "delay": null,
+            "from": "29",
+            "until": "37",
+            "source": "violin"
+          }
+        },
+        {
+          "id": "z_wide",
+          "kind": "play",
+          "enabled": true,
+          "note": "the head of the theme, augmented",
+          "params": {
+            "transpose": 0,
+            "octave": 3,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "call_wide",
+            "at": "37"
+          }
+        },
+        {
+          "id": "z_close",
+          "kind": "play",
+          "enabled": true,
+          "note": "and its tail, to finish",
+          "params": {
+            "transpose": 0,
+            "octave": 3,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "close",
+            "at": "41"
+          }
+        },
+        {
+          "id": "cello_shape",
+          "kind": "shape",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.8,
+            "peak": 0.62,
+            "breath": "1/4",
+            "from": null,
+            "until": null
+          }
+        },
+        {
+          "id": "cello_human",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "timing": 9,
+            "seed": 0,
+            "from": null,
+            "until": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "strings",
+      "instrument": "strings",
+      "role": "pad",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "a2_pad",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "13",
+            "bars": 8
+          }
+        },
+        {
+          "id": "c_pad",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": 3,
+            "tones": 3,
+            "dynamic": "mf",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "29",
+            "bars": 8
+          }
+        },
+        {
+          "id": "z_pad",
+          "kind": "chords",
+          "enabled": true,
+          "note": "under the cello's last note, not over it",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "pp",
+            "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "42",
+            "bars": 2
+          }
+        },
+        {
+          "id": "z_fade",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "pp",
+            "end": "ppp",
+            "from": "42",
+            "until": "44"
+          }
+        }
+      ]
+    },
+    {
+      "name": "pizz",
+      "instrument": "pizz_strings",
+      "role": "harmony",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "b_pizz",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "block",
+            "rhythm": "1/4",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "mp",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": "0 1+2 . 1+2",
+            "articulation": null,
+            "at": "21",
+            "bars": 8
+          }
+        },
+        {
+          "id": "pizz_human",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "timing": 9,
+            "seed": 0,
+            "from": null,
+            "until": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "harp",
+      "instrument": "harp",
+      "role": "ornament",
+      "octave": 4,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "a2_harp",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "arpeggio_updown",
+            "rhythm": "1/8",
+            "octave": null,
+            "tones": 4,
+            "dynamic": "p",
+            "spread": false,
+            "lead": true,
+            "ring": true,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "17",
+            "bars": 4
+          }
+        },
+        {
+          "id": "b_harp",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "arpeggio_up",
+            "rhythm": "1/16",
+            "octave": null,
+            "tones": 4,
+            "dynamic": "p",
+            "spread": false,
+            "lead": true,
+            "ring": true,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "25",
+            "bars": 4
+          }
+        },
+        {
+          "id": "b_harp_swell",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "pp",
+            "end": "mp",
+            "from": "25",
+            "until": "29"
+          }
+        },
+        {
+          "id": "z_harp",
+          "kind": "chords",
+          "enabled": true,
+          "note": "one rolled chord to close",
+          "params": {
+            "voicing": "block",
+            "rhythm": "1/1",
+            "octave": null,
+            "tones": 4,
+            "dynamic": "p",
+            "spread": false,
+            "lead": false,
+            "ring": true,
+            "roll": "1/16",
+            "figure": null,
+            "articulation": null,
+            "at": "43",
+            "bars": 1
+          }
+        },
+        {
+          "id": "harp_human",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "timing": 9,
+            "seed": 0,
+            "from": null,
+            "until": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "piano",
+      "instrument": "piano",
+      "role": "harmony",
+      "octave": 2,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "i_piano",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "block",
+            "rhythm": "1/8",
+            "octave": null,
+            "tones": 3,
+            "dynamic": null,
+            "spread": true,
+            "lead": false,
+            "ring": true,
+            "roll": null,
+            "figure": "0 1 2 1 3 1 2 1",
+            "articulation": null,
+            "at": "1",
+            "bars": 4
+          }
+        },
+        {
+          "id": "a_piano",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "block",
+            "rhythm": "1/8",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": true,
+            "lead": false,
+            "ring": true,
+            "roll": null,
+            "figure": "0 1 2 1 3 1 2 1",
+            "articulation": null,
+            "at": "5",
+            "bars": 8
+          }
+        },
+        {
+          "id": "a2_piano",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "block",
+            "rhythm": "1/8",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": true,
+            "lead": false,
+            "ring": true,
+            "roll": null,
+            "figure": "0 1 2 1 3 1 2 1",
+            "articulation": null,
+            "at": "13",
+            "bars": 8
+          }
+        },
+        {
+          "id": "c_piano",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "block",
+            "rhythm": "1/16",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "mf",
+            "spread": true,
+            "lead": false,
+            "ring": true,
+            "roll": null,
+            "figure": "0 1 2 3 4 3 2 1",
+            "articulation": null,
+            "at": "29",
+            "bars": 8
+          }
+        },
+        {
+          "id": "z_piano",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "block",
+            "rhythm": "1/8",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": true,
+            "lead": false,
+            "ring": true,
+            "roll": null,
+            "figure": "0 1 2 1 3 1 2 1",
+            "articulation": null,
+            "at": "37",
+            "bars": 6
+          }
+        },
+        {
+          "id": "z_piano_fade",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "mp",
+            "end": "pp",
+            "from": "37",
+            "until": "43"
+          }
+        },
+        {
+          "id": "z_last",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "block",
+            "rhythm": "1/1",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "pp",
+            "spread": true,
+            "lead": false,
+            "ring": true,
+            "roll": "1/16",
+            "figure": null,
+            "articulation": null,
+            "at": "43",
+            "bars": 1
+          }
+        },
+        {
+          "id": "piano_human",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "timing": 7,
+            "seed": 0,
+            "from": null,
+            "until": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "bass",
+      "instrument": "contrabass",
+      "role": "bass",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "a2_bass",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "root",
+            "rhythm": "1/1",
+            "octave": null,
+            "dynamic": "p",
+            "degree": 0,
+            "articulation": "tenuto",
+            "at": "13",
+            "bars": 8
+          }
+        },
+        {
+          "id": "b_bass",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "root",
+            "rhythm": "1/2",
+            "octave": null,
+            "dynamic": "p",
+            "degree": 0,
+            "articulation": "portato",
+            "at": "21",
+            "bars": 8
+          }
+        },
+        {
+          "id": "c_bass",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "root",
+            "rhythm": "1/2",
+            "octave": null,
+            "dynamic": "f",
+            "degree": 0,
+            "articulation": "tenuto",
+            "at": "29",
+            "bars": 8
+          }
+        },
+        {
+          "id": "bass_human",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "timing": 6,
+            "seed": 0,
+            "from": null,
+            "until": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "timpani",
+      "instrument": "timpani",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "c_timp1",
+          "kind": "phrase",
+          "enabled": true,
+          "note": "a roll on the dominant into the downbeat",
+          "params": {
+            "unit": "1/16",
+            "octave": null,
+            "transpose": 0,
+            "dynamic": "mf",
+            "articulation": null,
+            "anchor": "scale",
+            "at": "28:3",
+            "steps": "-3 -3 -3 -3 -3 -3 -3! -3! | 0:1/2!!"
+          }
+        },
+        {
+          "id": "c_timp_swell",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "p",
+            "end": "f",
+            "from": "28:3",
+            "until": "29"
+          }
+        },
+        {
+          "id": "c_timp2",
+          "kind": "phrase",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "unit": "1/8",
+            "octave": null,
+            "transpose": 0,
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": "scale",
+            "at": "35:3",
+            "steps": "-3 -3 -3! -3! | 0:1/2!"
+          }
+        }
+      ]
+    },
+    {
+      "name": "cymbal",
+      "instrument": "crash",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "c_crash",
+          "kind": "groove",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/4",
+            "dynamic": "f",
+            "at": "29",
+            "bars": 1,
+            "pattern": "x..."
+          }
+        }
+      ]
+    }
+  ]
+}

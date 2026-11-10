@@ -327,12 +327,21 @@ class Studio:
         return save_midi(p, Path(path) if path else self.renders_dir / f"{name}.mid")
 
     def export_wav(self, name: str, path: str | None = None, *, stereo: bool = True,
-                   reverb: bool | None = None) -> Path:
-        """Render to WAV. ``reverb=None`` adds the style's room if numpy is there."""
-        from .audio import save_wav
+                   reverb: bool | None = None, models: bool | None = None,
+                   soundfont: str | None = None) -> Path:
+        """Render to WAV.
+
+        ``reverb=None`` and ``models=None`` add the style's room and the
+        instrument models if numpy is there. ``soundfont`` renders through
+        FluidSynth with sampled instruments instead: a path to an .sf2/.sf3, or
+        ``'auto'`` to use ``$MUSICSTUDIO_SOUNDFONT`` or one found on the system.
+        """
+        from .audio import save_wav, save_wav_soundfont
         p = self.get(name)
-        return save_wav(p, Path(path) if path else self.renders_dir / f"{name}.wav",
-                        stereo=stereo, reverb=reverb)
+        out = Path(path) if path else self.renders_dir / f"{name}.wav"
+        if soundfont:
+            return save_wav_soundfont(p, out, soundfont)
+        return save_wav(p, out, stereo=stereo, reverb=reverb, models=models)
 
     # -- result plumbing ---------------------------------------------------
 
@@ -368,13 +377,15 @@ class Studio:
     def add_section(self, name: str, section: str, *, bars: int = 8,
                     meter: str | None = None, tempo: int | None = None,
                     key: str | None = None, dynamic: str = "mf", note: str = "",
-                    index: int | None = None) -> OpResult:
+                    index: int | None = None,
+                    tempo_end: int | None = None) -> OpResult:
         p = self.get(name)
         if any(s.name == section for s in p.sections):
             raise ValueError(f"section {section!r} already exists")
         # tempo stays None unless given: a section that states the piece's tempo
         # would be left behind at the old marking when the piece is retimed.
-        sec = Section(section, bars, meter or p.meter, tempo, key, dynamic, note)
+        sec = Section(section, bars, meter or p.meter, tempo, key, dynamic, note,
+                      tempo_end)
         p.sections.insert(len(p.sections) if index is None else index, sec)
         return self._result(p, None, f"added section {section!r}: {bars} bars of "
                                      f"{sec.meter} at q={p.tempo_of(sec)}",
@@ -389,7 +400,7 @@ class Studio:
                 continue
             if not hasattr(sec, k):
                 raise ValueError(f"section has no field {k!r}; have bars, meter, "
-                                 f"tempo, key, dynamic, note")
+                                 f"tempo, tempo_end, key, dynamic, note")
             setattr(sec, k, v)
         sec.__post_init__()
         return self._result(p, None, f"updated section {section!r}: {sorted(fields)}",
@@ -484,7 +495,8 @@ class Studio:
             raise ValueError(f"motif {motif!r} already exists")
         m = p.get_motif(source_motif)
         for t in transforms:
-            m = apply_transform(m, t) if isinstance(t, str) else apply_transform(m, **t)
+            m = (apply_transform(m, t, resolve=p.get_motif) if isinstance(t, str)
+                 else apply_transform(m, resolve=p.get_motif, **t))
         m = Motif(motif, m.steps, m.anchor, m.scale, m.unit, note or m.note,
                   m.derived_from or source_motif, m.lineage)
         p.motifs[motif] = m
@@ -677,6 +689,13 @@ class Studio:
     @staticmethod
     def describe_transforms() -> dict:
         return TRANSFORMS
+
+    @staticmethod
+    def describe_notation() -> dict:
+        """The marks a note can carry: ``4:1/4@tr``, ``2@gr+1@st``."""
+        from .motif import ARTICULATION_MARKS, ORNAMENTS
+        return {"ornaments": dict(ORNAMENTS),
+                "articulations": sorted(k for k in ARTICULATION_MARKS if len(k) <= 4)}
 
     @staticmethod
     def describe_instruments(family: str | None = None) -> dict:

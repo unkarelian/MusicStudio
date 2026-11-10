@@ -18,6 +18,8 @@ jobs:
         run: |
           uv run python examples/build_dusk.py
           uv run ms -p gallery lint dusk
+          uv run python examples/build_lanterns.py
+          uv run ms -p gallery lint lanterns
 
   core-without-extras:
     # The core promises no dependencies; prove it.

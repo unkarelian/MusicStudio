@@ -69,14 +69,21 @@ OP_SPECS: dict[str, OpSpec] = {
               articulation=None, anchor="scale"),
         _spec("chords",
               "Realize the harmonic scaffold as a voicing. Voicings: block, pad, "
-              "arpeggio_up, arpeggio_down, broken, alberti.",
+              "arpeggio_up, arpeggio_down, arpeggio_updown, broken, alberti. "
+              "lead=True moves each chord to the nearest inversion of the next "
+              "instead of jumping in root position -- use it for anything meant to "
+              "sound played. spread opens the voicing; roll='1/32' strums it low to "
+              "high; ring=True lets each note sound until the chord changes (harp, "
+              "guitar, a pedalled piano); figure='0 2 1 2' or '0 1+2 1+2' writes "
+              "your own pattern in chord-tone indices.",
               ["at", "bars"], voicing="block", rhythm=None, octave=None, tones=3,
-              dynamic=None, spread=False),
+              dynamic=None, spread=False, lead=False, ring=False, roll=None,
+              figure=None, articulation=None),
         _spec("bass",
               "Realize the scaffold's bass line. Patterns: root, root_fifth, "
               "octaves, walking, pedal, ostinato.",
               ["at", "bars"], pattern="root", rhythm=None, octave=None,
-              dynamic=None, degree=0),
+              dynamic=None, degree=0, articulation=None),
         _spec("drone",
               "Hold one degree underneath everything. Ambient's load-bearing wall.",
               ["at", "bars"], degree=0, octave=None, dynamic=None, retrigger=None),
@@ -102,6 +109,18 @@ OP_SPECS: dict[str, OpSpec] = {
               "Deterministic micro-variation in timing and velocity. Seeded, so the "
               "render stays reproducible.",
               [], amount=0.4, timing=12, seed=0, modifier=True,
+              **{"from": None, "until": None}),
+        _spec("shape",
+              "Phrase a line as a player would: swell toward each phrase's peak and "
+              "taper its ending, lean on high notes and downbeats. amount scales it "
+              "(0.5 is natural, 1.0 romantic); peak is where in the phrase it "
+              "crests; breath is the rest that separates two phrases.",
+              [], amount=0.5, peak=0.62, breath="1/4", modifier=True,
+              **{"from": None, "until": None}),
+        _spec("swing",
+              "Delay the off-beat subdivisions so pairs play long-short. amount is "
+              "the long note's share: 0.5 straight, 0.67 triplet swing.",
+              [], amount=0.62, res="1/8", modifier=True,
               **{"from": None, "until": None}),
         _spec("events",
               "Raw note events as [pitch, start_tick, dur_tick, velocity]. The "
@@ -177,6 +196,9 @@ class Section:
     key: str | None = None
     dynamic: str = "mf"
     note: str = ""
+    #: Where the tempo has got to by the section's last bar: lower than ``tempo``
+    #: is a ritardando, higher an accelerando. ``None`` holds the tempo steady.
+    tempo_end: int | None = None
 
     def __post_init__(self) -> None:
         parse_meter(self.meter)
@@ -189,6 +211,9 @@ class Section:
         if self.tempo is not None and not 1 <= int(self.tempo) <= 400:
             raise ValueError(f"section {self.name!r}: tempo {self.tempo} is not a "
                              f"plausible marking")
+        if self.tempo_end is not None and not 1 <= int(self.tempo_end) <= 400:
+            raise ValueError(f"section {self.name!r}: tempo_end {self.tempo_end} is "
+                             f"not a plausible marking")
 
     @property
     def bar_ticks(self) -> int:
@@ -199,15 +224,18 @@ class Section:
         return self.bars * self.bar_ticks
 
     def to_json(self) -> dict:
-        return {"name": self.name, "bars": self.bars, "meter": self.meter,
-                "tempo": self.tempo, "key": self.key, "dynamic": self.dynamic,
-                "note": self.note}
+        d = {"name": self.name, "bars": self.bars, "meter": self.meter,
+             "tempo": self.tempo, "key": self.key, "dynamic": self.dynamic,
+             "note": self.note}
+        if self.tempo_end is not None:
+            d["tempo_end"] = self.tempo_end
+        return d
 
     @classmethod
     def from_json(cls, d: dict) -> Section:
         return cls(d["name"], d.get("bars", 8), d.get("meter", "4/4"),
                    d.get("tempo"), d.get("key"), d.get("dynamic", "mf"),
-                   d.get("note", ""))
+                   d.get("note", ""), d.get("tempo_end"))
 
 
 @dataclass
@@ -361,6 +389,28 @@ class Piece:
     def tempo_at(self, tick: int) -> int:
         return self.tempo_of(self.section_of_tick(tick))
 
+    def tempo_map(self) -> list[tuple[int, float]]:
+        """``(tick, bpm)`` marks covering the piece, in order.
+
+        A steady section contributes one mark. A section with ``tempo_end``
+        changes beat by beat, easing in -- most of a ritardando happens in its
+        last bar, which is what makes it sound like arriving rather than like a
+        tape slowing down. The WAV render and the MIDI export both read this,
+        so they cannot disagree about how long the piece is.
+        """
+        marks: list[tuple[int, float]] = []
+        for sec, _, start in self.section_bounds():
+            bpm = float(self.tempo_of(sec))
+            if sec.tempo_end is None or sec.tempo_end == bpm:
+                marks.append((start, bpm))
+                continue
+            beat = beat_ticks(sec.meter)
+            steps = max(1, sec.length // beat)
+            for k in range(steps):
+                t = k / max(1, steps - 1)
+                marks.append((start + k * beat, bpm + (sec.tempo_end - bpm) * t ** 1.6))
+        return marks or [(0, float(self.tempo))]
+
     # -- harmony -----------------------------------------------------------
 
     def harmony_spans(self) -> list[tuple[int, int, str]]:
@@ -372,6 +422,18 @@ class Piece:
         """
         if not self.harmony:
             return []
+        # Asked for at every note of every render; the answer only changes when
+        # the scaffold or the form does, so it is kept against exactly those.
+        sig = (tuple((h.at, h.chord, h.dur) for h in self.harmony),
+               tuple((s.bars, s.meter) for s in self.sections))
+        cached = getattr(self, "_spans", None)
+        if cached is not None and cached[0] == sig:
+            return cached[1]
+        out = self._harmony_spans()
+        self._spans = (sig, out)
+        return out
+
+    def _harmony_spans(self) -> list[tuple[int, int, str]]:
         marks = sorted(((self.tick_of(h.at), h) for h in self.harmony), key=lambda t: t[0])
         end_of_piece = self.total_ticks
         out = []
@@ -457,7 +519,7 @@ class Piece:
         if op.params.get(key) is None:
             raise ValueError(f"op {op_id!r} ({op.kind}) has no position to move")
         params = {key: self._shifted(op.params[key], bars, beats)}
-        if op.kind in ("dynamics", "articulate", "rest") or "until" in op.params:
+        if op.kind in ("dynamics", "articulate", "rest", "shape", "swing") or "until" in op.params:
             if op.params.get("until") is not None:
                 params["until"] = self._shifted(op.params["until"], bars, beats)
         return self.update_op(op_id, **params)
@@ -519,6 +581,31 @@ class Piece:
             return self.motifs[name]
         except KeyError:
             raise KeyError(f"no motif {name!r}; have {sorted(self.motifs)}") from None
+
+    def heard_within(self, names) -> set[str]:
+        """Motifs that sound as *part of* the given ones, through ``then``.
+
+        A period built as ``call then rise then close`` plays all three, though
+        only the period is ever named by an op. Follows joins through derived
+        motifs too, so the cell a decorated variant came from counts as heard.
+        ``names`` may be motif names or the ``+``-joined lineage a note carries.
+        """
+        out: set[str] = set()
+        todo = [t for n in names for t in str(n).split("+")]
+        todo += [t for n in names if n in self.motifs for t in self.motifs[n].lineage]
+        while todo:
+            tok = todo.pop()
+            if not tok.startswith("then:"):
+                continue
+            name = tok[5:]
+            m = self.motifs.get(name)
+            if m is None or name in out:
+                continue
+            out.add(name)
+            if m.derived_from:
+                out.add(m.derived_from)
+            todo += list(m.lineage)
+        return out
 
     # -- persistence -------------------------------------------------------
 

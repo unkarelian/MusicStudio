@@ -257,13 +257,111 @@ def test_the_pure_python_and_numpy_paths_render_the_same_piece(monkeypatch):
     np = pytest.importorskip("numpy")
     p = _tiny()
     p.get_voice("v").pan = 0.0
-    fast_l, _ = audio.synthesize(p, reverb=False)
+    fast_l, _ = audio.synthesize(p, reverb=False, models=False)
     monkeypatch.setattr(audio, "_np", None)
     slow_l, _ = audio.synthesize(p, reverb=False)
     slow = np.frombuffer(slow_l, dtype=np.float64)
     assert len(slow) == len(fast_l)
     # Not bit-identical: the fast path interpolates the table and adds vibrato.
     assert np.corrcoef(slow, fast_l)[0, 1] > 0.9
+
+
+def _loudness(x, np, hop=2205):
+    """RMS in 50 ms frames: where the notes are and how loud, timbre aside."""
+    x = np.asarray(x, dtype=np.float64)
+    frames = x[:len(x) // hop * hop].reshape(-1, hop)
+    return np.sqrt((frames ** 2).mean(axis=1))
+
+
+def test_instrument_models_change_the_sound_and_not_the_music():
+    """A model may make a flute sound like a flute. It may not move a note,
+    lengthen the piece, or re-seat a player -- that is the arrangement, and the
+    arrangement is the same on every path."""
+    np = pytest.importorskip("numpy")
+    p = _tiny()
+    plain_l, plain_r = audio.synthesize(p, reverb=False, models=False)
+    model_l, model_r = audio.synthesize(p, reverb=False, models=True)
+    assert len(model_l) == len(plain_l)
+    assert np.abs(model_r).max() < np.abs(model_l).max() * 1e-6      # still hard left
+    a, b = _loudness(plain_l, np), _loudness(model_l, np)
+    assert np.corrcoef(a, b)[0, 1] > 0.8
+    assert 0.5 < b.mean() / a.mean() < 2.0                            # not remixed
+    assert np.corrcoef(plain_l, model_l)[0, 1] < 0.9                  # but not the same wave
+
+
+def test_every_instrument_has_a_voice_and_a_stable_one():
+    """Each model produces sound, never a NaN, and the same sound twice --
+    in-process and across processes, since the seeds come from the note."""
+    np = pytest.importorskip("numpy")
+    import subprocess, sys
+    from musicstudio import synth
+    for name in synth.MODELS:
+        ctx = synth.NoteCtx(name, "v", 60, 0.0, 0.5, 80, None, False, ("v", 0, 60))
+        once = sum(sig for sig, _ in synth.render_note(ctx, 10 ** 7))
+        again = sum(sig for sig, _ in synth.render_note(ctx, 10 ** 7))
+        assert np.isfinite(once).all() and np.abs(once).max() > 0.01, name
+        assert np.array_equal(once, again), name
+    code = ("from musicstudio import synth; import zlib;"
+            "c=synth.NoteCtx('violin','v',60,0.0,0.5,80,None,False,('v',0,60));"
+            "print(zlib.crc32(sum(s for s,_ in synth.render_note(c,10**7)).tobytes()))")
+    runs = {subprocess.run([sys.executable, "-c", code], capture_output=True, text=True,
+                           env={"PYTHONHASHSEED": seed, "PATH": ""}).stdout
+            for seed in ("1", "2")}
+    assert len(runs) == 1 and runs != {""}
+
+
+def test_a_slurred_note_is_not_attacked_again():
+    np = pytest.importorskip("numpy")
+    from musicstudio import synth
+
+    def onset(slur_from):
+        ctx = synth.NoteCtx("violin", "v", 67, 0.0, 0.6, 80, slur_from, False, ("v", 0, 67))
+        sig = synth.render_note(ctx, 10 ** 7)[0][0]
+        spec = np.abs(np.fft.rfft(sig[:2048] * np.hanning(2048)))
+        f = np.fft.rfftfreq(2048, 1 / synth.SR)
+        return spec[f > 3000].sum() / spec.sum()
+
+    # The bow-noise burst that starts a detached note is absent from a slur.
+    assert onset(65) < onset(None)
+
+
+def test_only_legato_notes_are_joined():
+    pytest.importorskip("numpy")
+    from musicstudio import synth
+    from musicstudio.render import render
+    for articulation, joined in (("legato", 3), ("staccato", 0), (None, 0)):
+        p = _tiny()
+        p.update_op("f", articulation=articulation)
+        notes = render(p).notes
+        links = synth.slur_links(notes, audio._tick_seconds(p))
+        assert sum(1 for frm, _ in links.values() if frm is not None) == joined
+
+
+def test_a_ritardando_lengthens_the_piece_and_both_exports_agree():
+    p = _tiny()
+    steady = audio._tick_seconds(p)(p.total_ticks)
+    p.sections[0].tempo_end = 60
+    slowed = audio._tick_seconds(p)(p.total_ticks)
+    assert slowed > steady * 1.1
+    marks = p.tempo_map()
+    assert marks[0][1] == 120 and marks[-1][1] == 60
+    assert [bpm for _, bpm in marks] == sorted((bpm for _, bpm in marks), reverse=True)
+    from musicstudio.midi import to_bytes
+    assert to_bytes(p).count(b"\xff\x51\x03") == len(marks)
+
+
+def test_a_soundfont_render_needs_a_soundfont_and_says_so(tmp_path, monkeypatch):
+    monkeypatch.delenv("MUSICSTUDIO_SOUNDFONT", raising=False)
+    monkeypatch.setattr(audio, "SOUNDFONT_DIRS", (str(tmp_path / "none"),))
+    with pytest.raises(FileNotFoundError, match="--soundfont"):
+        audio.find_soundfont()
+    with pytest.raises(FileNotFoundError):
+        audio.find_soundfont(tmp_path / "missing.sf2")
+    bank = tmp_path / "FluidR3_GM.sf2"
+    bank.write_bytes(b"RIFF")
+    monkeypatch.setattr(audio, "SOUNDFONT_DIRS", (str(tmp_path),))
+    assert audio.find_soundfont() == bank
+    assert audio.find_soundfont("auto") == bank
 
 
 def test_the_vectorized_envelope_matches_the_reference():
@@ -282,3 +380,72 @@ def test_reverb_lengthens_the_tail_without_moving_the_music():
     assert len(wet) >= len(dry)
     onset = int(np.argmax(np.abs(dry) > 1e-3))
     assert abs(int(np.argmax(np.abs(wet) > 1e-3)) - onset) < 50
+
+
+# --------------------------------------------------------------------------
+# fetching a SoundFont
+# --------------------------------------------------------------------------
+
+def _fake_deb(tmp_path, bank_bytes: bytes):
+    """A minimal Debian package: an ar archive holding a data.tar.xz."""
+    import hashlib, io, tarfile
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:xz") as tar:
+        for name, data in (("./usr/share/sounds/sf3/Bank.sf3", bank_bytes),
+                           ("./usr/share/doc/bank/copyright", b"MIT, as described")):
+            info = tarfile.TarInfo(name)
+            info.size = len(data)
+            tar.addfile(info, io.BytesIO(data))
+    data = buf.getvalue()
+
+    def member(name: bytes, body: bytes) -> bytes:
+        head = name.ljust(16) + b"0".ljust(12) + b"0".ljust(6) + b"0".ljust(6) \
+            + b"100644".ljust(8) + str(len(body)).encode().ljust(10) + b"`\n"
+        return head + body + (b"\n" if len(body) & 1 else b"")
+
+    deb = b"!<arch>\n" + member(b"debian-binary", b"2.0\n") + member(b"data.tar.xz", data)
+    path = tmp_path / "bank.deb"
+    path.write_bytes(deb)
+    return path, hashlib.sha256(deb).hexdigest()
+
+
+def test_a_soundfont_is_installed_only_if_it_is_the_file_that_was_pinned(tmp_path, monkeypatch):
+    from musicstudio import soundfonts
+    sf = b"RIFF" + b"\x00" * 4 + b"sfbk" + b"samples"
+    deb, digest = _fake_deb(tmp_path, sf)
+    bank = soundfonts.Bank("test", "a test bank", deb.as_uri(), digest, 1, "Test_HQ.sf3",
+                           member="usr/share/sounds/sf3/Bank.sf3",
+                           license_member="usr/share/doc/bank/copyright")
+    monkeypatch.setitem(soundfonts.BANKS, "test", bank)
+    dest = tmp_path / "fonts"
+
+    out = soundfonts.install("test", dest=dest, quiet=True)
+    assert out == dest / "Test_HQ.sf3" and out.read_bytes() == sf
+    assert (dest / "Test_HQ.LICENSE.txt").read_text() == "MIT, as described"
+    assert soundfonts.installed(dest) == [out]
+    # ...and the renderer finds it without being told where it is.
+    monkeypatch.delenv("MUSICSTUDIO_SOUNDFONT", raising=False)
+    monkeypatch.setattr(audio, "SOUNDFONT_DIRS", (str(dest),))
+    assert audio.find_soundfont() == out
+
+    # A download that is not the pinned file installs nothing at all.
+    wrong = soundfonts.Bank("bad", "", deb.as_uri(), "0" * 64, 1, "Bad.sf3",
+                            member="usr/share/sounds/sf3/Bank.sf3")
+    monkeypatch.setitem(soundfonts.BANKS, "bad", wrong)
+    with pytest.raises(ValueError, match="checksum mismatch"):
+        soundfonts.install("bad", dest=dest, quiet=True)
+    assert not (dest / "Bad.sf3").exists()
+    assert [f.name for f in dest.iterdir() if f.name.startswith("Bad")] == []
+
+    with pytest.raises(ValueError, match="sha256"):
+        soundfonts.install(url="https://example.invalid/x.sf2", dest=dest)
+    with pytest.raises(KeyError, match="unknown bank"):
+        soundfonts.install("nope", dest=dest)
+
+
+def test_the_hq_bank_is_preferred_over_the_others(tmp_path, monkeypatch):
+    for name in ("FluidR3_GM.sf2", "MuseScore_General.sf3", "MuseScore_General_HQ.sf3"):
+        (tmp_path / name).write_bytes(b"RIFF")
+    monkeypatch.delenv("MUSICSTUDIO_SOUNDFONT", raising=False)
+    monkeypatch.setattr(audio, "SOUNDFONT_DIRS", (str(tmp_path),))
+    assert audio.find_soundfont().name == "MuseScore_General_HQ.sf3"

@@ -71,6 +71,40 @@ theme, and show you where every statement of it lands:
   hero             fragment:0,3+sequence  21:violin 23:violin 25:violin
 ```
 
+**A theme can be as ornate as you can hear, and still be the theme.** A note
+takes an ornament or an articulation as a mark, and long themes are built by
+joining cells:
+
+```python
+add_motif("call",  "4:1/4. 2 4:1/4 7:1/4 | 7 6 5:1/4 3:1/4. 5")
+add_motif("close", "8:1/4 7 5 #6:1/4.@tr 8 | 7:1/2. r:1/4")       # trill the leading tone
+derive_motif("theme", "call", ["then:rise", "then:reply", "then:close"])
+derive_motif("theme_sung", "theme", ["embellish:passing", "ornament:gr+1,4"])
+```
+
+`@tr @mord @lmord @turn @gr @run-3` are realized in degree space, so a trill is
+whichever trill the key gives and survives a modulation; the written note keeps
+its onset and its end, and graces borrow their time from the note before, so
+decorating a line never moves it. The elaborating transforms — `embellish`
+(written-out neighbours, turns and passing notes), `ornament`, `expand`, `dot`,
+`displace`, `thin`, `mirror`, `append`, `then` — all record lineage like the
+classical ones. The eight-bar, ornamented, re-rhythmed repeat is therefore
+*provably* the tune it decorates, and the motif map says so.
+
+**It is played, not sequenced.** Four things separate a performance from a
+piano roll, and each is an op or a parameter rather than a hope:
+
+- `chords` with `lead=True` moves to the nearest inversion instead of jumping
+  in root position; `ring=True` is the sustain pedal (or a harp left to sound);
+  `roll="1/32"` strums; `figure="0 1+2 1+2"` writes your own pattern in
+  chord-tone indices, so it re-fits every chord.
+- `shape` phrases a line: a swell toward each phrase's peak, a taper off its
+  end, a lean on high notes and downbeats. `swing` delays the off-beats.
+- `articulation="legato"` (or `@leg` on one note) slurs: the render glides into
+  the next note instead of attacking it again.
+- a section's `tempo_end` is a ritardando or accelerando, eased so most of it
+  happens in the last bar, and shared by the WAV and MIDI exports.
+
 **The studio knows what instruments can do.** A voice is an instrument with a
 range, a register where it actually sounds like itself, and a polyphony limit.
 Ask a horn for a low E and it is an error; write a melody without naming an
@@ -217,6 +251,7 @@ uv run ms -p gallery squint dusk
 uv run ms -p gallery motifs dusk
 uv run ms -p gallery lint dusk        # exits non-zero on errors
 uv run ms -p gallery wav dusk         # and actually listen to it
+uv run ms -p gallery wav dusk --soundfont   # sampled instruments, if installed
 
 uv run ms -p gallery undo dusk        # take back the last change (diff + lint)
 uv run ms -p gallery redo dusk
@@ -242,20 +277,83 @@ or in `.mcp.json`:
 
 ## Listening
 
-`wav` renders a stereo 16-bit file. The synthesis is deliberately simple, but
-three things are there because they are what let an ear pick the parts apart —
-which is the whole reason to listen:
+`wav` renders a stereo 16-bit file. Three things are there because they are
+what let an ear pick the parts apart — which is the whole reason to listen:
 
 - **voices are seated** like an orchestra (violins left, low strings right,
   bass pulled to the centre), or wherever a voice's own `pan` puts them;
-- **oscillators are band-limited per note**, so a high line does not fold back
-  into inharmonic hiss, and bells are additive rather than a wavetable that
-  cannot hold their inharmonic partials;
+- **each voice is played through a model of its instrument**, not a fixed
+  waveform under one envelope;
 - **there is a room** sized to the style — long for ambient, short for chamber,
-  nearly dry for chiptune — plus a little delayed vibrato on sustained timbres.
+  nearly dry for chiptune — with early reflections, and less of the low
+  instruments sent to it.
 
-The room and vibrato need numpy (the `analysis` extra); without it the render
-is dry but otherwise the same. `--dry` and `--mono` turn them off.
+### Why it does not sound like a sound chip
+
+One static oscillator per voice is an accurate model of a 1980s console and of
+nothing else. A real instrument differs in a few specific ways, and `synth.py`
+is those ways:
+
+- **The spectrum moves.** A trumpet's upper partials arrive after the note
+  speaks and leave first; a piano's die many times faster than its fundamental;
+  everything is brighter played louder. A note is several band-limited tables
+  crossfading over its life.
+- **The body does not transpose.** A violin's wood and an oboe's bore resonate
+  at fixed frequencies whatever note is played, so harmonics are shaped by
+  formants at absolute pitch — which is most of what lets an ear say "oboe".
+- **Onsets are noise.** Bow hair catching, breath before the tone, a hammer on
+  a string.
+- **Nothing is steady.** Vibrato arrives late and wavers, pitch drifts a few
+  cents, a string section is several players who do not quite agree, and a
+  slurred note glides out of the last one instead of being attacked.
+- **Struck things are inharmonic.** Bells, bars and timpani are sums of
+  partials at their own ratios and decays; piano strings stretch sharp; kick,
+  snare, cymbals and taiko are each built as what they are rather than as one
+  burst of noise.
+
+The models, the room and the limiter need numpy (the `analysis` extra); without
+it the render is dry and plainly synthetic but is the same piece — the models
+change how a note sounds, never which notes there are. `--plain` turns the
+models off, `--dry` the room, `--mono` the seating. Everything random is seeded
+from the note itself, so a render is the same bytes on every run. Chip and
+synth instruments keep their plain oscillators, because there that *is* the
+instrument.
+
+It is still synthesis. It sounds like instruments being played; it does not
+sound like a recording of them.
+
+### Sampled instruments
+
+For recorded instruments, `--soundfont` renders the same performance through
+[FluidSynth](https://www.fluidsynth.org) with a General MIDI SoundFont. One
+command fetches a good one:
+
+```bash
+uv run ms soundfont install        # MuseScore General HQ, MIT, 73 MB, once
+uv run ms -p gallery wav lanterns --soundfont
+uv run ms soundfont                # which bank is in use, and what is installed
+```
+
+The bank goes to `~/.local/share/soundfonts` with its licence beside it, and is
+picked up from there with no path. It is downloaded rather than shipped because
+it is 86 MB of recordings that the built-in render does not need. The download
+is pinned by SHA-256 and nothing is installed if it does not match; the HQ bank
+comes from Debian's package of it, since MuseScore no longer serves it as a
+file. `ms soundfont install standard` fetches the lighter 38 MB bank, and
+`--url ... --sha256 ...` installs any other.
+
+To use a bank you already have:
+
+```bash
+uv run ms -p gallery wav lanterns --soundfont ~/sf/FluidR3_GM.sf2
+export MUSICSTUDIO_SOUNDFONT=~/sf/FluidR3_GM.sf2   # or set it once
+```
+
+Velocities are compressed on the way to the sampler (samplers play `p` far
+quieter than the built-in render does), so the two renders keep one balance.
+
+It is the MIDI export played by a sampler — same notes, same tempo map, same
+seating — so it needs FluidSynth on `PATH` and a bank; neither ships here.
 
 ## Dependencies
 
@@ -280,6 +378,8 @@ MIDI import, motif discovery and cross-piece comparison need neither.
 uv sync --all-extras
 uv run pytest tests/ -q
 uv run python examples/build_dusk.py     # the dogfood build; it must lint clean
+uv run python examples/build_lanterns.py # the long one: a joined theme, ornaments,
+                                         # led chords, phrasing, a ritardando
 ```
 
 `CLAUDE.md` (mirrored as `AGENTS.md`) lists the invariants the design rests on;

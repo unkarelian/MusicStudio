@@ -575,3 +575,244 @@ def test_humanize_is_reproducible_across_processes():
                            check=True).stdout
             for seed in ("1", "2", "3")}
     assert len(outs) == 1
+
+
+# --------------------------------------------------------------------------
+# elaboration: ornaments, diminution, led chords, phrasing
+# --------------------------------------------------------------------------
+
+from musicstudio.motif import TRANSFORMS, Step, apply_transform  # noqa: E402
+
+
+def _line(steps: str, key: str = "C major", **op) -> Piece:
+    p = Piece("orn", key, tempo=100, style="chamber")
+    p.sections.append(Section("A", 2))
+    p.voices.append(Voice("v", "violin", "melody", octave=4))
+    p.add_op("v", "phrase", id="f", steps=steps, at="1", unit="1/4", octave=4, **op)
+    return p
+
+
+def test_ornament_marks_parse_and_round_trip():
+    m = make_motif("m", "0 2@st 4:1/4@tr 3@gr+1 2:1/2@leg@mord")
+    assert [s.orn for s in m.steps] == ["", "", "tr", "gr+1", "mord"]
+    assert [s.art for s in m.steps] == ["", "staccato", "", "", "legato"]
+    assert make_motif("again", m.source()).steps == m.steps
+    assert all(Step.from_json(s.to_json()) == s for s in m.steps)
+    with pytest.raises(ValueError, match="ornament"):
+        make_motif("bad", "0@wobble")
+
+
+def test_an_ornament_never_moves_the_note_it_decorates():
+    """The written note keeps its onset and its end, whatever is hung on it --
+    otherwise decorating a theme would shift everything after it."""
+    plain = render(_line("0 2 4 2")).notes
+    for mark in ("tr", "mord", "lmord", "turn", "gr", "gr+1", "run-3"):
+        notes = render(_line(f"0 2@{mark} 4 2")).notes
+        main = [n for n in notes if not n.ornament]
+        # Index 0 is the note *before* the ornament, which a grace may shorten.
+        assert [(n.pitch, n.end) for n in main][1:] == [(n.pitch, n.end) for n in plain][1:], mark
+        assert main[0].pitch == plain[0].pitch and main[0].start == plain[0].start
+        assert any(n.ornament for n in notes), mark
+        if mark in ("gr", "gr+1", "run-3"):
+            # Before the beat: the written note is exactly where it was.
+            assert [n.start for n in main] == [n.start for n in plain], mark
+            assert min(n.start for n in notes if n.ornament) < 480
+
+
+def test_ornaments_are_in_the_key_and_follow_a_modulation():
+    """A trill is the trill the key gives: E-F in C major, E-F# in A major."""
+    for key, steps, pair in (("C major", "2:1/2@tr", {"E", "F"}),
+                             ("A major", "4:1/2@tr", {"E", "F#"})):
+        p = _line("0:1/2", key)
+        p.update_op("f", steps=steps)
+        assert {pitch_name(n.pitch)[:-1] for n in render(p).notes if n.ornament} == pair
+
+
+def test_a_grace_note_borrows_from_the_note_before():
+    notes = sorted(render(_line("0 2@gr 4 2", articulation="legato")).notes,
+                   key=lambda n: n.start)
+    first, grace = notes[0], notes[1]
+    assert grace.ornament and first.end == grace.start       # shortened, not overlapped
+    mono = max(len(s.notes) for s in __import__("musicstudio.lint", fromlist=["x"])
+               .sonorities(notes))
+    assert mono == 1
+
+
+def test_ornaments_do_not_trip_the_voice_leading_checks():
+    """Precision: the chorale with a trill and a turn on its soprano is still clean."""
+    p = _chorale()
+    v = p.get_voice("soprano") if any(x.name == "soprano" for x in p.voices) else p.voices[0]
+    op = v.ops[0]
+    marked = " ".join(tok + ("@tr" if i == 1 else "@turn" if i == 2 else "")
+                      for i, tok in enumerate(str(op.params["steps"]).split()))
+    p.update_op(op.id, steps=marked)
+    assert any(n.ornament for n in render(p).notes)
+    found = {f.code for f in lint(p)}
+    assert not (found & VOICE_LEADING_CODES), sorted(found & VOICE_LEADING_CODES)
+
+
+def test_every_listed_transform_exists_and_keeps_the_lineage():
+    m = make_motif("m", "0 2 4:1/4 3 2:1/2")
+    args = {"transpose": "transpose:2", "augment": "augment:2", "diminish": "diminish:2",
+            "fragment": "fragment:0,3", "sequence": "sequence:2,1",
+            "rhythmize": "rhythmize:1/8 1/8 1/4", "append": "append:4 2 0:1/2",
+            "ornament": "ornament:mord,0 2", "embellish": "embellish:turn",
+            "then": "then:tail"}
+    tail = make_motif("tail", "4 2 0:1/2")
+    for name in TRANSFORMS:
+        d = apply_transform(m, args.get(name, name), resolve=lambda _: tail)
+        assert d.derived_from == "m" and d.lineage, name
+        assert d.lineage[-1].split(":")[0] == name, name
+
+
+def test_elaborations_that_promise_the_same_length_keep_it():
+    m = make_motif("m", "0 2 4:1/4 7 2:1/2")
+    for t in ("embellish:neighbor", "embellish:lower", "embellish:turn",
+              "embellish:passing", "embellish:escape", "dot:3/1", "dot:2/1",
+              "displace:1/8", "thin:1/4", "ornament:tr", "expand:2"):
+        assert apply_transform(m, t).duration == m.duration, t
+    assert apply_transform(m, "mirror").duration == 2 * m.duration
+    assert apply_transform(m, "expand:2").intervals == tuple(2 * i for i in m.intervals)
+
+
+def test_a_joined_theme_is_still_tracked_as_its_opening_idea(tmp_path):
+    s = Studio(tmp_path)
+    s.create("t", key="C major", form="binary")
+    s.add_motif("t", "call", "0 2 4:1/4")
+    s.add_motif("t", "answer", "4 2 0:1/4")
+    out = s.derive_motif("t", "period", "call", ["then:answer", "embellish:passing"])
+    assert out["motif"]["derived_from"] == "call"
+    assert out["motif"]["lineage"] == ["then:answer", "embellish:passing"]
+    s.add_voice("t", "vln", "violin")
+    s.add_op("t", "vln", "play", id="p", motif="period", at="1")
+    s.add_op("t", "vln", "play", id="q", motif="call", at="3", transform=["then:answer"])
+    assert {n.motif for n in s.render("t").notes} == {"call"}
+
+
+def _progression(**op) -> Piece:
+    p = Piece("ch", "C major", style="freeform")
+    p.sections.append(Section("A", 4))
+    p.voices.append(Voice("pf", "piano", "harmony", octave=4))
+    from musicstudio.doc import HarmonyEntry
+    p.harmony = [HarmonyEntry(str(i + 1), c) for i, c in enumerate(["I", "IV", "V7", "I"])]
+    p.add_op("pf", "chords", id="c", at="1", bars=4, **{"rhythm": "1/1", **op})
+    return p
+
+
+def _motion(p: Piece) -> int:
+    chords: dict[int, list[int]] = {}
+    for n in render(p).notes:
+        chords.setdefault(n.start, []).append(n.pitch)
+    seq = [sorted(v) for _, v in sorted(chords.items())]
+    return sum(abs(a - b) for x, y in zip(seq, seq[1:]) for a, b in zip(x, y))
+
+
+def test_led_chords_move_less_and_sound_the_same_harmony():
+    block, led = _progression(), _progression(lead=True)
+    assert _motion(led) < _motion(block) / 2
+    pcs = lambda p: [{n.pitch % 12 for n in render(p).notes if n.start == t}
+                     for t in sorted({n.start for n in render(p).notes})]
+    assert pcs(block) == pcs(led)
+    assert [n.pitch for n in render(_progression()).notes] == \
+        [n.pitch for n in render(_progression(lead=False)).notes]
+
+
+def test_chord_figures_rolls_and_ringing():
+    fig = render(_progression(figure="0 1+2 1+2", rhythm="1/4")).notes
+    bar1 = sorted((n.start, n.pitch) for n in fig if n.start < 1920)
+    assert [pitch_name(p) for t, p in bar1 if t == 0] == ["C4"]
+    assert [pitch_name(p) for t, p in bar1 if t == 480] == ["E4", "G4"]
+    rolled = render(_progression(roll="1/32")).notes
+    assert sorted(n.start for n in rolled if n.start < 1920) == [0, 60, 120]
+    rung = render(_progression(voicing="arpeggio_up", rhythm="1/4", ring=True)).notes
+    assert all(n.end <= 1920 for n in rung if n.start < 1920)
+    assert max(n.dur for n in rung) >= 1440 > 480       # until it is struck again
+    with pytest.raises(ValueError, match="figure"):
+        render(_progression(figure="0 x"))
+
+
+def test_shape_phrases_a_flat_line_and_leaves_the_notes_alone():
+    p = _line("0 1 2 3 4 3 2 1")
+    flat = render(p).notes
+    p.add_op("v", "shape", id="sh", amount=1.0)
+    shaped = render(p).notes
+    assert [(n.pitch, n.start, n.dur) for n in shaped] == [(n.pitch, n.start, n.dur) for n in flat]
+    vel = [n.velocity for n in sorted(shaped, key=lambda n: n.start)]
+    assert len({n.velocity for n in flat}) == 1 and len(set(vel)) > 4
+    assert vel.index(max(vel)) in (3, 4, 5) and vel[-1] < vel[0] < max(vel)
+
+
+def test_swing_delays_only_the_offbeats():
+    p = _line("0:1/8 1:1/8 2:1/8 3:1/8")
+    p.add_op("v", "swing", id="sw", amount=2 / 3)
+    starts = sorted(n.start for n in render(p).notes)
+    assert starts == [0, 320, 480, 800]
+    with pytest.raises(ValueError, match="swing amount"):
+        p.update_op("sw", amount=0.2)
+        render(p)
+
+
+def test_a_melody_instrument_doubling_below_is_not_a_buried_melody():
+    """Violins on the tune, cellos an octave under it, a pad in between: the
+    tune is on top. The same pad over a cello that *has* the tune is the error."""
+    from musicstudio.doc import HarmonyEntry
+
+    def scored(cello_doubles: bool) -> set[str]:
+        p = Piece("tutti", "C major", style="orchestral")
+        p.sections.append(Section("A", 4))
+        p.harmony = [HarmonyEntry("1", "I")]
+        p.voices += [Voice("violin", "violin", "melody", octave=5),
+                     Voice("cello", "cello", "melody", octave=3),
+                     Voice("pad", "strings", "pad", octave=3)]
+        tune = "4:1/2 2:1/2 | 0:1/2 2:1/2 | 4:1/2 2:1/2 | 0:1/1"
+        if cello_doubles:
+            p.add_op("violin", "phrase", id="t", steps=tune, at="1", octave=5)
+            p.add_op("cello", "double", id="d", source="violin", octaves=-2)
+        else:
+            p.add_op("cello", "phrase", id="t", steps=tune, at="1", octave=3)
+        p.add_op("pad", "chords", id="c", at="1", bars=4, voicing="pad", octave=3,
+                 tones=4)
+        return {f.code for f in lint(p)}
+
+    assert "melody_buried" in scored(cello_doubles=False)
+    assert "melody_buried" not in scored(cello_doubles=True)
+
+
+def test_a_restruck_note_is_not_silenced_by_the_first_notes_off():
+    """One note-off per pitch per channel: a ringing note struck again must be
+    turned off *before* the new one starts, or its off kills the new note."""
+    p = _progression(voicing="arpeggio_up", rhythm="1/4", ring=True)
+    p.add_op("pf", "humanize", id="h", timing=20, amount=0.5)
+    data = to_bytes(p)
+    sounding: set[int] = set()
+    i = data.index(b"MTrk", data.index(b"MTrk") + 4) + 8
+    while i < len(data):
+        while data[i] & 0x80:                       # delta time
+            i += 1
+        i += 1
+        status = data[i]
+        if status == 0xFF:
+            length = data[i + 2]
+            if data[i + 1] == 0x2F:
+                break
+            i += 3 + length
+        elif status & 0xF0 in (0x90, 0x80):
+            pitch = data[i + 1]
+            if status & 0xF0 == 0x90:
+                assert pitch not in sounding, f"pitch {pitch} struck while still on"
+                sounding.add(pitch)
+            else:
+                sounding.discard(pitch)
+            i += 3
+        else:
+            i += 2 if status & 0xF0 == 0xC0 else 3
+    assert not sounding
+
+
+def test_the_sampler_velocity_curve_lifts_quiet_notes_and_keeps_order():
+    p = _line("0 2 4 2")
+    p.update_op("f", dynamic="p")
+    raw, lifted = to_bytes(p), to_bytes(p, velocity_curve=0.65)
+    assert len(raw) == len(lifted) and raw != lifted
+    at = raw.index(bytes([0x90])) + 2
+    assert raw[at] < lifted[at] < 127

@@ -66,14 +66,45 @@ def _channels(piece: Piece) -> dict[str, int]:
     return out
 
 
-def to_bytes(piece: Piece, rend: Render | None = None) -> bytes:
+def _sounding_ends(notes) -> list[int]:
+    """Where each note's note-off goes, so that no pitch is ever on twice.
+
+    MIDI has one note-off per pitch per channel. If a string is struck again
+    while it is still ringing -- a pedalled arpeggio, or two notes nudged into
+    each other by humanized timing -- the first note's off arrives during the
+    second and silences it. So a note ends, at the latest, where the next note
+    of the same pitch begins.
+    """
+    ends = [max(n.start + 1, n.end) for n in notes]
+    last: dict[int, int] = {}
+    for i in sorted(range(len(notes)), key=lambda i: notes[i].start):
+        j = last.get(notes[i].pitch)
+        if j is not None and ends[j] > notes[i].start:
+            ends[j] = max(notes[j].start + 1, notes[i].start)
+        last[notes[i].pitch] = i
+    return ends
+
+
+def to_bytes(piece: Piece, rend: Render | None = None, *,
+             velocity_curve: float = 1.0) -> bytes:
+    """The piece as a format-1 MIDI file.
+
+    ``velocity_curve`` is an exponent on normalized velocity. 1.0 writes the
+    velocities as rendered, which is what a file meant for a DAW should carry.
+    Below 1 lifts the quiet notes: samplers map velocity to loudness far more
+    steeply than the built-in render does, and without it a ``p`` accompaniment
+    under an ``mf`` tune all but disappears.
+    """
     r = rend if rend is not None else render(piece)
     chans = _channels(piece)
+    from .audio import pan_positions
+    pans = pan_positions(piece)
 
     meta: list[tuple[int, bytes]] = [(0, b"\xff\x03" + _len(piece.name.encode("utf-8")))]
-    for sec, _, tick in piece.section_bounds():
-        usec = int(60_000_000 / max(1, piece.tempo_of(sec)))
+    for tick, bpm in piece.tempo_map():
+        usec = int(60_000_000 / max(1.0, bpm))
         meta.append((tick, b"\xff\x51\x03" + struct.pack(">I", usec)[1:]))
+    for sec, _, tick in piece.section_bounds():
         num, den = parse_meter(sec.meter)
         power = max(0, den.bit_length() - 1)
         meta.append((tick, b"\xff\x58\x04" + bytes([num, power, 24, 8])))
@@ -87,11 +118,19 @@ def to_bytes(piece: Piece, rend: Render | None = None) -> bytes:
             (0, b"\xff\x03" + _len(f"{v.name} ({v.instrument})".encode("utf-8")))]
         if not v.inst.percussive:
             ev.append((0, bytes([0xC0 | ch, v.inst.program & 0x7F])))
-        for n in notes:
+            # The seating plan travels with the file, so a sampler or a DAW puts
+            # the players where the built-in render does. Not for the drum
+            # channel: it is shared, and kits carry their own panning.
+            pan = max(0, min(127, int(round(64 + 63 * pans.get(v.name, 0.0)))))
+            ev.append((0, bytes([0xB0 | ch, 10, pan])))
+            ev.append((0, bytes([0xB0 | ch, 91, 30 if v.role == "bass" else 52])))
+        for n, end in zip(notes, _sounding_ends(notes)):
             vel = max(1, min(127, n.velocity))
+            if velocity_curve != 1.0:
+                vel = max(1, min(127, round(127 * (vel / 127) ** velocity_curve)))
             pitch = max(0, min(127, n.pitch))
             ev.append((n.start, bytes([0x90 | ch, pitch, vel])))
-            ev.append((max(n.start + 1, n.end), bytes([0x80 | ch, pitch, 0])))
+            ev.append((end, bytes([0x80 | ch, pitch, 0])))
         tracks.append(_track(ev))
 
     header = _chunk(b"MThd", struct.pack(">HHH", 1, len(tracks), TPQ))
@@ -102,8 +141,9 @@ def _len(b: bytes) -> bytes:
     return _vlq(len(b)) + b
 
 
-def save_midi(piece: Piece, path: str | Path, rend: Render | None = None) -> Path:
+def save_midi(piece: Piece, path: str | Path, rend: Render | None = None, *,
+              velocity_curve: float = 1.0) -> Path:
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_bytes(to_bytes(piece, rend))
+    p.write_bytes(to_bytes(piece, rend, velocity_curve=velocity_curve))
     return p

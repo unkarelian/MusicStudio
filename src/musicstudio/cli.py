@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import sys
 
 from .lint import report
@@ -83,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("setsection", help="change a section's fields")
     p.add_argument("name"); p.add_argument("section")
     p.add_argument("fields", nargs="+", metavar="KEY=VALUE",
-                   help="bars, meter, tempo, key, dynamic, note")
+                   help="bars, meter, tempo, tempo_end, key, dynamic, note")
 
     p = sub.add_parser("rmsection", help="remove a section")
     p.add_argument("name"); p.add_argument("section")
@@ -198,6 +199,21 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("name"); p.add_argument("--out", "-o")
     p.add_argument("--mono", action="store_true", help="one channel, no stereo seating")
     p.add_argument("--dry", action="store_true", help="no reverb")
+    p.add_argument("--plain", action="store_true",
+                   help="fixed oscillators instead of the instrument models")
+    p.add_argument("--soundfont", "-s", nargs="?", const="auto", metavar="SF2",
+                   help="render sampled instruments through FluidSynth; with no "
+                        "path, uses $MUSICSTUDIO_SOUNDFONT or one found on the system")
+
+    p = sub.add_parser("soundfont", help="show or download the SoundFont used by "
+                                         "`wav --soundfont`")
+    p.add_argument("action", nargs="?", choices=("show", "install", "banks"),
+                   default="show")
+    p.add_argument("bank", nargs="?", default=None,
+                   help="which bank to install: hq (default) or standard")
+    p.add_argument("--url", help="install some other .sf2/.sf3 instead")
+    p.add_argument("--sha256", help="required with --url")
+    p.add_argument("--force", action="store_true", help="download again")
 
     args = ap.parse_args(argv)
     s = Studio(args.project)
@@ -229,6 +245,11 @@ def _dispatch(s: Studio, a) -> int:
     if c == "transforms":
         for k, v in s.describe_transforms().items():
             print(f"{k:<12} {v}")
+        notation = s.describe_notation()
+        print("\nornaments, written on a note as '4:1/4@tr':")
+        for k, v in notation["ornaments"].items():
+            print(f"{'@' + k:<12} {v}")
+        print("articulations: " + " ".join("@" + a for a in notation["articulations"]))
         return 0
     if c == "instruments":
         d = s.describe_instruments(a.family)
@@ -373,9 +394,35 @@ def _dispatch(s: Studio, a) -> int:
     if c == "midi":
         print(s.export_midi(a.name, a.out))
         return 0
+    if c == "soundfont":
+        from . import audio, soundfonts
+        if a.action == "banks":
+            for b in soundfonts.BANKS.values():
+                mark = " (default)" if b.name == soundfonts.DEFAULT_BANK else ""
+                print(f"{b.name:<9} {b.size_mb:>3} MB  {b.summary}{mark}")
+            return 0
+        if a.action == "install":
+            bank = a.bank or soundfonts.DEFAULT_BANK
+            if not a.url and bank in soundfonts.BANKS:
+                b = soundfonts.BANKS[bank]
+                print(f"fetching {b.filename} ({b.size_mb} MB) from "
+                      f"{b.url.split('/')[2]}", file=sys.stderr)
+            path = soundfonts.install(bank, url=a.url, sha256=a.sha256, force=a.force)
+            print(path)
+            return 0
+        try:
+            print(f"in use:    {audio.find_soundfont()}")
+        except FileNotFoundError as exc:
+            print(f"in use:    none -- {exc}")
+        for f in soundfonts.installed():
+            print(f"installed: {f}")
+        print(f"fluidsynth: {shutil.which('fluidsynth') or 'not found on PATH'}")
+        return 0
     if c == "wav":
         print(s.export_wav(a.name, a.out, stereo=not a.mono,
-                           reverb=False if a.dry else None))
+                           reverb=False if a.dry else None,
+                           models=False if a.plain else None,
+                           soundfont=a.soundfont))
         return 0
     raise ValueError(f"unhandled command {c!r}")  # pragma: no cover
 

@@ -82,7 +82,7 @@ ORCHESTRAL = StyleProfile(
         "limit applies -- the constraints that make an arrangement sound like "
         "players rather than like a piano roll assigned to instruments."
     ),
-    families=("strings", "winds", "brass", "perc", "keys", "plucked", "voice"),
+    families=("strings", "winds", "brass", "perc", "drums", "keys", "plucked", "voice"),
     voice_leading=True,
     low_interval_limit=True,
     check_tessitura=True,

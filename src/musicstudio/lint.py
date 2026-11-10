@@ -35,6 +35,8 @@ MAX_SPOTS = 10
 #: meets the next one's attack; counting those as chords is how a correct line
 #: gets reported as a monophonic instrument playing two notes.
 MIN_MOMENT = 60
+#: How far ahead of a chord change a note may land and still count as on it.
+EARLY = 30
 
 
 @dataclass
@@ -286,7 +288,10 @@ def check_voice_leading(piece: Piece, r: Render, st: StyleProfile) -> list[Findi
     names = [v.name for v in piece.voices
              if v.name in mono and not v.inst.percussive and r.by_voice(v.name)]
     out: list[Finding] = []
-    slices = sonorities(r.notes)
+    # Judge the written lines, not the decoration on them: a trill against a
+    # held fifth is not a run of parallel fifths, and reporting it as one would
+    # punish exactly the writing an ornament is for.
+    slices = sonorities([n for n in r.notes if not n.ornament])
     for i, a in enumerate(names):
         for b in names[i + 1:]:
             if frozenset({a, b}) in skip:
@@ -478,7 +483,9 @@ def _clashes(piece: Piece, r: Render) -> list[Finding]:
         for i, n in enumerate(notes):
             if n.percussive or n.dur < 360:
                 continue
-            chord, key = piece.chord_at(n.start)
+            # A note that arrives a hair before the barline belongs to the chord
+            # it is arriving on: a humanized downbeat is not an anticipation.
+            chord, key = piece.chord_at(n.start + EARLY)
             if chord is None or n.pitch % 12 in chord.pitch_classes(key):
                 continue
             nxt = notes[i + 1] if i + 1 < len(notes) else None
@@ -517,6 +524,10 @@ def check_melody(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
         for a, b, c in zip(notes, notes[1:], notes[2:]):
             jump = b.pitch - a.pitch
             if abs(jump) <= 12:
+                continue
+            # Across a rest it is a new entry, not a leap: nobody hears the
+            # interval between the end of one phrase and the start of the next.
+            if b.start - a.end >= 480:
                 continue
             recovers = (c.pitch - b.pitch) * jump < 0 and abs(c.pitch - b.pitch) <= 2
             if not recovers:
@@ -593,6 +604,10 @@ def check_material(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
             forms.setdefault(n.motif, set()).add(n.form or "")
             if n.played:
                 played.add(n.played)
+    # A cell joined into a longer theme has been played, and has been developed:
+    # building a period out of it is the development.
+    for name in piece.heard_within(played | {f for fs in forms.values() for f in fs}):
+        forms.setdefault(name, set()).add("joined")
     for name, seen in forms.items():
         if len(seen) == 1 and "" in seen and len(piece.sections) >= 3:
             out.append(Finding(
@@ -679,6 +694,10 @@ def check_masking(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
     if not melodies:
         return []
     slices = [s for s in sonorities(r.notes) if s.end - s.start >= MIN_MOMENT]
+    # While a melody instrument is doubling someone else it is reinforcing
+    # their line, usually an octave below it; the tune is the line on top, and
+    # that voice is checked in its own right.
+    doubling = {op.id for _, op in piece.all_ops() if op.kind == "double"}
     out: list[Finding] = []
     for m in melodies:
         for a in piece.voices:
@@ -690,7 +709,7 @@ def check_masking(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
             first = None
             for s in slices:
                 mn, an = s.voice(m.name), s.voice(a.name)
-                if not mn or not an:
+                if not mn or not an or all(n.op in doubling for n in mn):
                     continue
                 tune = max(n.pitch for n in mn)
                 top = max(n.pitch for n in an)

@@ -24,14 +24,25 @@ sound shorter and more disconnected than the writing is, which misleads the ear
 about the phrasing.
 
 The core path is pure standard library. With the ``analysis`` extra installed,
-numpy is used for speed, vibrato and the reverb; without it the render is dry
-but otherwise the same piece.
+numpy is used for speed, the reverb, and the instrument models in ``synth.py``
+-- moving spectra, formants, onset noise, slurs, inharmonic bars and real drum
+strokes in place of one fixed oscillator per voice. Without numpy the render is
+dry and plainly synthetic, but it is the same piece: the models change how a
+note sounds, never which notes there are, when they start, or where they sit.
+
+For sampled instruments, :func:`save_wav_soundfont` hands the MIDI export to
+FluidSynth with a SoundFont. That is the most realistic render available and
+the only one that needs anything outside Python.
 """
 
 from __future__ import annotations
 
 import math
+import os
 import random
+import shutil
+import subprocess
+import tempfile
 import wave
 from array import array
 from pathlib import Path
@@ -205,20 +216,21 @@ def _envelope_np(n: int, adsr: tuple[float, float, float, float]):
 # --------------------------------------------------------------------------
 
 def _tick_seconds(piece: Piece):
-    """Ticks -> seconds through the tempo map, as a lookup over section bounds."""
+    """Ticks -> seconds through the tempo map, as a lookup over its marks."""
+    import bisect
     marks = []
     elapsed = 0.0
-    for sec, _, tick in piece.section_bounds():
-        spb = 60.0 / max(1, piece.tempo_of(sec)) / TPQ
+    tempo_map = piece.tempo_map()
+    for i, (tick, bpm) in enumerate(tempo_map):
+        spb = 60.0 / max(1.0, bpm) / TPQ
         marks.append((tick, elapsed, spb))
-        elapsed += sec.length * spb
+        if i + 1 < len(tempo_map):
+            elapsed += (tempo_map[i + 1][0] - tick) * spb
+    starts = [m[0] for m in marks]
 
     def convert(t: int) -> float:
-        best = marks[0] if marks else (0, 0.0, 60.0 / max(1, piece.tempo) / TPQ)
-        for m in marks:
-            if t >= m[0]:
-                best = m
-        return best[1] + (t - best[0]) * best[2]
+        m = marks[max(0, bisect.bisect_right(starts, t) - 1)]
+        return m[1] + (t - m[0]) * m[2]
 
     return convert
 
@@ -266,11 +278,14 @@ def _gains(pan: float) -> tuple[float, float]:
 
 def synthesize(piece: Piece, rend: Render | None = None, *, tail: float = 1.5,
                gain: float = 0.72, stereo: bool = True,
-               reverb: bool | None = None):
+               reverb: bool | None = None, models: bool | None = None):
     """Render to sample buffers: ``(left, right)``, or ``(mono, mono)``.
 
-    ``reverb=None`` means "if numpy is available". Returns numpy arrays on the
-    fast path and ``array('d')`` buffers otherwise; :func:`save_wav` takes either.
+    ``reverb=None`` and ``models=None`` both mean "if numpy is available".
+    ``models`` plays each voice through its instrument model (``synth.py``)
+    instead of a fixed oscillator; it changes how the notes sound and nothing
+    about which notes there are. Returns numpy arrays on the fast path and
+    ``array('d')`` buffers otherwise; :func:`save_wav` takes either.
     """
     r = rend if rend is not None else render(piece)
     to_sec = _tick_seconds(piece)
@@ -284,10 +299,18 @@ def synthesize(piece: Piece, rend: Render | None = None, *, tail: float = 1.5,
     total = int((to_sec(end) + tail) * SR) + 1
     pans = pan_positions(piece) if stereo else {v.name: 0.0 for v in piece.voices}
     voices = {v.name: v for v in piece.voices}
-    synth = _synth_numpy if has_fast_path() else _synth_python
-    left, right = synth(r.notes, voices, pans, to_sec, total, gain)
+    use_models = has_fast_path() if models is None else models
+    if use_models and not has_fast_path():
+        raise RuntimeError("instrument models need numpy; `uv sync --extra "
+                           "analysis`, or pass models=False")
+    send = None
+    if has_fast_path():
+        left, right, send = _synth_numpy(r.notes, voices, pans, to_sec, total, gain,
+                                         use_models, 1.0 if stereo else 0.0)
+    else:
+        left, right = _synth_python(r.notes, voices, pans, to_sec, total, gain)
     if use_reverb:
-        left, right = _reverb(left, right, *room)
+        left, right = _reverb(left, right, *room, send=send)
     return left, right
 
 
@@ -342,17 +365,53 @@ def _synth_python(notes, voices, pans, to_sec, total, gain):
     return left, right
 
 
-def _synth_numpy(notes, voices, pans, to_sec, total, gain):
+def _synth_numpy(notes, voices, pans, to_sec, total, gain, models=False, width=1.0):
+    """The fast path. Returns ``(left, right, (send_left, send_right))``; the
+    sends are what goes to the room, which is less than everything for the
+    instruments whose low end would turn a reverb tail to mud."""
     np = _np
     left = np.zeros(total)
     right = np.zeros(total)
+    send_l = np.zeros(total)
+    send_r = np.zeros(total)
     rng = np.random.default_rng(1729)
+    links = {}
+    if models:
+        from . import synth
+        links = synth.slur_links(notes, to_sec)
+
+    def place(sig, start, pan, send):
+        length = min(len(sig), total - start)
+        if length <= 0:
+            return
+        gl, gr = _gains(max(-1.0, min(1.0, pan)))
+        left[start:start + length] += sig[:length] * gl
+        right[start:start + length] += sig[:length] * gr
+        send_l[start:start + length] += sig[:length] * (gl * send)
+        send_r[start:start + length] += sig[:length] * (gr * send)
+
     for n in notes:
-        plan = _note_plan(n, voices[n.voice], to_sec, total, gain)
+        voice = voices[n.voice]
+        if models and synth.has_model(voice.instrument):
+            start = int(to_sec(n.start) * SR)
+            if start < 0 or start >= total:
+                continue
+            frm, onward = links.get(id(n), (None, False))
+            ctx = synth.NoteCtx(
+                voice.instrument, n.voice, n.pitch, to_sec(n.start),
+                max(0.03, to_sec(n.end) - to_sec(n.start)), n.velocity, frm, onward,
+                (n.voice, n.start, n.pitch))
+            seat = pans.get(n.voice, 0.0)
+            # ``width`` is 0 for a mono render: a section is spread around its
+            # seat only when there is a stage to spread it on.
+            for sig, offset in synth.render_note(ctx, total - start):
+                place(sig * (gain / 0.72), start, seat + offset * width,
+                      synth.send_of(voice.instrument))
+            continue
+        plan = _note_plan(n, voice, to_sec, total, gain)
         if plan is None:
             continue
         start, length, amp, freq, spec, timbre = plan
-        gl, gr = _gains(pans.get(n.voice, 0.0))
         env = _envelope_np(length, spec["adsr"])
         if spec["partials"] is None:
             sig = rng.uniform(-1.0, 1.0, length)
@@ -377,18 +436,20 @@ def _synth_numpy(notes, voices, pans, to_sec, total, gain):
                 parts = _partials_under(spec, freq)
                 norm = sum(a for _, a in parts) or 1.0
                 sig = sum((a / norm) * np.sin(2 * np.pi * p * cycles) for p, a in parts)
-        sig = sig * env * amp
-        left[start:start + length] += sig * gl
-        right[start:start + length] += sig * gr
-    return left, right
+        place(sig * env * amp, start, pans.get(n.voice, 0.0), 1.0)
+    return left, right, (send_l, send_r)
 
 
-def _reverb(left, right, decay: float, wet: float):
-    """Convolution with a synthetic room: decaying noise that darkens as it dies.
+def _reverb(left, right, decay: float, wet: float, send=None):
+    """Convolution with a synthetic room: a few early reflections, then
+    decaying noise that darkens as it dies.
 
     A real hall loses its highs faster than its lows, which is most of what
     makes a reverb tail sound like a room rather than like hiss. Separate noise
-    for each ear decorrelates the channels and gives the tail width.
+    for each ear decorrelates the channels and gives the tail width. The early
+    reflections are what place the players at a distance; a tail on its own
+    sounds like a dry instrument with a wash behind it. ``send`` is what is fed
+    to the room when that is not simply the dry signal.
     """
     np = _np
     n = int(decay * SR)
@@ -404,14 +465,57 @@ def _reverb(left, right, decay: float, wet: float):
         dark = np.convolve(raw, np.ones(k) / k, mode="same") * math.sqrt(k)
         out = (bright * raw + (1 - bright) * dark) * env
         out[:pre] = 0.0
-        return out / (np.sqrt((out ** 2).sum()) or 1.0)
+        # The diffuse tail builds up rather than starting at full strength.
+        build = int(0.06 * SR)
+        out[pre:build] *= np.linspace(0.25, 1.0, build - pre)
+        out = out / (np.sqrt((out ** 2).sum()) or 1.0)
+        for ms in (13, 19, 27, 34, 43, 58, 71):
+            at = int(ms * rng.uniform(0.9, 1.1) * SR / 1000)
+            if at < n:
+                out[at] += rng.choice((-1.0, 1.0)) * 0.34 * math.exp(-ms / 45.0)
+        return out
 
     size = 1 << int(math.ceil(math.log2(len(left) + n)))
+    feeds = send if send is not None else (left, right)
     outs = []
-    for dry, h in ((left, ir()), (right, ir())):
-        wet_sig = np.fft.irfft(np.fft.rfft(dry, size) * np.fft.rfft(h, size), size)
+    for dry, feed, h in ((left, feeds[0], ir()), (right, feeds[1], ir())):
+        wet_sig = np.fft.irfft(np.fft.rfft(feed, size) * np.fft.rfft(h, size), size)
         outs.append(dry * (1 - wet) + wet_sig[:len(dry)] * wet * 1.3)
     return outs[0], outs[1]
+
+
+def _master(left, right, ceiling: float = 0.95):
+    """Hold the loudest moments under the ceiling without turning the rest down.
+
+    Scaling a whole piece by its single highest peak lets one drum stroke make
+    four minutes of music quiet. So a mix that overshoots is first brought to
+    within a few dB of the ceiling, and a limiter with a few milliseconds of
+    lookahead takes the remainder off just the peaks. A mix that never reaches
+    the ceiling is returned untouched: a quiet cue stays quiet.
+    """
+    np = _np
+    peak = float(max(np.abs(left).max(initial=0.0), np.abs(right).max(initial=0.0)))
+    if peak <= ceiling:
+        return left, right
+    scale = min(1.0, ceiling / peak * 1.5)        # leave at most ~3.5 dB to the limiter
+    left, right = left * scale, right * scale
+    block = 128
+    n = len(left)
+    pad = (-n) % block
+    mag = np.maximum(np.abs(left), np.abs(right))
+    blocks = np.pad(mag, (0, pad)).reshape(-1, block).max(axis=1)
+    # Lookahead and hold: each block also answers for its neighbours' peaks.
+    wide = blocks.copy()
+    for shift in range(1, 5):
+        wide[:-shift] = np.maximum(wide[:-shift], blocks[shift:])
+        wide[shift:] = np.maximum(wide[shift:], blocks[:-shift])
+    g = np.minimum(1.0, ceiling / np.maximum(wide, 1e-9))
+    # Release slowly so the gain does not pump with every note.
+    rel = 0.9
+    for i in range(1, len(g)):
+        g[i] = min(g[i], g[i - 1] + (1.0 - g[i - 1]) * (1 - rel))
+    gain = np.interp(np.arange(n), np.arange(len(g)) * block + block / 2, g)
+    return left * gain, right * gain
 
 
 # --------------------------------------------------------------------------
@@ -419,13 +523,14 @@ def _reverb(left, right, decay: float, wet: float):
 # --------------------------------------------------------------------------
 
 def save_wav(piece: Piece, path: str | Path, rend: Render | None = None, *,
-             stereo: bool = True, reverb: bool | None = None) -> Path:
+             stereo: bool = True, reverb: bool | None = None,
+             models: bool | None = None) -> Path:
     """Normalize and write 16-bit PCM. Normalization is peak-based, not RMS, so
     a quiet cue stays quiet relative to its own loud moments."""
-    left, right = synthesize(piece, rend, stereo=stereo, reverb=reverb)
+    left, right = synthesize(piece, rend, stereo=stereo, reverb=reverb, models=models)
     channels = 2 if stereo else 1
     if _np is not None:
-        l_arr, r_arr = _np.asarray(left), _np.asarray(right)
+        l_arr, r_arr = _master(_np.asarray(left), _np.asarray(right))
         peak = float(max(_np.abs(l_arr).max(initial=0.0), _np.abs(r_arr).max(initial=0.0)))
         scale = 32767.0 * (0.95 / peak if peak > 0.95 else 1.0)
         frames = (_np.stack([l_arr, r_arr], 1) if stereo else l_arr[:, None])
@@ -450,3 +555,116 @@ def save_wav(piece: Piece, path: str | Path, rend: Render | None = None, *,
         w.setframerate(SR)
         w.writeframes(pcm)
     return p
+
+
+# --------------------------------------------------------------------------
+# sampled render
+# --------------------------------------------------------------------------
+
+#: Where a General MIDI SoundFont usually lives, in the order tried.
+SOUNDFONT_DIRS = ("~/.local/share/soundfonts", "~/.local/share/sounds/sf2",
+                  "/usr/share/soundfonts", "/usr/share/sounds/sf2",
+                  "/usr/share/sounds/sf3", "/usr/local/share/soundfonts",
+                  "/Library/Audio/Sounds/Banks")
+#: Samplers play velocity as roughly amplitude ~ v^2; the built-in render uses
+#: v^1.3. Raising velocities to this power before they reach the sampler makes
+#: the two renders agree on how much quieter ``p`` is than ``f``.
+SAMPLER_VELOCITY_CURVE = 0.65
+_SOUNDFONT_PREFERENCE = ("musescore_general_hq", "musescore_general_full",
+                         "musescore", "fluidr3_gm", "fluid", "generaluser", "timgm",
+                         "default", "freepats")
+
+
+def find_soundfont(path: str | os.PathLike | None = None) -> Path:
+    """Resolve a SoundFont: an explicit path, ``$MUSICSTUDIO_SOUNDFONT``, or the
+    best General MIDI bank found in the usual system directories."""
+    chosen = path if path and str(path) != "auto" else os.environ.get("MUSICSTUDIO_SOUNDFONT")
+    if chosen:
+        p = Path(chosen).expanduser()
+        if not p.is_file():
+            raise FileNotFoundError(f"no SoundFont at {p}")
+        return p
+    found: list[Path] = []
+    for d in SOUNDFONT_DIRS:
+        base = Path(d).expanduser()
+        if base.is_dir():
+            found += [f for f in sorted(base.iterdir())
+                      if f.suffix.lower() in (".sf2", ".sf3")]
+    if not found:
+        raise FileNotFoundError(
+            "no SoundFont found. `ms soundfont install` downloads one (MuseScore "
+            "General HQ, MIT, 73 MB) to ~/.local/share/soundfonts. Or give your "
+            "own with --soundfont PATH or MUSICSTUDIO_SOUNDFONT; any General MIDI "
+            ".sf2/.sf3 works")
+
+    def rank(f: Path) -> int:
+        name = f.name.lower()
+        return next((i for i, k in enumerate(_SOUNDFONT_PREFERENCE) if k in name),
+                    len(_SOUNDFONT_PREFERENCE))
+
+    return min(found, key=rank)
+
+
+def save_wav_soundfont(piece: Piece, path: str | Path, soundfont: str | Path | None = None,
+                       rend: Render | None = None, *, gain: float = 0.4) -> Path:
+    """Render through FluidSynth with sampled instruments.
+
+    The MIDI export is the single source of truth here -- the same notes, the
+    same tempo map and the same seating the synthesized render uses -- so the
+    two renders are one performance heard through two sets of instruments.
+    """
+    from .midi import save_midi
+    exe = shutil.which("fluidsynth")
+    if exe is None:
+        raise RuntimeError("a SoundFont render needs FluidSynth on PATH "
+                           "(https://www.fluidsynth.org); the built-in render "
+                           "needs nothing -- leave --soundfont off to use it")
+    sf = find_soundfont(soundfont)
+    out = Path(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    room = ROOMS.get(piece.style, ROOMS["freeform"])
+    with tempfile.TemporaryDirectory() as tmp:
+        mid = save_midi(piece, Path(tmp) / "piece.mid", rend,
+                        velocity_curve=SAMPLER_VELOCITY_CURVE)
+        cmd = [exe, "-ni", "-q", "-g", f"{gain:g}", "-r", str(SR), "-O", "s16",
+               "-T", "wav", "-F", str(out),
+               "-o", "synth.reverb.active=1",
+               "-o", f"synth.reverb.room-size={min(1.0, 0.3 + room[0] / 8):.2f}",
+               "-o", f"synth.reverb.level={min(1.0, room[1] * 1.4):.2f}",
+               "-o", "synth.reverb.damp=0.35", "-o", "synth.reverb.width=0.9",
+               "-o", "synth.chorus.active=0", "-o", "synth.polyphony=512",
+               str(sf), str(mid)]
+        done = subprocess.run(cmd, capture_output=True, text=True)
+        if done.returncode != 0 or not out.is_file():
+            raise RuntimeError(f"fluidsynth failed ({done.returncode}): "
+                               f"{(done.stderr or done.stdout).strip()[:400]}")
+    _normalize_wav(out)
+    return out
+
+
+def _normalize_wav(path: Path, ceiling: float = 0.95) -> None:
+    """Bring a rendered file's peak up to the ceiling.
+
+    A sampler's output level depends on the bank, and a quiet piece through a
+    quiet bank comes out 20 dB down. Only ever turns a file up: one that
+    already reaches the ceiling was mixed that way on purpose.
+    """
+    with wave.open(str(path), "rb") as w:
+        params = w.getparams()
+        raw = w.readframes(w.getnframes())
+    if params.sampwidth != 2 or not raw:
+        return
+    samples = array("h")
+    samples.frombytes(raw)
+    peak = max(max(samples), -min(samples)) / 32768.0
+    if peak <= 0 or peak >= ceiling * 0.98:
+        return
+    scale = ceiling / peak
+    if _np is not None:
+        pcm = _np.clip(_np.frombuffer(raw, dtype="<i2") * scale, -32768, 32767) \
+            .astype("<i2").tobytes()
+    else:
+        pcm = array("h", (max(-32768, min(32767, int(v * scale))) for v in samples)).tobytes()
+    with wave.open(str(path), "wb") as w:
+        w.setparams(params)
+        w.writeframes(pcm)

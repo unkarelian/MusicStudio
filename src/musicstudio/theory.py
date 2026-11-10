@@ -13,6 +13,7 @@ up ticks, so the rhythm cannot slide out from under the barline.
 
 from __future__ import annotations
 
+import functools
 import re
 from dataclasses import dataclass
 from fractions import Fraction
@@ -355,6 +356,13 @@ class Chord:
 
 
 def parse_chord(numeral: str, key: Key) -> Chord:
+    """Resolve a roman numeral against a key. Memoized: both arguments are
+    immutable, and a render asks the same question at every note."""
+    return _parse_chord(str(numeral), key)
+
+
+@functools.lru_cache(maxsize=4096)
+def _parse_chord(numeral: str, key: Key) -> Chord:
     """Resolve a roman numeral against a key.
 
     Chords are built by stacking thirds *in the scale*, so ``ii`` comes out

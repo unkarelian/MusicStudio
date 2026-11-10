@@ -41,6 +41,14 @@ Why that matters for you:
     transpose=2)` moves one statement of a theme and leaves the score alone.
   * The studio knows what instruments can do. It picks a register that fits the
     player, and refuses to let a horn play a note it does not have.
+  * A melody can be as elaborate as you can hear. Notes take ornaments and
+    articulations ("4:1/4@tr", "2@gr+1", "0@st"), cells join into long themes
+    (`then`), and a theme is decorated by derivation (`embellish`, `ornament`,
+    `dot`, `expand`) -- so the ornate repeat is still provably the theme.
+  * It is played, not sequenced. `chords` with lead=True voice-leads, ring=True
+    pedals, figure= writes your own accompaniment pattern; the `shape` op
+    phrases a line and legato notes are slurred. A section's tempo_end is a
+    ritardando. The WAV render plays each voice through an instrument model.
 
 Suggested loop:
   1. ms_describe_styles / ms_describe_ops / ms_describe_transforms -- the vocabulary
@@ -48,6 +56,7 @@ Suggested loop:
   3. ms_set_harmony -- the scaffold everything else is written against
   4. ms_add_motif -- state your themes as objects, before placing them
   5. ms_add_voice, then ms_add_op to place motifs, chords, bass and groove
+     -- then `shape` on each melodic voice and `humanize` last
   6. read the view every mutation returns; ms_squint to check the piece has an arc
   7. ms_motif_map -- is the theme actually developing, or just repeating?
   8. ms_lint -- fix errors, judge warnings, ignore info you meant
@@ -101,10 +110,14 @@ def ms_describe_ops() -> str:
 
 @mcp.tool(description=(
     "List the motif development vocabulary -- transpose, invert, retrograde, "
-    "augment, fragment, sequence and the rest. This is how a theme becomes a "
-    "leitmotif rather than a loop."))
+    "augment, fragment, sequence, and the elaborations: embellish, ornament, "
+    "expand, dot, displace, thin, mirror, append, then -- plus the ornament and "
+    "articulation marks a note can carry. This is how a theme becomes a "
+    "leitmotif rather than a loop, and how a plain tune becomes an ornate one "
+    "without ceasing to be itself."))
 def ms_describe_transforms() -> str:
-    return _j(_studio.describe_transforms())
+    return _j({"transforms": _studio.describe_transforms(),
+               **_studio.describe_notation()})
 
 
 @mcp.tool(description=(
@@ -174,16 +187,20 @@ def ms_redo(name: str) -> str:
 @mcp.tool(description=(
     "Add a section. Sections carry their own meter, tempo, key and dynamic, and "
     "they are what the critique pass reasons about when it asks whether the piece "
-    "has an arc."))
+    "has an arc. tempo_end lower than the tempo is a ritardando across the section."))
 def ms_add_section(name: str, section: str, bars: int = 8, meter: str | None = None,
                    tempo: int | None = None, key: str | None = None,
-                   dynamic: str = "mf", note: str = "", index: int | None = None) -> str:
+                   dynamic: str = "mf", note: str = "", index: int | None = None,
+                   tempo_end: int | None = None) -> str:
     return _guard(lambda: str(_studio.add_section(name, section, bars=bars, meter=meter,
                                                   tempo=tempo, key=key, dynamic=dynamic,
-                                                  note=note, index=index)))
+                                                  note=note, index=index,
+                                                  tempo_end=tempo_end)))
 
 
-@mcp.tool(description="Change a section's bars, meter, tempo, key or dynamic level.")
+@mcp.tool(description=(
+    "Change a section's bars, meter, tempo, key or dynamic level. tempo_end makes "
+    "the tempo move across the section: lower than tempo is a ritardando."))
 def ms_update_section(name: str, section: str, fields: dict) -> str:
     return _guard(lambda: str(_studio.update_section(name, section, **fields)))
 
@@ -233,6 +250,10 @@ def ms_remove_voice(name: str, voice: str) -> str:
     "Define a motif in degree notation: '0 2 4:1/4 r:1/8 b6 7~ 7'. Degrees are "
     "scale steps from the anchor (0 is the anchor, 7 is the octave, -1 is the "
     "step below), ':' gives a duration, 'r' is a rest, '~' ties, '!' accents. "
+    "A note may end in @marks: an ornament (@tr trill, @mord / @lmord mordents, "
+    "@turn, @gr grace from below, @gr+1 from above, @run-3 a run up from a fourth "
+    "below) and/or an articulation (@st, @ten, @leg, @marc, @port). Ornaments are "
+    "scale steps and never move the note they decorate. "
     "anchor='chord' counts chord tones instead, so the figure re-fits every chord "
     "it passes over."))
 def ms_add_motif(name: str, motif: str, source: str, anchor: str = "scale",
@@ -418,11 +439,13 @@ def ms_export_midi(name: str, path: str | None = None) -> str:
 @mcp.tool(description=(
     "Render to a WAV and return its path, so a person can actually listen. The "
     "ASCII views tell you whether the writing is correct; only this tells you "
-    "whether the music works."))
+    "whether the music works. Voices are played through instrument models by "
+    "default. soundfont='auto' (or a path to an .sf2/.sf3) renders sampled "
+    "instruments through FluidSynth instead, when both are installed."))
 def ms_export_wav(name: str, path: str | None = None, stereo: bool = True,
-                  reverb: bool | None = None) -> str:
+                  reverb: bool | None = None, soundfont: str | None = None) -> str:
     return _guard(lambda: str(_studio.export_wav(name, path, stereo=stereo,
-                                                 reverb=reverb)))
+                                                 reverb=reverb, soundfont=soundfont)))
 
 
 def main() -> None:

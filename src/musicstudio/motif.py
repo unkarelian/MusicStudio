@@ -41,6 +41,14 @@ class Step:
     dur: int = TPQ // 2
     accent: int = 0
     tie: bool = False
+    #: An ornament realized at render time, in degree space: ``tr``, ``mord``,
+    #: ``lmord``, ``turn``, ``gr`` (grace) or ``run``, optionally with a signed
+    #: step count (``gr+1`` is a grace from the step above, ``run-3`` a run up
+    #: from a fourth below). The written note keeps its onset and its length, so
+    #: decorating a theme never moves it.
+    orn: str = ""
+    #: A per-note articulation that overrides the op's: one of ``ARTICULATIONS``.
+    art: str = ""
 
     @property
     def is_rest(self) -> bool:
@@ -58,20 +66,91 @@ class Step:
             d["accent"] = self.accent
         if self.tie:
             d["tie"] = True
+        if self.orn:
+            d["orn"] = self.orn
+        if self.art:
+            d["art"] = self.art
         return d
 
     @classmethod
     def from_json(cls, d: dict) -> Step:
         return cls(None if d.get("rest") else d.get("deg", 0), d.get("alt", 0),
-                   ticks(d.get("dur", DEFAULT_UNIT)), d.get("accent", 0), d.get("tie", False))
+                   ticks(d.get("dur", DEFAULT_UNIT)), d.get("accent", 0), d.get("tie", False),
+                   d.get("orn", ""), d.get("art", ""))
 
     def source(self, unit: int) -> str:
         head = "r" if self.is_rest else f"{'#' * self.alt if self.alt > 0 else 'b' * -self.alt}{self.deg}"
         tail = "" if self.dur == unit else f":{ticks_to_dur(self.dur)}"
-        return head + tail + ("~" if self.tie else "") + "!" * self.accent
+        marks = "".join(f"@{m}" for m in (self.orn, _ART_SHORT.get(self.art, self.art)) if m)
+        return head + tail + ("~" if self.tie else "") + "!" * self.accent + marks
 
 
-_TOKEN_RE = re.compile(r"^(r|[b#]*-?\d+)(?::([^~!]+))?(~?)(!*)$")
+#: Ornaments a step may carry, and what each one does. Realized in
+#: ``render._ornament``; listed here because the notation is defined here.
+ORNAMENTS: dict[str, str] = {
+    "tr": "Trill with the scale step above, settling on the written note.",
+    "mord": "Upper mordent: note, step above, note -- a quick bite on the beat.",
+    "lmord": "Lower mordent: note, step below, note.",
+    "turn": "Turn: step above, note, step below, note.",
+    "gr": "Grace note just before the beat. 'gr' comes from the step below, "
+          "'gr+1' from above, 'gr-2' from a third below.",
+    "run": "A fast scalar run into the note, before the beat. 'run-3' climbs "
+           "from a fourth below, 'run+4' falls from a fifth above.",
+}
+
+#: ``@st`` and friends: short spellings of the articulations in ``render``.
+ARTICULATION_MARKS = {"st": "staccato", "stac": "staccato", "ten": "tenuto",
+                      "leg": "legato", "marc": "marcato", "port": "portato",
+                      "staccato": "staccato", "tenuto": "tenuto", "legato": "legato",
+                      "marcato": "marcato", "portato": "portato", "normal": "normal"}
+_ART_SHORT = {"staccato": "st", "tenuto": "ten", "legato": "leg", "marcato": "marc",
+              "portato": "port"}
+
+_TOKEN_RE = re.compile(r"^(r|[b#]*-?\d+)(?::([^~!@]+))?(~?)(!*)((?:@[a-z]+[+-]?\d*)*)$")
+_ORN_RE = re.compile(r"^(tr|mord|lmord|turn|gr|run)([+-]\d+)?$")
+
+
+def parse_ornament(mark: str) -> tuple[str, int]:
+    """``'gr+1'`` -> ``('gr', 1)``. The count is scale steps; 0 means the default."""
+    m = _ORN_RE.match(mark)
+    if not m:
+        raise ValueError(f"unknown ornament {mark!r}; have {sorted(ORNAMENTS)}, "
+                         f"with an optional signed step count as in 'gr+1' or 'run-3'")
+    kind, n = m.group(1), int(m.group(2) or 0)
+    if n and kind not in ("gr", "run"):
+        raise ValueError(f"ornament {kind!r} takes no step count (got {mark!r})")
+    return kind, n
+
+
+def _flip_ornament(mark: str) -> str:
+    """An ornament under inversion: what came from below now comes from above."""
+    if not mark:
+        return mark
+    kind, n = parse_ornament(mark)
+    if kind in ("mord", "lmord"):
+        return "lmord" if kind == "mord" else "mord"
+    if kind in ("gr", "run"):
+        n = -(n or (-1 if kind == "gr" else -3))
+        return f"{kind}{n:+d}"
+    return mark
+
+
+def _marks(raw: str, tok: str) -> tuple[str, str]:
+    """Split ``'@tr@st'`` into an ornament and an articulation."""
+    orn = art = ""
+    for mark in filter(None, raw.split("@")):
+        if mark in ARTICULATION_MARKS:
+            art = ARTICULATION_MARKS[mark]
+        else:
+            try:
+                parse_ornament(mark)
+            except ValueError:
+                raise ValueError(
+                    f"bad mark '@{mark}' in {tok!r}: an ornament is one of "
+                    f"{sorted(ORNAMENTS)} (e.g. '4:1/4@tr', '2@gr+1', '0@run-3') and an "
+                    f"articulation one of {sorted(set(_ART_SHORT.values()))}") from None
+            orn = mark
+    return orn, art
 
 
 def parse_steps(source: str | list, unit: str = DEFAULT_UNIT) -> tuple[Step, ...]:
@@ -82,6 +161,10 @@ def parse_steps(source: str | list, unit: str = DEFAULT_UNIT) -> tuple[Step, ...
     and a tied pair. ``|`` is allowed anywhere as a barline for the reader and
     is ignored. Degrees are scale steps, so ``7`` is the octave and ``-1`` is
     the step below the anchor.
+
+    A note may end in ``@`` marks: an ornament (``4:1/4@tr``, ``2@mord``,
+    ``0@gr``, ``7@run-3``) and/or an articulation (``2@st``, ``4:1/2@leg``).
+    Ornaments are scale steps too, so a trill is always the trill the key gives.
     """
     if isinstance(source, (list, tuple)):
         return tuple(s if isinstance(s, Step) else Step.from_json(s) for s in source)
@@ -93,14 +176,16 @@ def parse_steps(source: str | list, unit: str = DEFAULT_UNIT) -> tuple[Step, ...
             raise ValueError(
                 f"bad motif token {tok!r} in {source!r}. A token is a scale degree with "
                 f"optional accidental, duration, tie and accent: '0', 'b3', '4:1/4', "
-                f"'5~', '0!!'. A rest is 'r' or 'r:1/2'.")
-        head, dur, tie, bangs = m.groups()
+                f"'5~', '0!!', '4:1/4@tr', '2@st'. A rest is 'r' or 'r:1/2'.")
+        head, dur, tie, bangs, raw_marks = m.groups()
         d = ticks(dur) if dur else unit_ticks
         if head == "r":
             steps.append(Step(None, 0, d))
         else:
             alt = head.count("#") - head.count("b")
-            steps.append(Step(int(head.lstrip("#b")), alt, d, min(len(bangs), 2), bool(tie)))
+            orn, art = _marks(raw_marks, tok)
+            steps.append(Step(int(head.lstrip("#b")), alt, d, min(len(bangs), 2),
+                              bool(tie), orn, art))
     if not steps:
         raise ValueError(f"motif source {source!r} has no steps")
     return tuple(steps)
@@ -182,7 +267,9 @@ class Motif:
         """Flip the contour about ``axis`` (default: the motif's first note)."""
         if axis is None:
             axis = next((s.deg for s in self.steps if not s.is_rest), 0)
-        return self._derive([s if s.is_rest else replace(s, deg=2 * axis - s.deg, alt=-s.alt)
+        return self._derive([s if s.is_rest else
+                             replace(s, deg=2 * axis - s.deg, alt=-s.alt,
+                                     orn=_flip_ornament(s.orn))
                              for s in self.steps], f"invert:{axis}", name)
 
     def retrograde(self, *, name: str | None = None) -> Motif:
@@ -283,6 +370,166 @@ class Motif:
                              if i in idx else s for i, s in enumerate(self.steps)],
                             f"accentuate:{sorted(idx)}", name)
 
+    # -- elaboration -------------------------------------------------------
+    #
+    # Everything below makes a line *more* than it was -- longer, busier, more
+    # decorated -- and every one of them goes through ``_derive``, so a theme
+    # that has been embellished, dotted and extended is still, provably, that
+    # theme. That is the difference between developing a tune and replacing it.
+
+    def ornament(self, kind: str = "tr", positions: tuple[int, ...] | None = None, *,
+                 name: str | None = None) -> Motif:
+        """Mark notes with an ornament. ``positions`` index the *pitched* notes
+        (default: the longest one), so rests never shift the count."""
+        parse_ornament(kind)
+        pitched = [i for i, s in enumerate(self.steps) if not s.is_rest]
+        if not pitched:
+            raise ValueError(f"motif {self.name!r} has no notes to ornament")
+        if positions is None:
+            want = {max(pitched, key=lambda i: (self.steps[i].dur, -i))}
+        else:
+            bad = [p for p in positions if not -len(pitched) <= p < len(pitched)]
+            if bad:
+                raise ValueError(f"ornament positions {bad} are out of range; "
+                                 f"{self.name!r} has {len(pitched)} notes")
+            want = {pitched[p] for p in positions}
+        return self._derive([replace(s, orn=kind) if i in want else s
+                             for i, s in enumerate(self.steps)],
+                            f"ornament:{kind}", name)
+
+    def embellish(self, kind: str = "neighbor", positions: tuple[int, ...] | None = None,
+                  *, name: str | None = None) -> Motif:
+        """Written-out diminution: break notes into smaller ones around themselves.
+
+        ``neighbor`` and ``lower`` leave the note, touch the step beside it and
+        come back; ``turn`` circles it; ``passing`` walks to the next note through
+        the steps between; ``escape`` steps away and then leaps on. Each figure is
+        carved out of the note's own value, so the bar it sits in stays the same
+        length -- the same promise ``fill`` makes.
+        """
+        figures = {"neighbor": (0, 1, 0), "lower": (0, -1, 0), "turn": (0, 1, 0, -1, 0),
+                   "escape": (0, 1), "passing": None}
+        if kind not in figures:
+            raise ValueError(f"unknown embellishment {kind!r}; have {sorted(figures)}")
+        pitched = [i for i, s in enumerate(self.steps) if not s.is_rest]
+        want = (set(pitched) if positions is None else
+                {pitched[p] for p in positions if -len(pitched) <= p < len(pitched)})
+        out: list[Step] = []
+        for i, s in enumerate(self.steps):
+            if i not in want or s.tie:
+                out.append(s)
+                continue
+            if kind == "passing":
+                nxt = next((t for t in self.steps[i + 1:] if not t.is_rest), None)
+                gap = 0 if nxt is None else nxt.deg - s.deg
+                if abs(gap) < 2:
+                    out.append(s)
+                    continue
+                d = 1 if gap > 0 else -1
+                offs = [0] + [k * d for k in range(1, abs(gap))]
+            else:
+                offs = list(figures[kind])
+            # The written note keeps at least half its value, and the figure is
+            # cut in plain note values -- the largest that fit -- so a dotted
+            # quarter becomes a quarter and an eighth, not two dotted eighths.
+            tail = len(offs) - 1
+            room = (s.dur // 2) // tail if tail else 0
+            share = TPQ * 4
+            while share > room:
+                share //= 2
+            if share < TPQ // 8:                 # finer than a 32nd: leave it alone
+                out.append(s)
+                continue
+            out.append(replace(s, dur=s.dur - share * tail))
+            out += [Step(s.deg + o, 0, share, 0, False) for o in offs[1:]]
+        return self._derive(out, f"embellish:{kind}", name)
+
+    def expand(self, factor: int = 2, *, name: str | None = None) -> Motif:
+        """Multiply every interval from the first note: steps become thirds.
+
+        The contour and the rhythm are untouched, which is why an expanded theme
+        is still heard as itself -- only more urgent, or more heroic.
+        """
+        factor = int(factor)
+        if factor < 1:
+            raise ValueError("expand needs a whole factor >= 1")
+        first = next((s.deg for s in self.steps if not s.is_rest), 0)
+        return self._derive([s if s.is_rest else
+                             replace(s, deg=first + (s.deg - first) * factor)
+                             for s in self.steps], f"expand:{factor}", name)
+
+    def dot(self, ratio: str = "3/1", *, name: str | None = None) -> Motif:
+        """Turn pairs of equal notes long-short. ``'3/1'`` is a dotted rhythm,
+        ``'2/1'`` a swung or siciliano lilt, ``'1/3'`` a Scotch snap. Each pair
+        keeps its combined length."""
+        a, _, b = str(ratio).partition("/")
+        num, den = int(a), int(b or 1)
+        if num < 1 or den < 1:
+            raise ValueError(f"dot ratio must be like '3/1', got {ratio!r}")
+        out: list[Step] = []
+        i = 0
+        steps = self.steps
+        while i < len(steps):
+            s = steps[i]
+            t = steps[i + 1] if i + 1 < len(steps) else None
+            pair = (t is not None and not s.is_rest and not t.is_rest
+                    and s.dur == t.dur and not s.tie and not t.tie
+                    and (2 * s.dur) % (num + den) == 0)
+            if not pair:
+                out.append(s)
+                i += 1
+                continue
+            unit = 2 * s.dur // (num + den)
+            out += [replace(s, dur=unit * num), replace(t, dur=unit * den)]
+            i += 2
+        return self._derive(out, f"dot:{num}/{den}", name)
+
+    def displace(self, by: str = "1/8", *, name: str | None = None) -> Motif:
+        """Start late by ``by`` and take the time back off the last note, so the
+        same shape arrives syncopated without growing longer."""
+        d = ticks(by)
+        last = self.steps[-1]
+        if last.dur <= d:
+            raise ValueError(
+                f"cannot displace {self.name!r} by {by}: its last step is only "
+                f"{ticks_to_dur(last.dur)} long and the time has to come from there")
+        return self._derive((Step(None, 0, d),) + self.steps[:-1]
+                            + (replace(last, dur=last.dur - d),), f"displace:{by}", name)
+
+    def thin(self, grid: str = "1/4", *, name: str | None = None) -> Motif:
+        """Reduce to the notes that fall on ``grid``; each absorbs what followed it.
+
+        The inverse of embellishing: the skeleton of a busy line, for the bass to
+        shadow or the brass to state broadly while the strings keep the detail.
+        """
+        g = ticks(grid)
+        out: list[Step] = []
+        tick = 0
+        for s in self.steps:
+            if tick % g == 0 or not out:
+                out.append(replace(s, tie=False, orn="" if s.is_rest else s.orn))
+            else:
+                out[-1] = replace(out[-1], dur=out[-1].dur + s.dur)
+            tick += s.dur
+        return self._derive(out, f"thin:{grid}", name)
+
+    def mirror(self, *, name: str | None = None) -> Motif:
+        """The motif, then itself backwards -- an arch, twice as long."""
+        back = self.retrograde().steps
+        return self._derive(self.steps + back, "mirror", name)
+
+    def append(self, steps: str, *, name: str | None = None) -> Motif:
+        """Add a tail in the same notation: a cadence, a pickup, a held note."""
+        return self._derive(self.steps + parse_steps(steps, self.unit), "append", name)
+
+    def then(self, other: Motif, *, name: str | None = None) -> Motif:
+        """Join another motif on the end, to build a long theme out of cells.
+
+        The result still descends from *this* motif -- a period is its opening
+        idea plus whatever answers it -- and the lineage names what was joined.
+        """
+        return self._derive(self.steps + other.steps, f"then:{other.name}", name)
+
     # -- persistence -------------------------------------------------------
 
     def to_json(self) -> dict:
@@ -325,17 +572,47 @@ TRANSFORMS: dict[str, str] = {
     "rhythmize": "Keep the pitches, take a new rhythm. args: pattern ('1/8 1/8 1/4')",
     "fill": "Fill leaps with passing tones without changing the total duration. args: none",
     "accentuate": "Add accents at step positions. args: positions, amount",
+    "ornament": "Mark notes with an ornament -- tr, mord, lmord, turn, gr, run-3. "
+                "args: kind, positions (default: the longest note). 'ornament:tr,0 3'",
+    "embellish": "Written-out diminution inside each note's own value: neighbor, "
+                 "lower, turn, passing, escape. args: kind, positions",
+    "expand": "Multiply every interval from the first note (steps become thirds). "
+              "args: factor",
+    "dot": "Make pairs of equal notes long-short, keeping each pair's length: "
+           "'3/1' dotted, '2/1' lilting, '1/3' snapped. args: ratio",
+    "displace": "Enter late and take the time off the last note -- syncopation "
+                "without growing longer. args: by ('1/8')",
+    "thin": "Reduce to the notes on a grid; the skeleton of a busy line. args: grid",
+    "mirror": "The motif followed by its own retrograde. args: none",
+    "append": "Add a tail in motif notation. args: steps ('4 2 0:1/2')",
+    "then": "Join another named motif on the end -- how a long theme is built "
+            "from cells while staying traceable. args: motif name",
 }
 
 
-def apply_transform(m: Motif, op: str, **kwargs) -> Motif:
-    """Apply one named transform. ``op`` may carry args as ``'transpose:2'``."""
+def apply_transform(m: Motif, op: str, resolve=None, **kwargs) -> Motif:
+    """Apply one named transform. ``op`` may carry args as ``'transpose:2'``.
+
+    ``resolve`` looks a motif up by name, for ``then``; a piece passes its own
+    ``get_motif``.
+    """
     if ":" in op and not kwargs:
         op, _, raw = op.partition(":")
-        args = [a for a in raw.split(",") if a != ""]
+        # Motif notation has colons and no commas, so only the first colon splits.
+        args = [raw] if op == "append" else [a for a in raw.split(",") if a != ""]
         kwargs = _positional(op, args)
     if op not in TRANSFORMS:
         raise ValueError(f"unknown transform {op!r}; have {sorted(TRANSFORMS)}")
+    if op == "then":
+        other = kwargs.pop("motif", None) or kwargs.pop("other", None)
+        if isinstance(other, str):
+            if resolve is None:
+                raise ValueError("'then' joins a named motif, which needs a piece to "
+                                 "look it up in")
+            other = resolve(other)
+        if other is None:
+            raise ValueError("'then' needs a motif name, e.g. 'then:answer'")
+        return m.then(other, **kwargs)
     return getattr(m, op)(**kwargs)
 
 
@@ -344,15 +621,19 @@ def _positional(op: str, args: list[str]) -> dict:
              "augment": ["factor"], "diminish": ["factor"],
              "fragment": ["start", "count"], "rotate": ["n"],
              "sequence": ["times", "step"], "rhythmize": ["pattern"], "fill": [],
-             "accentuate": ["positions", "amount"]}[op]
+             "accentuate": ["positions", "amount"],
+             "ornament": ["kind", "positions"], "embellish": ["kind", "positions"],
+             "expand": ["factor"], "dot": ["ratio"], "displace": ["by"],
+             "thin": ["grid"], "mirror": [], "append": ["steps"],
+             "then": ["motif"]}.get(op, [])
     out = {}
     for key, val in zip(names, args):
-        if key in ("pattern",):
+        if key in ("pattern", "kind", "ratio", "by", "grid", "steps", "motif"):
             out[key] = val
         elif key == "positions":
             out[key] = tuple(int(v) for v in val.split())
         elif key == "factor":
-            out[key] = val
+            out[key] = int(val) if op == "expand" else val
         else:
             out[key] = int(val)
     return out
