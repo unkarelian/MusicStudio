@@ -139,6 +139,45 @@ If those lines are flat, the piece is flat, and no amount of good writing inside
 the bars will fix it. `chart` shows the form and harmony; `motif_map` answers
 whether the themes are developing or just repeating.
 
+`tension` is the arc `squint` cannot show: not how much is happening, but
+whether it leans anywhere.
+
+```
+  home        : + -=::-*  -=::-*:.*::=:+% -=::-*  .--*     distance from the tonic
+  dissonance      . ...- ... . ..: : :  ... ...=   .       sounding time off the chord
+  surprise    @%:=+#=-#* *=+==**-+%##%#*#@+#=-#* +%-#* +   how unexpected the tune is
+  tension    ::-=.--::-+.:==-==*==*=-+=+%-++==+#-.:--=.:   together with energy
+             intrA       A2      B       climax  coda
+
+  - the loud passage from bar 29 is prepared: the bar before it stands on a dominant
+  - releases (a dominant or distant chord falling home): bar 5, 12, 23, 29, 36, 42
+```
+
+It is a model of tonal expectation — chord function, key distance, the
+Krumhansl-Kessler key profiles, the preference for small intervals and for a
+leap to be answered by a step — and says so on its first line. It describes;
+it does not judge.
+
+`hear` is the one view that reads the *sound*. It renders every voice alone and
+measures the audio, because the first things a listener notices are in the
+render and in no score view:
+
+```
+  loudness   :-+-=++++++=*****#**##**##*#%@@@@@%%=+==---   mix, A-weighted
+  roughness  %=*=+=:=---*#*++++*+=::---==@*++++*%#=+==##   sensory dissonance
+  tune       ..F.EEEEEEEEVVVVVVVVFFCCFFVVVVVVVVVVEEEEEE.   who carries it
+  loudest    IIFIEEEEEEEEVVVVVVVVFFCCFFVVVFFFFFFFEEEEEEA   the loudest single voice
+  clear        + +++++#++===+-=--#####+--=++++++=--+-+-    tune over everything else
+
+  - the tune (violin) clears the rest by under 3 dB in bar 17, 19-20, 27-28;
+    its loudest rival there is harp
+```
+
+plus a table of every voice's level in every section, and every note that did
+not really sound: one whose own pitch, in its own time, is far below what that
+voice's other notes give. `--soundfont` measures the sampled render instead,
+which can disagree with the built-in one.
+
 ## The critique pass
 
 `lint` reports bar positions, because "the voice leading is bad somewhere" is not
@@ -349,8 +388,12 @@ uv run ms -p gallery wav lanterns --soundfont ~/sf/FluidR3_GM.sf2
 export MUSICSTUDIO_SOUNDFONT=~/sf/FluidR3_GM.sf2   # or set it once
 ```
 
-Velocities are compressed on the way to the sampler (samplers play `p` far
-quieter than the built-in render does), so the two renders keep one balance.
+Every bank records its instruments at its own levels, so a piece balanced on
+one comes out with the tune buried on another. The first render through a bank
+therefore measures it: each instrument plays a phrase soft and loud through the
+bank and through the built-in models, and from then on (cached in `~/.cache`)
+each is trimmed, and its velocities reshaped, so the bank balances the way the
+models do. `ms hear <piece> --soundfont` shows the result.
 
 It is the MIDI export played by a sampler — same notes, same tempo map, same
 seating — so it needs FluidSynth on `PATH` and a bank; neither ships here.

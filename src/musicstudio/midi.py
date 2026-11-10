@@ -85,15 +85,32 @@ def _sounding_ends(notes) -> list[int]:
     return ends
 
 
+#: Channel volume that a trim of 0 dB is written as. Below the usual 100 so a
+#: quiet instrument has room to be turned *up*.
+TRIM_BASE = 72
+
+
+def trim_to_volume(db: float) -> int:
+    """A level trim in dB as a MIDI channel volume. The SoundFont volume curve
+    is 40 log10(v/127), so 12 dB is a factor of two in the controller value."""
+    return max(1, min(127, round(TRIM_BASE * 10 ** (db / 40.0))))
+
+
 def to_bytes(piece: Piece, rend: Render | None = None, *,
-             velocity_curve: float = 1.0) -> bytes:
+             velocity_curve: float | dict[str, float] = 1.0,
+             trims: dict[str, float] | None = None) -> bytes:
     """The piece as a format-1 MIDI file.
+
+    ``trims`` is ``{voice: dB}``, written as channel volume. It is how a
+    sampler whose violin is quieter than its horn is brought back to the
+    balance the piece was written with; without it no volume is written at all.
 
     ``velocity_curve`` is an exponent on normalized velocity. 1.0 writes the
     velocities as rendered, which is what a file meant for a DAW should carry.
     Below 1 lifts the quiet notes: samplers map velocity to loudness far more
     steeply than the built-in render does, and without it a ``p`` accompaniment
-    under an ``mf`` tune all but disappears.
+    under an ``mf`` tune all but disappears. A dict gives each voice its own,
+    since a bank's piano and its strings do not respond alike.
     """
     r = rend if rend is not None else render(piece)
     chans = _channels(piece)
@@ -124,10 +141,14 @@ def to_bytes(piece: Piece, rend: Render | None = None, *,
             pan = max(0, min(127, int(round(64 + 63 * pans.get(v.name, 0.0)))))
             ev.append((0, bytes([0xB0 | ch, 10, pan])))
             ev.append((0, bytes([0xB0 | ch, 91, 30 if v.role == "bass" else 52])))
+            if trims is not None:
+                ev.append((0, bytes([0xB0 | ch, 7, trim_to_volume(trims.get(v.name, 0.0))])))
+        curve = (velocity_curve.get(v.name, 1.0) if isinstance(velocity_curve, dict)
+                 else velocity_curve)
         for n, end in zip(notes, _sounding_ends(notes)):
             vel = max(1, min(127, n.velocity))
-            if velocity_curve != 1.0:
-                vel = max(1, min(127, round(127 * (vel / 127) ** velocity_curve)))
+            if curve != 1.0:
+                vel = max(1, min(127, round(127 * (vel / 127) ** curve)))
             pitch = max(0, min(127, n.pitch))
             ev.append((n.start, bytes([0x90 | ch, pitch, vel])))
             ev.append((end, bytes([0x80 | ch, pitch, 0])))
@@ -142,8 +163,9 @@ def _len(b: bytes) -> bytes:
 
 
 def save_midi(piece: Piece, path: str | Path, rend: Render | None = None, *,
-              velocity_curve: float = 1.0) -> Path:
+              velocity_curve: float | dict[str, float] = 1.0,
+              trims: dict[str, float] | None = None) -> Path:
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_bytes(to_bytes(piece, rend, velocity_curve=velocity_curve))
+    p.write_bytes(to_bytes(piece, rend, velocity_curve=velocity_curve, trims=trims))
     return p

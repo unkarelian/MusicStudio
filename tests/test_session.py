@@ -449,3 +449,136 @@ def test_the_hq_bank_is_preferred_over_the_others(tmp_path, monkeypatch):
     monkeypatch.delenv("MUSICSTUDIO_SOUNDFONT", raising=False)
     monkeypatch.setattr(audio, "SOUNDFONT_DIRS", (str(tmp_path),))
     assert audio.find_soundfont().name == "MuseScore_General_HQ.sf3"
+
+
+# --------------------------------------------------------------------------
+# tension: where the piece leans
+# --------------------------------------------------------------------------
+
+from musicstudio import Key, render, tension  # noqa: E402
+from musicstudio.doc import HarmonyEntry  # noqa: E402
+
+
+def _cadence(chords, tune="0:1/1 | 1:1/1 | 0:1/1 | 0:1/1", dyn=("mf",) * 4) -> Piece:
+    p = Piece("cad", "C major", tempo=90, style="chamber")
+    for i, d in enumerate(dyn):
+        p.sections.append(Section(f"s{i}", 1, dynamic=d))
+    p.harmony = [HarmonyEntry(str(i + 1), c) for i, c in enumerate(chords)]
+    p.voices += [Voice("vln", "violin", "melody", octave=5),
+                 Voice("pad", "strings", "pad", octave=3)]
+    p.add_op("vln", "phrase", id="t", steps=tune, at="1", octave=5)
+    p.add_op("pad", "chords", id="c", at="1", bars=len(chords), voicing="pad")
+    return p
+
+
+def test_a_dominant_is_far_from_home_and_its_resolution_is_a_release():
+    curve = tension.analyze(_cadence(["I", "IV", "V7", "I"]))
+    home = [b.home for b in curve]
+    assert home[0] == home[3] == 0.0 and home[1] < home[2]
+    assert [b.function for b in curve] == ["tonic", "subdominant", "dominant", "tonic"]
+    assert "bar 4" in " ".join(tension.reading(_cadence(["I", "IV", "V7", "I"]), curve))
+
+
+def test_a_key_far_from_home_is_further_than_the_relative_major():
+    home = Key.parse("e minor")
+    assert tension.region_distance(home, home) == 0
+    assert tension.region_distance(Key.parse("G major"), home) < \
+        tension.region_distance(Key.parse("Bb major"), home)
+
+
+def test_the_reading_says_whether_the_loud_passage_was_prepared():
+    quiet_then_loud = ("p", "p", "p", "ff")
+    prepared = _cadence(["I", "ii", "V7", "I"], dyn=quiet_then_loud)
+    static = _cadence(["I", "I", "I", "I"], tune="0:1/1 | 0:1/1 | 0:1/1 | 0:1/1",
+                      dyn=quiet_then_loud)
+    said = " ".join(tension.reading(prepared, tension.analyze(prepared)))
+    assert "is prepared" in said and "dominant" in said
+    said = " ".join(tension.reading(static, tension.analyze(static)))
+    assert "without harmonic preparation" in said
+
+
+def test_a_chromatic_leap_is_more_surprising_than_a_step():
+    step = tension.analyze(_cadence(["I"] * 4, tune="0:1/1 | 1:1/1 | 2:1/1 | 1:1/1"))
+    leap = tension.analyze(_cadence(["I"] * 4, tune="0:1/1 | 1:1/1 | #8:1/1 | 1:1/1"))
+    assert leap[2].surprise > step[2].surprise + 1.0
+    assert "leap" in leap[2].moment[1]
+
+
+def test_the_tune_is_the_melody_and_whoever_doubles_it():
+    p = _cadence(["I", "IV", "V7", "I"])
+    p.voices.append(Voice("fl", "flute", "counter"))
+    p.add_op("fl", "double", id="d", source="vln", octaves=1)
+    notes = render(p).notes
+    assert tension.tune_at(p, notes, 0, 1920) == ("vln", {"vln", "fl"})
+    p.get_voice("vln").muted = True
+    assert tension.tune_at(p, render(p).notes, 0, 1920) == (None, set())
+
+
+# --------------------------------------------------------------------------
+# hear: measuring the render
+# --------------------------------------------------------------------------
+
+def _balance(tune_dyn: str, pad_dyn: str) -> Piece:
+    p = _cadence(["I", "IV", "V7", "I"], tune="0 2 4 2 | 3 5 7 5 | 4 6 8 6 | 7:1/1")
+    p.update_op("t", dynamic=tune_dyn, unit="1/4")
+    p.update_op("c", dynamic=pad_dyn, tones=4)
+    return p
+
+
+def test_hear_reports_a_tune_under_its_accompaniment_and_not_a_clear_one():
+    pytest.importorskip("numpy")
+    from musicstudio import listen
+    buried = listen.hear(_balance("pp", "ff"))
+    clear = listen.hear(_balance("f", "pp"))
+    assert all(b.tune == "vln" for b in buried.bars)
+    assert max(b.margin for b in buried.bars) < 0 < min(b.margin for b in clear.bars)
+    assert buried.bars[0].rival == "pad"
+    assert "quieter than everything else" in " ".join(listen.reading(buried))
+    assert "clears its accompaniment throughout" in " ".join(listen.reading(clear))
+    text = listen.view(_balance("f", "pp"), heard=clear)
+    assert "built-in instrument models" in text and "dBA by section" in text
+
+
+def test_hear_finds_the_note_that_did_not_sound():
+    np = pytest.importorskip("numpy")
+    from musicstudio import listen
+    p = Piece("w", "C major", tempo=120, style="chamber")
+    p.sections.append(Section("A", 4))
+    p.voices.append(Voice("pf", "piano", "melody", octave=4))
+    p.add_op("pf", "phrase", id="f", at="1", unit="1/4",
+             steps="0 2 4 5 | 7 5 4 2 | 0 2 4 5 | 7 5 4 2")
+    r = render(p)
+    to_sec = audio._tick_seconds(p)
+    parts, _ = listen.stems(p, r)
+    assert listen._weak_notes(p, r, parts, to_sec)[0] == []
+    # Silence one note in the stem, as a stale note-off or a cancelled attack would.
+    victim = sorted(r.notes, key=lambda n: n.start)[6]
+    lo, hi = int(to_sec(victim.start) * listen.SR), int(to_sec(victim.end) * listen.SR)
+    parts["pf"][lo:hi] *= 0.02
+    weak, measured = listen._weak_notes(p, r, parts, to_sec)
+    assert measured == 16 and [(w.bar, w.beat) for w in weak] == [(2, 3.0)]
+
+
+def test_roughness_ranks_a_semitone_above_a_fifth_above_an_octave():
+    np = pytest.importorskip("numpy")
+    from musicstudio import listen
+    t = np.arange(listen.SR) / listen.SR
+
+    def pair(ratio):
+        return listen.roughness(np.sin(2 * np.pi * 440 * t) + np.sin(2 * np.pi * 440 * ratio * t))
+
+    assert pair(2 ** (1 / 12)) > pair(1.5) * 3 and pair(1.5) >= pair(2.0)
+
+
+def test_sampler_trims_and_curves_reach_the_midi_file():
+    from musicstudio.midi import to_bytes, trim_to_volume
+    assert trim_to_volume(-12) < trim_to_volume(0) < trim_to_volume(6) <= 127
+    assert trim_to_volume(-12) == trim_to_volume(0) // 2            # 12 dB halves it
+    p = _tiny()
+    assert bytes([0xB0, 7]) not in to_bytes(p)                      # untouched by default
+    data = to_bytes(p, trims={"v": -6.0})
+    assert bytes([0xB0, 7, trim_to_volume(-6.0)]) in data
+    plain, lifted = to_bytes(p), to_bytes(p, velocity_curve={"v": 0.5})
+    at = plain.index(bytes([0x90])) + 2
+    assert lifted[at] > plain[at]
+    assert to_bytes(p, velocity_curve={"someone_else": 0.5}) == plain

@@ -566,10 +566,12 @@ SOUNDFONT_DIRS = ("~/.local/share/soundfonts", "~/.local/share/sounds/sf2",
                   "/usr/share/soundfonts", "/usr/share/sounds/sf2",
                   "/usr/share/sounds/sf3", "/usr/local/share/soundfonts",
                   "/Library/Audio/Sounds/Banks")
-#: Samplers play velocity as roughly amplitude ~ v^2; the built-in render uses
-#: v^1.3. Raising velocities to this power before they reach the sampler makes
-#: the two renders agree on how much quieter ``p`` is than ``f``.
-SAMPLER_VELOCITY_CURVE = 0.65
+#: Samplers get louder with velocity faster than the built-in render does.
+#: Raising velocities to this power before they reach the sampler narrows the
+#: gap. It is the fallback: with numpy, ``listen.calibrate`` measures the right
+#: exponent for each instrument of the bank in use (0.75-1.0 for the two banks
+#: it has been run on), and that is used instead.
+SAMPLER_VELOCITY_CURVE = 0.8
 _SOUNDFONT_PREFERENCE = ("musescore_general_hq", "musescore_general_full",
                          "musescore", "fluidr3_gm", "fluid", "generaluser", "timgm",
                          "default", "freepats")
@@ -606,12 +608,24 @@ def find_soundfont(path: str | os.PathLike | None = None) -> Path:
 
 
 def save_wav_soundfont(piece: Piece, path: str | Path, soundfont: str | Path | None = None,
-                       rend: Render | None = None, *, gain: float = 0.4) -> Path:
+                       rend: Render | None = None, *, gain: float = 0.4,
+                       room: bool = True, normalize: bool = True,
+                       balance: bool = True,
+                       velocity_curve: float | None = None) -> Path:
     """Render through FluidSynth with sampled instruments.
+
+    ``balance`` matches the bank to the built-in models, instrument by
+    instrument: how loud each one is, and how much louder it gets when played
+    harder (see ``listen.calibrate``). Every bank records its violin, horn and
+    strings at its own levels, and a piece balanced against one set comes out
+    with the tune buried in another. Needs numpy; without it a single fixed
+    velocity curve is used for everything.
 
     The MIDI export is the single source of truth here -- the same notes, the
     same tempo map and the same seating the synthesized render uses -- so the
     two renders are one performance heard through two sets of instruments.
+    ``room=False`` and ``normalize=False`` give the sampler's bare output, which
+    is what a measurement wants and a listener does not.
     """
     from .midi import save_midi
     exe = shutil.which("fluidsynth")
@@ -622,15 +636,24 @@ def save_wav_soundfont(piece: Piece, path: str | Path, soundfont: str | Path | N
     sf = find_soundfont(soundfont)
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    room = ROOMS.get(piece.style, ROOMS["freeform"])
+    size, wet = ROOMS.get(piece.style, ROOMS["freeform"])
+    trims = None
+    curve: float | dict = (SAMPLER_VELOCITY_CURVE if velocity_curve is None
+                           else velocity_curve)
+    if balance and has_fast_path():
+        from .listen import calibrate
+        cal = calibrate(sf)
+        trims = {v.name: cal["trim"].get(v.instrument, 0.0) for v in piece.voices}
+        curve = {v.name: cal["curve"].get(v.instrument, SAMPLER_VELOCITY_CURVE)
+                 for v in piece.voices}
     with tempfile.TemporaryDirectory() as tmp:
         mid = save_midi(piece, Path(tmp) / "piece.mid", rend,
-                        velocity_curve=SAMPLER_VELOCITY_CURVE)
+                        velocity_curve=curve, trims=trims)
         cmd = [exe, "-ni", "-q", "-g", f"{gain:g}", "-r", str(SR), "-O", "s16",
                "-T", "wav", "-F", str(out),
-               "-o", "synth.reverb.active=1",
-               "-o", f"synth.reverb.room-size={min(1.0, 0.3 + room[0] / 8):.2f}",
-               "-o", f"synth.reverb.level={min(1.0, room[1] * 1.4):.2f}",
+               "-o", f"synth.reverb.active={1 if room else 0}",
+               "-o", f"synth.reverb.room-size={min(1.0, 0.3 + size / 8):.2f}",
+               "-o", f"synth.reverb.level={min(1.0, wet * 1.4):.2f}",
                "-o", "synth.reverb.damp=0.35", "-o", "synth.reverb.width=0.9",
                "-o", "synth.chorus.active=0", "-o", "synth.polyphony=512",
                str(sf), str(mid)]
@@ -638,7 +661,8 @@ def save_wav_soundfont(piece: Piece, path: str | Path, soundfont: str | Path | N
         if done.returncode != 0 or not out.is_file():
             raise RuntimeError(f"fluidsynth failed ({done.returncode}): "
                                f"{(done.stderr or done.stdout).strip()[:400]}")
-    _normalize_wav(out)
+    if normalize:
+        _normalize_wav(out)
     return out
 
 

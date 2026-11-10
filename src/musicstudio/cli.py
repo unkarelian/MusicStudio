@@ -193,6 +193,15 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("part", help="one voice as an event list")
     p.add_argument("name"); p.add_argument("voice"); p.add_argument("--bars", "-b")
 
+    p = sub.add_parser("tension", help="per bar: distance from home, surprise, and "
+                                       "whether the climax was prepared")
+    p.add_argument("name")
+    p = sub.add_parser("hear", help="measure the rendered audio: who is loudest, is "
+                                    "the tune clear, did every note sound")
+    p.add_argument("name")
+    p.add_argument("--soundfont", "-s", nargs="?", const="auto", metavar="SF2",
+                   help="measure the sampled render instead of the built-in models")
+
     p = sub.add_parser("midi", help="export a .mid")
     p.add_argument("name"); p.add_argument("--out", "-o")
     p = sub.add_parser("wav", help="export a .wav")
@@ -391,6 +400,13 @@ def _dispatch(s: Studio, a) -> int:
         findings = s.lint(a.name)
         print(report(findings))
         return 1 if any(f.severity == "error" for f in findings) else 0
+    if c == "tension":
+        print(s.tension(a.name))
+        return 0
+    if c == "hear":
+        print(s.hear(a.name, source="soundfont" if a.soundfont else "models",
+                     soundfont=a.soundfont))
+        return 0
     if c == "midi":
         print(s.export_midi(a.name, a.out))
         return 0

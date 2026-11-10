@@ -313,6 +313,22 @@ class Studio:
         p = self.get(name)
         return voice_view(p, voice, bars=bars)
 
+    def tension(self, name: str) -> str:
+        """Per bar: distance from home, dissonance, surprise, and a reading."""
+        from .tension import view
+        return view(self.get(name))
+
+    def hear(self, name: str, *, source: str = "models",
+             soundfont: str | None = None) -> str:
+        """Measurements of the rendered audio, voice by voice and bar by bar.
+
+        ``source='soundfont'`` measures the sampled render instead of the
+        built-in models -- the two can disagree, and it is the one the listener
+        will hear that matters.
+        """
+        from .listen import view
+        return view(self.get(name), source=source, soundfont=soundfont)
+
     def stats(self, name: str) -> dict:
         p = self.get(name)
         return stats(p)

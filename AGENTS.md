@@ -83,9 +83,13 @@ uv run ms -p gallery wav dusk -o /tmp/check.wav
 uv run ms -p gallery wav dusk -o /tmp/check.wav --soundfont   # sampled, if installed
 ```
 
-If you cannot listen, measure: render each voice alone (mute the others) and
-compare RMS per section. A pad as loud as the tune it accompanies shows in the
-numbers long before anyone hears it, and that is how `lanterns` was balanced.
+If you cannot listen, measure. `ms hear <piece>` renders each voice alone and
+reports who is loudest, whether the tune clears its accompaniment, and which
+notes did not sound; `ms tension <piece>` shows whether the piece leans
+anywhere. `hear` found a piano model bug (strings of one note starting out of
+phase) and a SoundFont whose horn buried the violins, neither of which any
+score view could have shown. Run it with `--soundfont` too: the two renders
+can disagree, and the one the listener hears is the one that matters.
 
 `squint` is the fastest way to see whether a change helped: if density, register
 and dynamics are flat across the bars, the piece is flat regardless of what the
@@ -123,6 +127,17 @@ regions, not taste. Two rules: a model may not move, lengthen or re-seat a note,
 and every random number is seeded from `(voice, onset, pitch)` through `crc32`.
 `LEVEL` is calibrated so models on and off sit at the same loudness; if you
 change a model's `level`, re-check the balance of a full piece, not one note.
+
+`tension.py` and `listen.py` are the two views built for an agent that cannot
+listen. `tension` is a *model* (chord function, key distance, key profiles,
+interval expectation) and `listen` is a *measurement* of rendered stems; each
+says which it is in its first line, and both describe rather than judge --
+neither is a lint finding, and neither should become one without the precision
+tests lint has. `listen.calibrate` is what keeps a SoundFont render balanced
+like the built-in one: per instrument, a level trim and a velocity exponent,
+measured against the models and cached per bank. If you change a model's level
+in `synth.py` the cache key changes with `LEVEL`, but not with a single
+instrument's `level` -- pass `refresh=True` once.
 
 `soundfonts.py` is the only place the studio fetches anything. Every download is
 pinned by SHA-256 and verified before it is unpacked, a custom URL must bring

@@ -44,9 +44,15 @@ def build() -> Studio:
         s.add_section(P, name, bars=bars, dynamic=dyn, **extra)
 
     # -- harmony ------------------------------------------------------------
-    # A and the climax share a progression; B reads against G major and ends on
-    # the dominant of E minor (V7/vi), which is what turns it back home.
+    # A and A2 share a progression; B reads against G major and ends on the
+    # dominant of E minor (V7/vi), which is what turns it back home. The climax
+    # carries the same tune over harder chords: `ms tension` showed the first
+    # version repeating A's harmony a third time, so that its only claim to
+    # being a climax was volume. Now the subdominants are half-diminished, the
+    # cadence goes through a six-four, and it lands deceptively on VI -- the
+    # piece does not get home until the coda's first bar.
     period = ["i", "iv", "VII", "III", "VI", "iv", ("ii%7", "V7"), "i"]
+    summit = ["i", "ii%7", "VII7", "III", "VImaj7", "ii%7", ("i_2", "V7"), "VI"]
 
     def bars(first: int, chords: list) -> list:
         out = []
@@ -62,7 +68,7 @@ def build() -> Studio:
         + bars(5, period)
         + bars(13, period[:-1] + [("i", "VII7")])
         + bars(21, ["I", "V_1", "vi", "iii", "IV", "I_1", "ii7", "V7/vi"])
-        + bars(29, period)
+        + bars(29, summit)
         + bars(37, ["i", "i_1", "iv", "iv", ("ii%7", "V7"), "i", "i"])))
 
     # -- themes -------------------------------------------------------------
@@ -146,9 +152,10 @@ def build() -> Studio:
              note="the counter-line, quietly, while the cello rests")
     piano("a2_piano", 13, 8, dynamic="p")
     s.add_op(P, "strings", "chords", id="a2_pad", at="13", bars=8, voicing="pad",
-             lead=True, tones=3, dynamic="p")
+             lead=True, tones=3, dynamic="pp")
     s.add_op(P, "harp", "chords", id="a2_harp", at="17", bars=4, voicing="arpeggio_updown",
-             rhythm="1/8", tones=4, lead=True, ring=True, dynamic="p")
+             rhythm="1/8", tones=4, lead=True, ring=True, dynamic="pp",
+             note="pp: `ms hear` had it within a decibel of the violin at p")
     s.add_op(P, "bass", "bass", id="a2_bass", at="13", bars=8, pattern="root",
              rhythm="1/1", dynamic="p", articulation="tenuto")
 
@@ -175,12 +182,12 @@ def build() -> Studio:
     s.add_op(P, "harp", "chords", id="b_harp", at="25", bars=4, voicing="arpeggio_up",
              rhythm="1/16", tones=4, lead=True, ring=True, dynamic="p")
     s.add_op(P, "harp", "dynamics", id="b_harp_swell", **{"from": "25", "until": "29"},
-             start="pp", end="mp")
+             start="pp", end="p")
 
     # -- climax: everything, and the theme on top of it ----------------------
     s.add_op(P, "violin", "play", id="c_theme", motif="theme", at="29", dynamic="ff",
              articulation="legato", note="the theme returns, plain again and at full voice")
-    s.add_op(P, "flute", "double", id="c_octave", source="violin", octaves=1, dynamic="f",
+    s.add_op(P, "flute", "double", id="c_octave", source="violin", octaves=1, dynamic="mf",
              **{"from": "29", "until": "37"}, note="an octave above the violins")
     s.add_op(P, "cello", "double", id="c_cello", source="violin", octaves=-1,
              **{"from": "29", "until": "37"}, note="and the cellos an octave below")
@@ -208,12 +215,12 @@ def build() -> Studio:
     # -- coda: the head at half speed, the tail, and the slowing -------------
     piano("z_piano", 37, 6, dynamic="p")
     s.add_op(P, "piano", "dynamics", id="z_piano_fade", **{"from": "37", "until": "43"},
-             start="mp", end="pp")
+             start="p", end="pp")
     s.add_op(P, "cello", "play", id="z_wide", motif="call_wide", at="37", octave=3,
-             dynamic="mp", articulation="legato",
+             dynamic="mf", articulation="legato",
              note="the head of the theme, augmented")
     s.add_op(P, "cello", "play", id="z_close", motif="close", at="41", octave=3,
-             dynamic="p", articulation="legato", note="and its tail, to finish")
+             dynamic="mp", articulation="legato", note="and its tail, to finish")
     s.add_op(P, "flute", "play", id="z_echo1", motif="lift_echo", at="38", dynamic="pp",
              articulation="legato", note="B's leap, remembered")
     s.add_op(P, "clarinet", "play", id="z_echo2", motif="lift_echo", at="40",

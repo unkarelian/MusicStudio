@@ -125,10 +125,15 @@ def _noise_slice(buf: np.ndarray, n: int, rng: np.random.Generator) -> np.ndarra
 
 def _wander(t: np.ndarray, rng: np.random.Generator, rates=(0.6, 1.7, 3.1)) -> np.ndarray:
     """Slow, smooth, roughly unit-range wandering: a hand that is not a machine."""
-    out = np.zeros_like(t)
+    # Nothing here moves faster than a few hertz, so it is computed at a
+    # sixty-fourth of the sample rate and interpolated: same curve, far cheaper.
+    coarse = t[::64]
+    out = np.zeros_like(coarse)
     for r in rates:
-        out += np.sin(2 * np.pi * r * rng.uniform(0.8, 1.25) * t + rng.uniform(0, 2 * np.pi))
-    return out / len(rates)
+        out += np.sin(2 * np.pi * r * rng.uniform(0.8, 1.25) * coarse
+                      + rng.uniform(0, 2 * np.pi))
+    out /= len(rates)
+    return out if len(coarse) == len(t) else np.interp(t, coarse, out)
 
 
 # --------------------------------------------------------------------------
@@ -611,9 +616,14 @@ def _plucked(ctx: NoteCtx, m: Plucked, limit: int) -> np.ndarray:
         ratio = math.sqrt(1.0 + stiff * mean * mean)
         strings = m.strings if (m.strings > 1 and b < 4) else 1
         part = np.zeros(k)
+        # One hammer strikes all the strings of a note at once, so they start
+        # in phase and only then drift apart. Giving each its own random phase
+        # let some notes begin cancelled and stay nearly silent for seconds --
+        # which the `hear` view found as a piano note that never sounded.
+        phase = rng.uniform(0, 1)
         for s in range(strings):
             cents = 0.0 if strings == 1 else (s - (strings - 1) / 2) * rng.uniform(1.2, 2.4)
-            part += _osc(tab, f0 * ratio * 2 ** (cents / 1200.0) * tb + rng.uniform(0, 1))
+            part += _osc(tab, f0 * ratio * 2 ** (cents / 1200.0) * tb + phase)
         out[:k] += part * env / strings
     # The attack is a couple of milliseconds, not zero: an instant onset clicks.
     k = min(n, int(0.0018 * SR))

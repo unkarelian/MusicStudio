@@ -259,13 +259,13 @@
     },
     {
       "at": "30",
-      "chord": "iv",
+      "chord": "ii%7",
       "dur": null,
       "note": ""
     },
     {
       "at": "31",
-      "chord": "VII",
+      "chord": "VII7",
       "dur": null,
       "note": ""
     },
@@ -277,19 +277,19 @@
     },
     {
       "at": "33",
-      "chord": "VI",
+      "chord": "VImaj7",
       "dur": null,
       "note": ""
     },
     {
       "at": "34",
-      "chord": "iv",
+      "chord": "ii%7",
       "dur": null,
       "note": ""
     },
     {
       "at": "35",
-      "chord": "ii%7",
+      "chord": "i_2",
       "dur": null,
       "note": ""
     },
@@ -301,7 +301,7 @@
     },
     {
       "at": "36",
-      "chord": "i",
+      "chord": "VI",
       "dur": null,
       "note": ""
     },
@@ -1476,7 +1476,7 @@
           "params": {
             "interval": 0,
             "octaves": 1,
-            "dynamic": "f",
+            "dynamic": "mf",
             "delay": null,
             "from": "29",
             "until": "37",
@@ -1744,7 +1744,7 @@
             "transform": null,
             "times": 1,
             "every": null,
-            "dynamic": "mp",
+            "dynamic": "mf",
             "articulation": "legato",
             "anchor": null,
             "motif": "call_wide",
@@ -1762,7 +1762,7 @@
             "transform": null,
             "times": 1,
             "every": null,
-            "dynamic": "p",
+            "dynamic": "mp",
             "articulation": "legato",
             "anchor": null,
             "motif": "close",
@@ -1815,7 +1815,7 @@
             "rhythm": null,
             "octave": null,
             "tones": 3,
-            "dynamic": "p",
+            "dynamic": "pp",
             "spread": false,
             "lead": true,
             "ring": false,
@@ -1938,13 +1938,13 @@
           "id": "a2_harp",
           "kind": "chords",
           "enabled": true,
-          "note": "",
+          "note": "pp: `ms hear` had it within a decibel of the violin at p",
           "params": {
             "voicing": "arpeggio_updown",
             "rhythm": "1/8",
             "octave": null,
             "tones": 4,
-            "dynamic": "p",
+            "dynamic": "pp",
             "spread": false,
             "lead": true,
             "ring": true,
@@ -1983,7 +1983,7 @@
           "note": "",
           "params": {
             "start": "pp",
-            "end": "mp",
+            "end": "p",
             "from": "25",
             "until": "29"
           }
@@ -2143,7 +2143,7 @@
           "enabled": true,
           "note": "",
           "params": {
-            "start": "mp",
+            "start": "p",
             "end": "pp",
             "from": "37",
             "until": "43"

@@ -59,8 +59,10 @@ Suggested loop:
      -- then `shape` on each melodic voice and `humanize` last
   6. read the view every mutation returns; ms_squint to check the piece has an arc
   7. ms_motif_map -- is the theme actually developing, or just repeating?
+     ms_tension -- does it lean anywhere, and was the climax prepared?
   8. ms_lint -- fix errors, judge warnings, ignore info you meant
-  9. ms_export_wav -- render it and have the human actually listen
+  9. ms_hear -- measure the render: is the tune clear, did every note sound?
+ 10. ms_export_wav -- render it and have the human actually listen
 
 Every change is a checkpoint. If an idea does not work, ms_undo takes it back
 (and ms_redo re-applies it), so try the bold version first.
@@ -434,6 +436,32 @@ def ms_adopt_pattern(name: str, motif: str, index: int = 0, unit: str = "1/8") -
 @mcp.tool(description="Write a standard MIDI file and return its path.")
 def ms_export_midi(name: str, path: str | None = None) -> str:
     return _guard(lambda: str(_studio.export_midi(name, path)))
+
+
+@mcp.tool(description=(
+    "The tension curve: one column per bar for how far the harmony is from home, "
+    "how much is sounding off the chord, how surprising the tune and the chord "
+    "changes are, and the three combined -- then a reading: where tension peaks, "
+    "whether the loud passage was prepared, where the piece releases, where it "
+    "sits level, and the least expected moments. squint shows how much is "
+    "happening; this shows whether it is going anywhere. A model of tonal "
+    "expectation, not a measurement."))
+def ms_tension(name: str) -> str:
+    return _guard(lambda: _studio.tension(name))
+
+
+@mcp.tool(description=(
+    "Listen, as far as an agent can: render every voice alone and measure the "
+    "audio. Per bar: loudness, brightness, roughness, who carries the tune, who "
+    "is actually loudest, and how far the tune clears everything else; a level "
+    "table by voice and section; and every note that did not really sound. Use "
+    "it before handing a render to a person -- an accompaniment as loud as the "
+    "tune, or a note that was cut off, is in these numbers and in no score view. "
+    "soundfont='auto' measures the sampled render, which can differ from the "
+    "built-in one. Takes as long as a render."))
+def ms_hear(name: str, soundfont: str | None = None) -> str:
+    return _guard(lambda: _studio.hear(
+        name, source="soundfont" if soundfont else "models", soundfont=soundfont))
 
 
 @mcp.tool(description=(
