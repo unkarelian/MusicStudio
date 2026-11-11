@@ -1,4 +1,8 @@
-"""Builds `press_start`: minor-key funk verses that lift into a major chorus.
+"""NOTE: `gallery/scores/press_start.ms` is now the source of this piece (the
+vocal air and the kit's top were changed there, against a separated
+reference). Running this script rebuilds the earlier version over it.
+
+Builds `press_start`: minor-key funk verses that lift into a major chorus.
 
 Written against a listening model's description of a reference track (Gemini,
 given the audio and asked for its musical language, not its content): about

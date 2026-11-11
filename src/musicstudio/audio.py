@@ -1007,7 +1007,7 @@ def prerendered(piece: Piece, notes, to_sec, total: int, pans, *,
 
 
 def sampled_stems(piece: Piece, notes, to_sec, total: int, *,
-                  strict: bool = False) -> dict[str, tuple]:
+                  strict: bool = False, bare: bool = False) -> dict[str, tuple]:
     """Render the voices marked ``engine='soundfont'`` from the SoundFont.
 
     Returns ``{voice: (left, right)}`` at the built-in render's level, ready for
@@ -1016,6 +1016,11 @@ def sampled_stems(piece: Piece, notes, to_sec, total: int, *,
     kit tuned up five semitones is shorter and higher exactly as a sped-up
     break is, and a roll that climbs is a set of such renders.
 
+    Which SoundFont: the voice's ``bank`` if it names one in
+    ``soundfonts.BANKS``, else the instrument's own ``font``, else the General
+    MIDI bank -- so one piece can draw on several. ``bare`` leaves out the
+    level matching (it is what the level matching itself measures with).
+
     Without FluidSynth or a bank this returns nothing and the voices fall back
     to their instrument models, so a piece still renders everywhere.
     """
@@ -1023,20 +1028,56 @@ def sampled_stems(piece: Piece, notes, to_sec, total: int, *,
     wanted = [v for v in piece.voices if v.engine == "soundfont" and not v.muted]
     if not wanted or np is None:
         return {}
-    if not soundfont_available():
-        import warnings
+    import warnings
+    if shutil.which("fluidsynth") is None:
         if strict:
             raise RuntimeError("voices with engine='soundfont' cannot be sampled: "
-                               "FluidSynth or a SoundFont is missing")
+                               "FluidSynth is missing")
         warnings.warn("voices with engine='soundfont' are being played by the "
-                      "instrument models: FluidSynth or a SoundFont is missing "
-                      "(`ms soundfont install`)", stacklevel=2)
+                      "instrument models: FluidSynth is missing", stacklevel=2)
         return {}
+    from . import soundfonts
     from .listen import calibrate
     from .midi import _chunk, _track
     import struct
-    bank = find_soundfont()
-    cal = calibrate(bank)
+    general = find_soundfont() if soundfont_available() else None
+    # Which file each voice is played from, and which preset in it. A voice's
+    # own `bank` names a catalogued SoundFont and wins; otherwise the
+    # instrument's `font`; otherwise the General MIDI bank. A bank that is not
+    # installed falls back one step, and says so.
+    plan: dict[str, tuple[Path, str | None, int, int]] = {}
+    keymaps: dict[str, dict[int, int]] = {}
+    for v in wanted:
+        asked = None if v.inst.family == "voice" else v.bank   # a singer's is a voice
+        font = asked or v.inst.font
+        path = soundfonts.path_of(font) if font else None
+        if font and path is None:
+            what = (f"voice {v.name!r} ({v.instrument}) asks for the SoundFont "
+                    f"{font!r}, which is not installed (`ms soundfont install {font}`)")
+            if strict:
+                raise RuntimeError(what)
+            warnings.warn(what + "; " + ("the General MIDI bank plays it instead"
+                                         if general else "its model plays it instead"),
+                          stacklevel=2)
+        if path is not None:
+            own = font == v.inst.font and v.inst.preset is not None
+            bank_no, program = v.inst.preset if own else (
+                128 if v.inst.percussive else 0, v.inst.program)
+            plan[v.name] = (path, font, bank_no, program)
+            if own and v.inst.keymap:
+                keymaps[v.name] = dict(v.inst.keymap)
+        elif general is not None:
+            plan[v.name] = (general, None, 128 if v.inst.percussive else 0,
+                            v.inst.program)
+    if not plan:
+        if strict:
+            raise RuntimeError("voices with engine='soundfont' cannot be sampled: "
+                               "no SoundFont is installed")
+        warnings.warn("voices with engine='soundfont' are being played by the "
+                      "instrument models: no SoundFont is installed "
+                      "(`ms soundfont install`)", stacklevel=2)
+        return {}
+    wanted = [v for v in wanted if v.name in plan]
     pans = pan_positions(piece)
     out: dict[str, tuple] = {}
     rate = 960                      # ticks per second: 480 per quarter at 120 bpm
@@ -1045,17 +1086,33 @@ def sampled_stems(piece: Piece, notes, to_sec, total: int, *,
             mine = [n for n in notes if n.voice == v.name]
             if not mine:
                 continue
-            key = "kit" if v.inst.percussive else v.instrument
-            level = 10 ** ((cal.get("offset", 0.0) + cal["trim"].get(key, 0.0)) / 20.0)
-            curve = cal["curve"].get(key, SAMPLER_VELOCITY_CURVE)
+            bank, font, bank_no, program = plan[v.name]
+            keymap = keymaps.get(v.name, {})
+            if bare:
+                level, curve = 1.0, 1.0
+            else:
+                # An instrument in its own bank is measured against its own
+                # model; anything else played from a bank (the General MIDI
+                # one, or another whole set a voice asked for) uses that
+                # bank's balance as a set.
+                own = font is not None and v.inst.font == font
+                cal = calibrate(bank, font=font if own else None)
+                key = v.instrument if own or not v.inst.percussive else "kit"
+                level = 10 ** ((cal.get("offset", 0.0) + cal["trim"].get(key, 0.0)) / 20.0)
+                curve = cal["curve"].get(key, SAMPLER_VELOCITY_CURVE)
             groups: dict[float, list] = {}
             for n in mine:
                 groups.setdefault(round(n.tune * 2) / 2, []).append(n)
             # One FluidSynth run for the whole voice: every pitch group is laid
             # end to end in a single file, each slowed by its own ratio, and
             # cut apart again afterwards. Loading the bank is the slow part.
-            ch = 9 if v.inst.percussive else 0
-            events: list[tuple[int, bytes]] = [(0, bytes([0xC0 | ch, v.inst.program & 0x7F]))]
+            # Bank 128 is the drum channel's. A kit that a bank keeps as an
+            # ordinary preset (bank 0) is played on an ordinary channel.
+            ch = 9 if bank_no == 128 else 0
+            events: list[tuple[int, bytes]] = []
+            if ch != 9:
+                events.append((0, bytes([0xB0 | ch, 0, bank_no & 0x7F])))
+            events.append((0, bytes([0xC0 | ch, program & 0x7F])))
             layout = []
             cursor = 0.0
             for tune, group in sorted(groups.items()):
@@ -1072,7 +1129,7 @@ def sampled_stems(piece: Piece, notes, to_sec, total: int, *,
                 for n in sorted(group, key=lambda n: n.start):
                     on = int((cursor + (to_sec(n.start) - first) * ratio) * rate)
                     off = max(on + 1, int((cursor + (to_sec(n.end) - first) * ratio) * rate))
-                    pitch = max(0, min(127, n.pitch))
+                    pitch = max(0, min(127, keymap.get(n.pitch, n.pitch)))
                     before = ringing.get(pitch)
                     if before is not None and before[1] > on:
                         before[1] = max(before[0] + 1, on)

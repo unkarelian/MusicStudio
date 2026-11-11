@@ -301,6 +301,28 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--soundfont", "-s", nargs="?", const="auto", metavar="SF2",
                    help="measure the sampled render instead of the built-in models")
 
+    p = sub.add_parser("at", help="one moment, by clock or by bar: what is sounding, "
+                                  "which op wrote it, which line of the score")
+    p.add_argument("name")
+    p.add_argument("where", help="m:ss (a time) or a bar like 41 or 41:3 with --bar")
+    p.add_argument("--bar", action="store_true", help="read WHERE as bar[:beat]")
+    p = sub.add_parser("match", help="measure the render against a reference "
+                                     "recording: spectrum, level, low end, density")
+    p.add_argument("name")
+    p.add_argument("reference", help="any audio file ffmpeg reads")
+    p.add_argument("--slices", type=int, default=10)
+    p.add_argument("--stems", metavar="DIR",
+                   help="the reference separated into stems (drums.*, bass.*, and the "
+                        "rest): adds the balance between them and the drum pattern")
+    p = sub.add_parser("build", help="compile a score file (.ms text) into its piece")
+    p.add_argument("file", help="a score file, or the name of one in scores/")
+    p.add_argument("--wav", action="store_true", help="render it too")
+    p.add_argument("--hear", action="store_true", help="and measure the render")
+    p = sub.add_parser("source", help="write a piece out as score text")
+    p.add_argument("name")
+    p.add_argument("--write", "-w", action="store_true",
+                   help="save it as scores/<name>.ms instead of printing it")
+
     p = sub.add_parser("midi", help="export a .mid")
     p.add_argument("name"); p.add_argument("--out", "-o")
     p = sub.add_parser("wav", help="export a .wav")
@@ -550,6 +572,33 @@ def _dispatch(s: Studio, a) -> int:
         print(s.hear(a.name, source="soundfont" if a.soundfont else "models",
                      soundfont=a.soundfont))
         return 0
+    if c == "at":
+        print(s.at(a.name, **({"bar": a.where} if a.bar else {"time": a.where})))
+        return 0
+    if c == "match":
+        print(s.match(a.name, a.reference, slices=a.slices, stems=a.stems))
+        return 0
+    if c == "build":
+        from .score import ScoreError
+        try:
+            res = s.build(a.file)
+        except (ScoreError, FileNotFoundError) as exc:
+            print(exc, file=sys.stderr)
+            return 1
+        print(res.message)
+        for w in res.warnings:
+            print(f"  note: {w}")
+        print(report(res.findings))
+        name = res.message.split("'")[1]
+        if a.wav:
+            print(f"wav: {s.export_wav(name)}")
+        if a.hear:
+            print(s.hear(name))
+        return 0
+    if c == "source":
+        text = s.source(a.name, write=a.write)
+        print(s.scores_dir / f"{a.name}.ms" if a.write else text, end="" if not a.write else "\n")
+        return 0
     if c == "midi":
         print(s.export_midi(a.name, a.out))
         return 0
@@ -558,7 +607,10 @@ def _dispatch(s: Studio, a) -> int:
         if a.action == "banks":
             for b in soundfonts.BANKS.values():
                 mark = " (default)" if b.name == soundfonts.DEFAULT_BANK else ""
-                print(f"{b.name:<9} {b.size_mb:>3} MB  {b.summary}{mark}")
+                here = "installed" if soundfonts.path_of(b.name) else "         "
+                print(f"{b.name:<14}{b.size_mb:>4} MB  {here}  {b.summary}{mark}")
+                if b.terms:
+                    print(f"{'':<34}{b.terms}")
             return 0
         if a.action == "install":
             bank = a.bank or soundfonts.DEFAULT_BANK

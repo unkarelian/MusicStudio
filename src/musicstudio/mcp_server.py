@@ -52,7 +52,18 @@ Why that matters for you:
     phrases a line and legato notes are slurred. A section's tempo_end is a
     ritardando. The WAV render plays each voice through an instrument model.
 
-Suggested loop:
+How to work: WRITE THE PIECE AS A SCORE FILE and compile it with ms_build.
+A score file is the whole piece as text -- sections, harmony, motifs, voices,
+one op per line with its id -- so writing is one file and revising is an
+ordinary text edit, and ms_build says what changed. ms_source writes any
+existing piece out as one. The single-op tools below (ms_add_op, ms_update_op,
+...) are for one surgical change to a piece you are not otherwise editing.
+Then measure instead of guessing: ms_hear (who is too loud, what repeats like
+a machine, where the holes are), ms_match (against a reference recording,
+with the voice and the lines responsible), ms_at (what is sounding at 1:28
+and which line wrote it).
+
+The vocabulary and the order of work are the same either way:
   1. ms_describe_styles / ms_describe_ops / ms_describe_transforms -- the vocabulary
   2. ms_new with a `form` preset -- give the cue a shape before it has notes
   3. ms_set_harmony -- the scaffold everything else is written against
@@ -135,6 +146,63 @@ def ms_describe_instruments(family: str | None = None) -> str:
 @mcp.tool(description="List pieces in the project.")
 def ms_list() -> str:
     return _j(_studio.list_pieces())
+
+
+# -- the score language ----------------------------------------------------
+
+@mcp.tool(description=(
+    "Compile a score file into its piece: the whole piece as one text file "
+    "(sections, harmony, motifs, voices, one op per line -- see the docstring "
+    "of musicstudio/score.py for the notation, or ms_source on any piece for "
+    "an example). THIS IS THE WAY TO WRITE AND REVISE A PIECE: edit the file "
+    "with ordinary text edits, then build. Nothing is saved unless the whole "
+    "file parses, validates and renders; errors name the line. `path` is a "
+    "file or the name of one in the project's scores/; `text` compiles a "
+    "string. Returns the chart, lint, and with hear=true the measured mix."))
+def ms_build(path: str | None = None, text: str | None = None, wav: bool = False,
+             hear: bool = False) -> str:
+    def run() -> str:
+        res = _studio.build(path, text=text)
+        name = res.message.split("'")[1]
+        out = [str(res)]
+        if wav:
+            out.append(f"wav: {_studio.export_wav(name)}")
+        if hear:
+            out.append(_studio.hear(name))
+        return "\n\n".join(out)
+    return _guard(run)
+
+
+@mcp.tool(description=(
+    "A piece as score text. write=true saves it as scores/<name>.ms, which is "
+    "then the file to edit and ms_build. Any piece can be written out: it "
+    "compiles back to exactly the same piece."))
+def ms_source(name: str, write: bool = False) -> str:
+    return _guard(lambda: _studio.source(name, write=write))
+
+
+@mcp.tool(description=(
+    "Measure a piece's render against a reference recording (any audio file): "
+    "spectrum band by band, level over time, share of energy under 80 Hz, hits "
+    "per second, pulse -- each relative to its own track, section by section "
+    "when the two have the same form. A measurement, not a judgement: it says "
+    "where the two recordings differ, not whether the writing is alike. Use it "
+    "to work toward a reference instead of guessing. `stems` is a folder with "
+    "the reference separated into drums.*, bass.* and the rest (by any "
+    "source-separation tool; the studio does not run one): it adds the balance "
+    "of drums against bass against everything else, and the drum pattern."))
+def ms_match(name: str, reference: str, slices: int = 10,
+             stems: str | None = None) -> str:
+    return _guard(lambda: _studio.match(name, reference, slices=slices, stems=stems))
+
+
+@mcp.tool(description=(
+    "One moment of a piece, by clock time (time='1:28') or by bar (bar='41:3'): "
+    "the section and chord, and for each voice the notes sounding, the op that "
+    "wrote them, the ops shaping their sound, and the line of the score file. "
+    "Use it to turn 'something is wrong at 1:28' into the line to edit."))
+def ms_at(name: str, time: str | None = None, bar: str | None = None) -> str:
+    return _guard(lambda: _studio.at(name, time=time, bar=bar))
 
 
 # -- lifecycle -------------------------------------------------------------

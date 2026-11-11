@@ -31,6 +31,23 @@ def _studio(tmp_path) -> Studio:
 # undo / redo
 # --------------------------------------------------------------------------
 
+def test_undo_and_redo_never_reach_outside_the_project(tmp_path):
+    """The piece name is checked before .history is touched: undo pops (and
+    deletes) a snapshot, so checking the name afterwards is too late."""
+    s = _studio(tmp_path / "project")
+    elsewhere = tmp_path / "elsewhere"
+    for name in ("../../elsewhere", str(elsewhere)):
+        for verb, stack in ((s.undo, "undo"), (s.redo, "redo")):
+            snapshot = elsewhere / stack / "000001.json"
+            snapshot.parent.mkdir(parents=True, exist_ok=True)
+            snapshot.write_text("{}")
+            with pytest.raises(ValueError, match="not a piece name"):
+                verb(name)
+            assert snapshot.exists(), f"{stack}({name!r}) deleted a file outside the project"
+        with pytest.raises(ValueError, match="not a piece name"):
+            s.history(name)
+
+
 def test_undo_takes_back_the_last_change_and_redo_reapplies_it(tmp_path):
     s = _studio(tmp_path)
     s.add_op("p", "lead", "phrase", id="line", steps="0 2 4 2", at="1")

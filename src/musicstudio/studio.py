@@ -89,6 +89,63 @@ def _mutation(fn):
     return wrapper
 
 
+def _changes(old: Piece, new: Piece) -> list[str]:
+    """What differs between two builds of a piece, op by op: the answer to
+    "did my edit do what I meant, and only that"."""
+    out: list[str] = []
+    for field_ in ("tempo", "style", "meter"):
+        if getattr(old, field_) != getattr(new, field_):
+            out.append(f"{field_} {getattr(old, field_)} -> {getattr(new, field_)}")
+    if old.key.name != new.key.name:
+        out.append(f"key {old.key.name} -> {new.key.name}")
+    if [s.to_json() for s in old.sections] != [s.to_json() for s in new.sections]:
+        out.append("the form")
+    if [h.to_json() for h in old.harmony] != [h.to_json() for h in new.harmony]:
+        out.append("the harmony")
+    for name in new.motifs:
+        if name not in old.motifs:
+            out.append(f"+motif {name}")
+        elif old.motifs[name].to_json() != new.motifs[name].to_json():
+            out.append(f"motif {name}")
+    out += [f"-motif {name}" for name in old.motifs if name not in new.motifs]
+    was = {op.id: (v.name, op) for v, op in old.all_ops()}
+    now = {op.id: (v.name, op) for v, op in new.all_ops()}
+    for op_id, (voice, op) in now.items():
+        if op_id not in was:
+            out.append(f"+{op_id} ({op.kind} on {voice})")
+            continue
+        _, prev = was[op_id]
+        keys = [k for k in sorted(set(prev.params) | set(op.params))
+                if prev.params.get(k) != op.params.get(k)]
+        if prev.kind != op.kind or was[op_id][0] != voice:
+            out.append(f"{op_id} is now {op.kind} on {voice}")
+        elif keys:
+            out.append(f"{op_id}: " + ", ".join(
+                f"{k} {prev.params.get(k)} -> {op.params.get(k)}" for k in keys[:3]))
+        elif prev.enabled != op.enabled:
+            out.append(f"{op_id} {'on' if op.enabled else 'off'}")
+    out += [f"-{op_id}" for op_id in was if op_id not in now]
+    for v in new.voices:
+        o = next((x for x in old.voices if x.name == v.name), None)
+        if o is None:
+            out.append(f"+voice {v.name}")
+        elif (o.instrument, o.role, o.octave, o.dynamic, o.pan, o.engine, o.bank,
+              o.muted) != (v.instrument, v.role, v.octave, v.dynamic, v.pan, v.engine,
+                           v.bank, v.muted):
+            out.append(f"voice {v.name}")
+        else:
+            # Order is meaning: a gain before a drive is not a gain after it.
+            a = [op.id for op in o.ops if op.id in now]
+            b = [op.id for op in v.ops if op.id in was]
+            if a != b:
+                out.append(f"the order of ops on {v.name}")
+    out += [f"-voice {o.name}" for o in old.voices
+            if all(v.name != o.name for v in new.voices)]
+    if (old.meta.get("master") or {}) != (new.meta.get("master") or {}):
+        out.append("the master")
+    return out
+
+
 class Studio:
     """A project directory of pieces."""
 
@@ -170,6 +227,10 @@ class Studio:
     # -- history -----------------------------------------------------------
 
     def _stack(self, name: str, which: str) -> Path:
+        # Every path into .history is built here, so the name is checked here:
+        # undo pops (reads and deletes) a snapshot, and a name that is a path
+        # would have reached a file outside the project before being refused.
+        self.path_for(name)
         return self.history_dir / name / which
 
     def _entries(self, name: str, which: str) -> list[Path]:
@@ -255,6 +316,62 @@ class Studio:
             piece.sections.append(Section(str(sec_name), int(bars), meter))
         self.save(piece)
         return piece
+
+    # -- the score language ------------------------------------------------
+
+    @property
+    def scores_dir(self) -> Path:
+        return self.root / "scores"
+
+    def build(self, source: str | Path | None = None, *, text: str | None = None) -> OpResult:
+        """Compile a score file (``score.py``) into its piece and save it.
+
+        The whole file is parsed, validated, rendered and linted before
+        anything is written, so a file with a mistake in it leaves the piece on
+        disk as it was; and the save is a checkpoint like any other, so
+        ``undo`` takes a build back. ``source`` is a path, or the name of a
+        file in the project's ``scores/``; ``text`` compiles a string instead.
+        """
+        from .score import compile_score
+        if text is None:
+            if source is None:
+                raise ValueError("give a score file, or text=")
+            path = Path(source)
+            if not path.is_file():
+                named = self.scores_dir / f"{source}.ms"
+                if not named.is_file():
+                    raise FileNotFoundError(f"no score file {source!s} (nor {named})")
+                path = named
+            text = path.read_text()
+        piece = compile_score(text)
+        r = render(piece)
+        findings = lint(piece, r)
+        before = None
+        if self.path_for(piece.name).exists():
+            try:
+                before = self.get(piece.name)
+            except Exception:
+                before = None
+        changed = _changes(before, piece) if before is not None else []
+        self.save(piece)
+        ops = sum(len(v.ops) for v in piece.voices)
+        message = (f"built {piece.name!r}: {piece.total_bars} bars, "
+                   f"{len(piece.voices)} voices, {ops} ops")
+        if before is not None:
+            message += ("\n  since the last build: " + ("; ".join(changed[:14])
+                        + (f"; +{len(changed) - 14} more" if len(changed) > 14 else "")
+                        if changed else "nothing changed"))
+        return OpResult(True, None, chart(piece), findings, message, list(r.warnings))
+
+    def source(self, name: str, *, write: bool = False) -> str:
+        """A piece as score text. ``write`` puts it in ``scores/<name>.ms``,
+        which is then the file to edit and ``build``."""
+        from .score import decompile
+        text = decompile(self.get(name))
+        if write:
+            self.scores_dir.mkdir(parents=True, exist_ok=True)
+            (self.scores_dir / f"{name}.ms").write_text(text)
+        return text
 
     def delete(self, name: str) -> None:
         """Remove a piece. Undoable: the last state goes onto its undo stack."""
@@ -490,6 +607,23 @@ class Studio:
     def stats(self, name: str) -> dict:
         p = self.get(name)
         return stats(p)
+
+    def match(self, name: str, reference: str, *, slices: int = 10,
+              stems: str | None = None) -> str:
+        """The render beside a reference recording: spectrum, level over time,
+        low end, hit density -- measured the same way from both, section by
+        section when the two have the same form (``listen.match``)."""
+        from .listen import match
+        return match(self.get(name), reference, slices=slices, stems_dir=stems)
+
+    def at(self, name: str, *, time: str | None = None, bar: str | None = None) -> str:
+        """One moment, by clock time or by bar: section, chord, and for each
+        voice the notes sounding, the op that wrote them and the ops shaping
+        them -- with line numbers when the piece has a score file."""
+        from .listen import at
+        score = self.scores_dir / f"{name}.ms"
+        return at(self.get(name), time=time, bar=bar,
+                  score=score.read_text() if score.is_file() else None)
 
     def lint(self, name: str) -> list[Finding]:
         return lint(self.get(name))

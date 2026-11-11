@@ -79,6 +79,22 @@ you are writing a cue, use the tools; do not hand-write note lists.
   `Piece.heard_within` reads, so a cell that only ever sounds inside a longer
   theme is not reported as unused.
 
+- **A score file is the op-log as text, and nothing else.** `score.py` compiles
+  one file into one piece; `decompile` writes any piece out, and
+  `test_every_piece_in_the_gallery_is_the_same_piece_as_text` holds that the
+  round trip is exact. So the language has no vocabulary of its own: an op line
+  is the op's kind and its own parameter names. Add sugar only where it stays
+  that way (positions by section, named lanes, `for`/`on` blocks all expand to
+  plain ops with ids) -- a construct the JSON cannot hold would be a second
+  place music is stored. `Studio.build` renders and lints before it saves, like
+  every other mutation, and saves through `save`, so a build is a checkpoint.
+  `#` followed by a space is a comment; `#4` is a sharp.
+- **A diagnostic names the line.** `hear`, `match` and `at` exist because a
+  listener says "the bell at 1:30 is far too loud" and the score is written in
+  bars and ops: each reports a measurement *with* the voice, the op ids and
+  (when the piece has a score file) the line that makes it. A new diagnostic
+  that says only "the top is harsh" is half built.
+
 ## Working on it
 
 ```bash
@@ -86,6 +102,17 @@ uv sync --all-extras
 uv run pytest tests/ -q
 uv run python examples/build_dusk.py     # the dogfood build; it must lint clean
 uv run python examples/build_lanterns.py # the long build; it must lint clean too
+```
+
+Write and revise a piece as a score file, not as a stream of calls or a build
+script: `gallery/scores/iron_tide.ms` is the worked example, the docstring of
+`score.py` is the notation, and `ms source <piece> -w` writes any existing
+piece out as one.
+
+```bash
+uv run ms -p gallery build gallery/scores/iron_tide.ms --wav   # says what changed since the last build
+uv run ms -p gallery at iron_tide 1:28        # what sounds then, which op, which line
+uv run ms -p gallery match iron_tide ref.mp3  # against a reference recording
 ```
 
 To judge a musical change, render and actually listen — the ASCII views tell you
@@ -103,6 +130,47 @@ anywhere. `hear` found a piano model bug (strings of one note starting out of
 phase) and a SoundFont whose horn buried the violins, neither of which any
 score view could have shown. Run it with `--soundfont` too: the two renders
 can disagree, and the one the listener hears is the one that matters.
+
+Three things `hear` reports were each first noticed by a person or by a
+listening model and not by the studio, which is why they are there: a voice
+that is not the tune and is louder than everything else together (an ornament
+at `ff`, heard as "a church bell hit over and over"), one pitch at one loudness
+many times in a row (on a sampled instrument, one recording that many times),
+and a silence in the middle of the music. `match` is how a piece is worked
+toward a reference: band by band and section by section against the recording,
+each difference with the voice that holds that band there and the ops that set
+its level and tone. It found in one run what five rounds of asking a model did
+not say plainly (a third of the reference's low end; a last section that never
+fades). Given the reference separated into stems (`--stems DIR`: `drums.*`,
+`bass.*` and the rest, from any source-separation model -- the studio runs
+none) it also compares the balance between them and the drum pattern, which a
+mix cannot give: `iron_tide` matched its reference's spectrum with a kit 11 dB
+too quiet. A separator was checked against the studio's own true stems before
+being believed (within about 1 dB for drums and bass). With stems it also says what each
+stem *sounds* like against the reference's (how much of its own energy is
+above 4 kHz, at 2-4 kHz, under 100 Hz), which is what turns "the mix is dull"
+into "the voice is": `press_start` balanced like its reference and had a
+fortieth of its vocal top. When the two recordings are not the same form the
+piece is not laid over the reference; both are cut into equal parts, and then
+only a difference that holds in most parts, in one direction, is reported --
+part 3 of one song is a verse and of the other a chorus. A stem's power is its hits, their
+length, their number and the separator's leakage all at once, so the drums also
+get the level of the hits themselves against the bass's and the share of the
+time they are sounding; a separated stem has its DC taken out before anything
+is measured (an empty one is often a constant offset, which as power is a loud
+instrument that is not there); and the drum grid is scaled to the track's own
+loudest section, so hats that have gone show as nothing rather than as a
+pattern turned back up. Each of those was a wrong reading first, caught by a
+second reviewer re-measuring the same files: when a diagnostic leads to a
+change in a piece, have its reading checked that way. One thing was built for
+`match` and taken out again: reading how often the harmony changes, bar by bar,
+out of a recording. Checked against a transcription of a real track it was
+right 62% of the time, with or without stems, so it is not there -- see the
+docstring -- and anything like it needs that kind of ground truth before it
+ships. A listening model (see `examples/build_press_start.py` for how one was
+used) is for checking that these tools are measuring the right things -- its
+tempo and mix claims were often wrong, and its adjectives changed from run to
+run -- not a step in writing a piece.
 
 `squint` is the fastest way to see whether a change helped: if density, register
 and dynamics are flat across the bars, the piece is flat regardless of what the
@@ -137,6 +205,19 @@ processing and no singers; when a piece uses either it says so in a warning
 FluidSynth -- into an error, and `engines={}` is filled with who actually
 rendered each whole-voice stem. A test of an engine must use both: the formant
 singer passes every audio assertion written for the neural one.
+
+`synth.py` also holds the two synthesizers, `Synth` (oscillators, one resonant
+filter with its own envelope, an LFO, unison) and `FM` (two operators and an
+index envelope), and the digital instruments are settings of them. The filter
+is never run over the signal: a filtered wave is a set of harmonics scaled by
+the filter's response, which depends only on harmonic-over-cutoff, so there is
+a stack of tables per wave and a moving filter is a walk through the stack
+(`_synth_stack`). That is what keeps a note stateless, band-limited and the
+same whatever was rendered before it; do not replace it with a recursive
+filter. A pulse is two saws, which is what makes pulse-width modulation exact.
+FM's index is capped by what the sample rate can hold at that pitch. An
+instrument that lives in a SoundFont names a `like`, the model that plays it
+where the bank is not installed (`_adopt`).
 
 `synth.py` holds the instrument models -- what a note sounds like once it is
 decided that it sounds. Read its docstring first: each mechanism (moving
@@ -264,6 +345,21 @@ like the built-in one: per instrument, a level trim and a velocity exponent,
 measured against the models and cached per bank. If you change a model's level
 in `synth.py` the cache key changes with `LEVEL`, but not with a single
 instrument's `level` -- pass `refresh=True` once.
+
+One piece can draw on several SoundFonts. `Instrument.font` names a bank in
+`soundfonts.BANKS` and `preset` its `(bank, program)` there; a voice's own
+`bank=` asks for a whole other General MIDI set (`fluidr3`, `opl3`). Banks for
+particular instruments (`Bank.extra`) are installed one directory down, where
+`find_soundfont` does not look, so a kit of synth drums can never be mistaken
+for the bank a whole piece is played through
+(`test_a_bank_for_particular_instruments_is_never_the_general_bank`). Each is
+level-matched against its own model (`listen.calibrate(font=)`), not centred
+like a General MIDI set. A kit that a bank keeps as an ordinary preset with its
+own layout carries a `keymap`, read out of the bank's zone table -- never
+guessed from how the drums sound. `SOUNDFONTS.md` lists every bank with its
+author and terms, and a test fails if one is missing from it. Left out on
+purpose: GeneralUser GS (its author asks not to be linked to directly) and
+anything ripped from a commercial instrument.
 
 `soundfonts.py` is the only place the studio fetches anything. Every download is
 pinned by SHA-256 and verified before it is unpacked, a custom URL must bring

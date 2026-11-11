@@ -8,6 +8,7 @@
   "loop": false,
   "meta": {
     "master": {
+      "push": 6.0,
       "room": {
         "decay": 0.7,
         "wet": 0.06
@@ -110,8 +111,7 @@
             "chant"
           ]
         }
-      ],
-      "push": 6.0
+      ]
     }
   },
   "sections": [
@@ -3447,7 +3447,7 @@
           "enabled": true,
           "note": "",
           "params": {
-            "breath": -6,
+            "breath": -2,
             "firm": 3,
             "crisp": 1.2,
             "gender": 0.05
@@ -3478,13 +3478,26 @@
           "id": "eq_vox",
           "kind": "eq",
           "enabled": true,
-          "note": "the edge the voice gets on long high notes",
+          "note": "was a 3 dB cut for an edge on long high notes; against the reference the voice had a sixth of its 2-4 kHz",
           "params": {
-            "width": 1.2,
+            "width": 1.5,
             "from": null,
             "until": null,
-            "freq": 3300,
-            "gain": -3
+            "freq": 3000,
+            "gain": 4
+          }
+        },
+        {
+          "id": "air_vox",
+          "kind": "eq",
+          "enabled": true,
+          "note": "`ms match --stems`: 0.3% of the voice above 4 kHz against the reference's 12%",
+          "params": {
+            "width": 2.5,
+            "from": null,
+            "until": null,
+            "freq": 8000,
+            "gain": 10
           }
         },
         {
@@ -3785,7 +3798,20 @@
             "from": null,
             "until": null,
             "freq": 3300,
-            "gain": -6
+            "gain": -2
+          }
+        },
+        {
+          "id": "air_harm",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 2.5,
+            "from": null,
+            "until": null,
+            "freq": 8000,
+            "gain": 7
           }
         },
         {
@@ -3891,7 +3917,20 @@
             "from": null,
             "until": null,
             "freq": 3300,
-            "gain": -6
+            "gain": -2
+          }
+        },
+        {
+          "id": "air_body",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 2.5,
+            "from": null,
+            "until": null,
+            "freq": 8000,
+            "gain": 7
           }
         },
         {
@@ -7211,6 +7250,32 @@
           }
         },
         {
+          "id": "top_drums",
+          "kind": "eq",
+          "enabled": true,
+          "note": "`ms match --stems`: the kit had a quarter of the reference kit's top",
+          "params": {
+            "width": 2.0,
+            "from": null,
+            "until": null,
+            "freq": 7000,
+            "gain": 5
+          }
+        },
+        {
+          "id": "crack_drums",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.5,
+            "from": null,
+            "until": null,
+            "freq": 3000,
+            "gain": 5
+          }
+        },
+        {
           "id": "lvl_drums",
           "kind": "gain",
           "enabled": true,
@@ -7757,7 +7822,7 @@
           "enabled": true,
           "note": "",
           "params": {
-            "db": 5
+            "db": 3
           }
         }
       ],

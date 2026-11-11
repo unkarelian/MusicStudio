@@ -251,6 +251,90 @@ class Acid:
 
 
 @dataclass(frozen=True)
+class Synth:
+    """A subtractive synthesizer voice: oscillators, one resonant filter with
+    its own envelope, an amplifier envelope and an LFO. Most of what is called
+    a synth sound is a setting of these few things, so most of the digital
+    instruments are one line each: a pluck is a filter that snaps shut, a pad
+    is slow envelopes and several detuned oscillators, a wobble is the LFO on
+    the cutoff, an 808 is a sine whose pitch falls as it starts."""
+
+    wave: str = "saw"               # saw, square, pulse, tri, sine
+    width: float = 0.5              # pulse width
+    pwm: float = 0.0                # how far the width swings (0..0.45)
+    pwm_rate: float = 0.7           # Hz
+    unison: int = 1
+    detune: float = 0.0             # cents, whole spread
+    spread: float = 0.0             # stereo width of the unison
+    sub: float = 0.0                # a sine an octave below
+    noise: float = 0.0
+    noise_band: tuple[float, float] = (800.0, 9000.0)
+    #: The filter. ``cutoff`` is where it rests for middle C; ``track`` is how
+    #: far it follows the keyboard (1 keeps a patch equally bright everywhere).
+    cutoff: float = 3000.0
+    track: float = 0.6
+    resonance: float = 0.7          # Q: 0.7 is flat, 4 whistles
+    poles: int = 4
+    #: Octaves the envelope opens the filter at full velocity, and its shape.
+    env: float = 0.0
+    f_attack: float = 0.0
+    f_decay: float = 0.3
+    f_sustain: float = 0.0
+    vel_cut: float = 1.0            # octaves from softest to hardest
+    lfo_rate: float = 0.0           # Hz; the LFO restarts with each note
+    lfo_delay: float = 0.0
+    lfo_cut: float = 0.0            # octaves
+    lfo_pitch: float = 0.0          # cents
+    lfo_amp: float = 0.0            # 0..1
+    attack: float = 0.004
+    decay: float = 0.0              # seconds to fall to ``sustain``; 0 = none
+    sustain: float = 1.0
+    release: float = 0.12
+    glide: float = 0.0              # seconds to slide into a slurred note
+    #: Semitones the pitch starts away from the note, and how fast it arrives.
+    bend: float = 0.0
+    bend_time: float = 0.05
+    drift: float = 1.0              # cents
+    level: float = 1.0
+    send: float = 0.6
+
+
+@dataclass(frozen=True)
+class FM:
+    """Two sine waves, one bending the phase of the other: frequency
+    modulation. The *index* is how hard, and it is the brightness -- so an
+    index that decays is a struck thing (an electric piano, a bell, a plucked
+    bass) and one that swells is a brass. Whole-number ratios are harmonic;
+    anything else clangs."""
+
+    ratio: float = 1.0              # carrier, as a multiple of the note
+    mod: float = 1.0                # modulator
+    index: float = 2.0              # at full velocity, at the onset
+    index_sustain: float = 0.3      # what fraction of it stays
+    index_decay: float = 0.4
+    index_attack: float = 0.0       # > 0: the index swells in (brass)
+    vel_index: float = 0.7          # how much velocity is brightness
+    #: A second modulator at its own ratio: the metal in a bell.
+    mod2: float = 0.0
+    index2: float = 0.0
+    index2_decay: float = 0.2
+    attack: float = 0.003
+    decay: float = 1.6              # of the note itself at middle C; 0 = held
+    decay_track: float = 0.4
+    sustain: float = 0.0
+    release: float = 0.15
+    detune: float = 0.0             # cents between the two carriers
+    spread: float = 0.0
+    vib_rate: float = 5.0
+    vib_depth: float = 0.0
+    tremolo: float = 0.0
+    tremolo_rate: float = 4.6
+    glide: float = 0.0
+    level: float = 1.0
+    send: float = 0.7
+
+
+@dataclass(frozen=True)
 class Drum:
     #: One drum, or ``"kit"``: then each note's key says which drum it is.
     kind: str = "snare"
@@ -302,7 +386,7 @@ def _reed(**kw) -> Sustained:
 #: commonly measured resonance regions for each instrument, not tuned to taste:
 #: the violin's air and wood modes and its bridge hill, the oboe's two nasal
 #: peaks, the horn's low single one.
-MODELS: dict[str, Sustained | Plucked | Bell | Drum] = {
+MODELS: dict[str, Sustained | Plucked | Bell | Acid | Synth | FM | Drum] = {
     # -- bowed strings -----------------------------------------------------
     "violin": _strings(formants=((290, 0.22, 1.6), (520, 0.2, 1.3), (2700, 0.45, 2.4)),
                        lowpass=6000, vib_rate=5.9),
@@ -459,12 +543,178 @@ MODELS: dict[str, Sustained | Plucked | Bell | Drum] = {
                              decay_track=0.3, damping=0.55, vel_tilt=0.9, release=0.07,
                              click=0.12, click_band=(600.0, 3000.0), thump=0.1,
                              level=0.9, send=0.25),
+    # -- a rock band. These are the fallbacks: the sounds are in a SoundFont
+    # (`engine="soundfont"`), and the models only have to be the same *kind*
+    # of thing -- a pick is a brighter pluck nearer the bridge, a muted string
+    # dies in a fifth of a second, a driven guitar barely decays at all.
+    "picked_bass": Plucked(slope=0.8, position=0.11, lowpass=4200,
+                           formants=((90, 0.5, 0.8), (1100, 0.7, 0.7)), decay=2.0,
+                           decay_track=0.3, damping=0.5, vel_tilt=0.8, release=0.06,
+                           click=0.3, click_band=(900.0, 3500.0), thump=0.08,
+                           level=0.9, send=0.2),
+    "distortion_guitar": Plucked(slope=0.7, position=0.13, lowpass=4800,
+                                 formants=((400, 0.6, 0.8), (1500, 0.7, 0.9)),
+                                 decay=6.0, decay_track=0.2, damping=0.15,
+                                 vel_tilt=0.3, release=0.08, click=0.2, level=0.8,
+                                 send=0.6),
+    "muted_guitar": Plucked(slope=1.3, position=0.13, lowpass=2200,
+                            formants=((110, 0.35, 1.2), (210, 0.3, 1.0)), decay=0.22,
+                            decay_track=0.3, damping=1.5, release=0.04, click=0.22,
+                            click_band=(500.0, 2500.0), thump=0.15, send=0.5),
+    "whistle": Sustained(dark=4.5, bright=3.6, lowpass=5000, attack=0.07, release=0.12,
+                         bloom=0.02, settle=0.95, vib_rate=5.0, vib_depth=7.0,
+                         vib_delay=0.3, vib_am=0.08, drift=3.0, glide=0.05, noise=0.09,
+                         chiff=0.2, noise_band=(1500.0, 7000.0), level=1.2),
     "upright_bass": Plucked(slope=1.45, position=0.3, lowpass=1500,
                             formants=((100, 0.4, 1.2), (220, 0.35, 0.9)), decay=1.1,
                             decay_track=0.3, damping=0.9, vel_tilt=0.7, release=0.1,
                             click=0.08, click_band=(400.0, 2200.0), thump=0.3,
                             level=0.95, send=0.3),
 }
+
+# -- digital instruments ----------------------------------------------------
+# Synth and FM patches. These are not imitations of anything: each is the
+# plain setting that the name means to anyone who has used a synthesizer.
+MODELS.update({
+    # leads
+    "saw_lead": Synth(unison=2, detune=12, cutoff=4500, env=1.2, f_decay=0.25,
+                      f_sustain=0.5, resonance=1.2, glide=0.05, lfo_rate=5.5,
+                      lfo_pitch=9, lfo_delay=0.25, release=0.1, level=0.85),
+    "square_lead": Synth(wave="square", cutoff=5000, resonance=0.9, glide=0.04,
+                         lfo_rate=5.5, lfo_pitch=8, lfo_delay=0.25, release=0.08,
+                         level=0.8),
+    "pwm_lead": Synth(wave="pulse", width=0.35, pwm=0.25, pwm_rate=1.3, cutoff=4200,
+                      resonance=1.0, glide=0.05, lfo_rate=5.2, lfo_pitch=7,
+                      lfo_delay=0.3, release=0.1, level=0.8),
+    "sine_lead": Synth(wave="sine", cutoff=9000, glide=0.08, lfo_rate=5.4,
+                       lfo_pitch=14, lfo_delay=0.25, attack=0.02, release=0.12,
+                       drift=2.0, level=1.1),
+    "resonant_lead": Synth(unison=2, detune=9, cutoff=900, resonance=5.0, env=3.4,
+                           f_decay=0.7, f_sustain=0.55, glide=0.07, lfo_rate=5.0,
+                           lfo_pitch=8, lfo_delay=0.3, release=0.12, level=0.9),
+    "theremin": Synth(wave="tri", cutoff=5000, glide=0.2, lfo_rate=5.8, lfo_pitch=28,
+                      lfo_delay=0.15, attack=0.09, release=0.2, drift=4.0, level=1.0),
+    "hoover": Synth(unison=5, detune=62, spread=0.7, wave="pulse", width=0.4, pwm=0.3,
+                    pwm_rate=2.2, sub=0.5, cutoff=3200, resonance=1.2, bend=-7,
+                    bend_time=0.14, glide=0.09, noise=0.04, attack=0.01,
+                    release=0.18, level=0.85),
+    # plucks and stabs
+    "synth_pluck": Synth(unison=2, detune=10, spread=0.3, cutoff=450, resonance=1.6,
+                         env=4.6, f_decay=0.2, decay=0.55, sustain=0.0, release=0.2,
+                         level=1.0),
+    "trance_pluck": Synth(unison=5, detune=30, spread=0.6, cutoff=700, resonance=1.2,
+                          env=4.0, f_decay=0.26, decay=0.8, sustain=0.0, release=0.3,
+                          level=0.95),
+    "rave_stab": Synth(unison=4, detune=26, spread=0.5, cutoff=1300, resonance=1.4,
+                       env=3.0, f_decay=0.14, decay=0.4, sustain=0.0, release=0.08,
+                       level=0.95),
+    "synth_brass": Synth(unison=3, detune=18, spread=0.4, cutoff=650, resonance=0.9,
+                         env=3.0, f_attack=0.06, f_decay=0.6, f_sustain=0.55,
+                         attack=0.02, release=0.15, level=0.9),
+    # pads
+    "warm_pad": Synth(unison=4, detune=22, spread=0.7, cutoff=900, track=0.4,
+                      env=0.8, f_attack=0.8, f_decay=2.0, f_sustain=0.7, attack=0.5,
+                      release=1.0, drift=4.0, level=0.85),
+    "pwm_pad": Synth(wave="pulse", pwm=0.32, pwm_rate=0.45, unison=3, detune=14,
+                     spread=0.6, cutoff=1600, attack=0.35, release=0.9, drift=3.0,
+                     level=0.8),
+    "sweep_pad": Synth(unison=5, detune=30, spread=0.8, cutoff=280, resonance=2.2,
+                       env=4.0, f_attack=2.5, f_decay=4.0, f_sustain=0.5, attack=0.6,
+                       release=1.4, drift=3.0, level=0.85),
+    "dark_pad": Synth(unison=3, detune=16, spread=0.6, cutoff=380, track=0.2,
+                      resonance=1.0, lfo_rate=0.17, lfo_cut=0.5, noise=0.03,
+                      noise_band=(300.0, 2500.0), attack=0.8, release=1.5, drift=5.0,
+                      level=1.0),
+    "string_machine": Synth(unison=6, detune=34, spread=0.8, cutoff=3200,
+                            lfo_rate=6.0, lfo_pitch=5, attack=0.12, release=0.5,
+                            drift=3.0, level=0.8),
+    "glass_pad": FM(mod=2.0, index=1.3, index_sustain=0.6, index_decay=1.5, mod2=7.0,
+                    index2=0.5, index2_decay=1.0, attack=0.5, decay=0.0, release=1.2,
+                    detune=9, spread=0.5, level=0.8),
+    # basses
+    "saw_bass": Synth(cutoff=340, track=0.3, resonance=1.6, env=3.0, f_decay=0.22,
+                      f_sustain=0.25, sub=0.5, glide=0.05, release=0.06, level=0.9,
+                      send=0.15),
+    "square_bass": Synth(wave="square", cutoff=480, track=0.3, resonance=1.3, env=2.2,
+                         f_decay=0.2, f_sustain=0.3, sub=0.3, glide=0.05,
+                         release=0.06, level=0.85, send=0.15),
+    "round_bass": Synth(wave="tri", cutoff=600, track=0.3, env=1.4, f_decay=0.25,
+                        f_sustain=0.3, sub=0.4, glide=0.06, release=0.07, level=1.1,
+                        send=0.12),
+    "pluck_bass": Synth(cutoff=210, track=0.3, resonance=1.8, env=4.2, f_decay=0.13,
+                        decay=0.6, sustain=0.0, sub=0.4, release=0.06, level=1.0,
+                        send=0.15),
+    "wobble_bass": Synth(unison=2, detune=14, cutoff=420, track=0.2, resonance=3.0,
+                         lfo_rate=4.0, lfo_cut=2.2, sub=0.6, glide=0.06,
+                         release=0.07, level=0.85, send=0.15),
+    "bass_808": Synth(wave="sine", cutoff=8000, bend=7, bend_time=0.05, decay=2.0,
+                      sustain=0.0, glide=0.08, release=0.09, drift=0.0, level=1.3,
+                      send=0.08),
+    "fm_bass": FM(mod=1.0, index=3.6, index_decay=0.18, index_sustain=0.15, decay=1.3,
+                  sustain=0.3, decay_track=0.2, release=0.06, level=1.0, send=0.2),
+    "donk_bass": FM(mod=2.0, index=1.5, index_decay=0.1, index_sustain=0.1, decay=0.5,
+                    decay_track=0.2, release=0.05, level=1.1, send=0.2),
+    # FM keys and bells
+    "fm_epiano": FM(mod=1.0, index=2.2, index_decay=0.6, index_sustain=0.2, mod2=14.0,
+                    index2=0.6, index2_decay=0.08, decay=2.6, detune=5, spread=0.25,
+                    tremolo=0.1, level=1.0),
+    "fm_bell": FM(mod=3.5, index=3.4, index_decay=1.2, index_sustain=0.15, mod2=7.1,
+                  index2=0.9, index2_decay=0.4, decay=3.6, detune=4, spread=0.3,
+                  release=0.6, level=0.85),
+    "fm_organ": FM(mod=1.0, index=0.9, index_sustain=1.0, vel_index=0.2, attack=0.005,
+                   decay=0.0, release=0.06, detune=3, spread=0.2, level=0.9),
+    "fm_brass": FM(mod=1.0, index=3.2, index_attack=0.12, index_sustain=0.75,
+                   index_decay=0.5, attack=0.03, decay=0.0, release=0.12, detune=6,
+                   spread=0.3, vib_depth=6.0, level=0.9),
+    "kalimba": FM(mod=5.4, index=1.3, index_decay=0.12, index_sustain=0.05, decay=1.0,
+                  release=0.3, level=1.0),
+    # Struck scrap: ratios that share no harmonics, and a decay too short to
+    # be a bell. The difference between a clank and a chime is only how long
+    # it is allowed to ring.
+    "clank": FM(mod=1.41, index=4.5, index_decay=0.07, index_sustain=0.25, mod2=3.37,
+                index2=2.2, index2_decay=0.05, vel_index=0.5, decay=0.22,
+                decay_track=0.2, release=0.04, level=0.9, send=0.9),
+    "metal_pipe": FM(mod=2.76, index=2.4, index_decay=0.3, index_sustain=0.3,
+                     mod2=5.4, index2=1.2, index2_decay=0.15, decay=1.1,
+                     decay_track=0.3, release=0.2, level=0.85, send=0.9),
+    # effects
+    "zap": Synth(cutoff=7000, bend=36, bend_time=0.12, decay=0.3, sustain=0.0,
+                 release=0.05, level=0.8),
+    "siren": Synth(wave="tri", cutoff=6000, lfo_rate=0.45, lfo_pitch=500, attack=0.05,
+                   release=0.3, level=0.8),
+})
+
+# -- sampled instruments' stand-ins ------------------------------------------
+# These are in the table for a SoundFont to play (`engine="soundfont"`). The
+# model is the nearest thing the studio can already do, so a piece that uses
+# one still renders where there is no bank; it is a relative, not a likeness.
+_LIKE = {
+    "bright_piano": "piano", "honky_tonk": "piano", "clavinet": "harpsichord",
+    "drawbar_organ": "organ", "rock_organ": "organ", "accordion": "clarinet",
+    "harmonica": "oboe", "steel_guitar": "guitar", "jazz_guitar": "guitar",
+    "clean_guitar": "guitar", "overdrive_guitar": "distortion_guitar",
+    "fretless_bass": "electric_bass", "slap_bass": "picked_bass", "sitar": "guitar",
+    "banjo": "harpsichord", "shamisen": "harpsichord", "koto": "harp",
+    "xylophone": "marimba", "tubular_bells": "glockenspiel", "dulcimer": "harp",
+    "steel_drums": "vibraphone", "soprano_sax": "oboe", "alto_sax": "clarinet",
+    "tenor_sax": "clarinet", "baritone_sax": "bassoon", "muted_trumpet": "trumpet",
+    "brass_section": "trumpet", "recorder": "flute", "pan_flute": "flute",
+    "shakuhachi": "flute", "ocarina": "whistle", "bagpipe": "oboe",
+    "fiddle": "violin", "slow_strings": "strings", "orchestra_hit": "strings",
+    "choir_oohs": "choir", "melodic_tom": "timpani", "woodblock": "marimba",
+}
+MODELS.update({name: MODELS[like] for name, like in _LIKE.items()})
+
+
+def _adopt() -> None:
+    """Give every instrument sampled from its own bank its stand-in's model."""
+    from .ensemble import INSTRUMENTS
+    for inst in INSTRUMENTS.values():
+        if inst.like in MODELS and inst.name not in MODELS:
+            MODELS[inst.name] = MODELS[inst.like]
+
+
+_adopt()
 
 #: Base amplitude for a unit-RMS table, set so a mezzo-forte note sits where the
 #: plain oscillator path puts it -- switching models on must not remix a piece.
@@ -570,6 +820,10 @@ def render_note(ctx: NoteCtx, limit: int) -> list[tuple[np.ndarray, float]]:
         return [(_bell(ctx, model, limit), 0.0)]
     if isinstance(model, Acid):
         return [(_acid(ctx, model, limit), 0.0)]
+    if isinstance(model, Synth):
+        return _synth(ctx, model, limit)
+    if isinstance(model, FM):
+        return _fm(ctx, model, limit)
     return [_drum(ctx, model, limit)]
 
 
@@ -716,6 +970,219 @@ def _acid(ctx: NoteCtx, m: Acid, limit: int) -> np.ndarray:
         rel = 1.0 - np.arange(n - r0) / max(1, n - r0)
         env[r0:] *= rel * rel
     return out * env * (LEVEL * m.level * (0.3 + 0.8 * v)) * 1.25
+
+
+# -- the subtractive synth -------------------------------------------------
+#
+# The filter is not run over the signal. A filtered waveform is still a set of
+# harmonics, each scaled by the filter's response at its own frequency, and
+# that response depends only on the *ratio* of harmonic to cutoff. So for each
+# wave there is a stack of tables, one per cutoff-as-a-multiple-of-the-note,
+# and a moving filter is a walk up and down the stack. Nothing is stateful:
+# a note does not depend on the one before it, and nothing can blow up.
+
+_STACK_STEP = 3                     # tables per octave of cutoff
+_STACK_LOW = 0.5                    # lowest cutoff, as a multiple of the note
+
+
+def _synth_stack(wave: str, q: float, poles: int, f0: float) -> np.ndarray:
+    """``stack[i]`` is one cycle with the cutoff at ``_STACK_LOW * 2**(i/3)``
+    times the fundamental. Shared by every note in the same half octave."""
+    bucket = int(math.floor(2 * math.log2(max(16.0, f0) / 16.0)))
+    key = ("syn", wave, round(q, 3), poles, bucket)
+    if key not in _tables:
+        top = 16.0 * 2.0 ** ((bucket + 1) / 2.0)        # highest note in here
+        count = max(1, min(TABLE // 2 - 2, int(CEILING / top)))
+        k = np.arange(1, count + 1, dtype=np.float64)
+        if wave == "tri":
+            amps = np.where(k % 2 == 1, 1.0 / k ** 2, 0.0)
+        elif wave == "sine":
+            amps = np.where(k == 1, 1.0, 0.0)
+        else:                                           # saw; pulses are two saws
+            amps = 1.0 / k
+        open_rms = math.sqrt(float(np.sum(amps ** 2)) / 2) or 1.0
+        steps = int(math.ceil(_STACK_STEP * math.log2(count * 2.0 / _STACK_LOW))) + 1
+        rows = []
+        for i in range(steps):
+            x2 = (k / (_STACK_LOW * 2.0 ** (i / _STACK_STEP))) ** 2
+            gain = 1.0 / np.sqrt((1.0 - x2) ** 2 + x2 / (q * q))
+            if poles >= 4:
+                gain = gain / (1.0 + x2)
+            rows.append(_table(amps * gain / open_rms, normalize=False))
+        _tables[key] = np.asarray(rows, dtype=np.float32)
+    return _tables[key]
+
+
+def _stack_osc(stack: np.ndarray, cycles: np.ndarray, row: np.ndarray) -> np.ndarray:
+    pos = (cycles - np.floor(cycles)) * TABLE
+    i = pos.astype(np.int64)
+    frac = pos - i
+    r = np.clip(row, 0.0, len(stack) - 1.001)
+    j = r.astype(np.int64)
+    mix = r - j
+    lo = stack[j, i] + (stack[j, i + 1] - stack[j, i]) * frac
+    hi = stack[j + 1, i] + (stack[j + 1, i + 1] - stack[j + 1, i]) * frac
+    return lo + (hi - lo) * mix
+
+
+def _adsr(t: np.ndarray, dur: float, attack: float, decay: float, sustain: float,
+          release: float) -> np.ndarray:
+    env = np.ones(len(t))
+    if decay > 0:
+        env = sustain + (1.0 - sustain) * np.exp(-np.maximum(0.0, t - attack) / (decay / 3.0))
+    k = min(len(t), int(max(0.0005, attack) * SR))
+    if k > 1:
+        env[:k] *= 0.5 - 0.5 * np.cos(np.pi * np.arange(k) / k)
+    r0 = min(len(t), int(dur * SR))
+    if len(t) > r0:
+        env[r0:] *= np.exp(-(t[r0:] - t[r0]) / max(0.004, release / 4.5))
+        tail = min(len(t) - r0, 64)
+        env[-tail:] *= np.linspace(1.0, 0.0, tail)
+    return env
+
+
+def _synth(ctx: NoteCtx, m: Synth, limit: int) -> list[tuple[np.ndarray, float]]:
+    slid = ctx.slur_from is not None
+    n = min(int((ctx.dur + (0.05 if ctx.slur_out else m.release)) * SR), limit)
+    if n <= 8:
+        return []
+    t = np.arange(n) / SR
+    v = ctx.vel
+    f0 = ctx.freq
+    lead = _rng(*ctx.key)
+
+    lfo = None
+    if m.lfo_rate and (m.lfo_cut or m.lfo_pitch or m.lfo_amp):
+        lfo = np.sin(2 * np.pi * m.lfo_rate * t)
+        if m.lfo_delay:
+            lfo = lfo * np.clip((t - m.lfo_delay) / max(0.05, m.lfo_delay), 0.0, 1.0)
+
+    # Pitch, in cents away from the note, shared by the unison.
+    cents = np.zeros(n)
+    if slid and m.glide:
+        cents += (ctx.slur_from - ctx.pitch) * 100.0 * np.exp(-t / (m.glide / 2.5))
+    elif m.bend:
+        cents += m.bend * 100.0 * np.exp(-t / (m.bend_time / 2.5))
+    if lfo is not None and m.lfo_pitch:
+        cents += m.lfo_pitch * lfo
+
+    # The filter: where it rests for this note and this velocity, then the
+    # envelope and the LFO on top, all in octaves. A note slid into does not
+    # fire the envelope again.
+    octaves = m.track * (ctx.pitch + ctx.tune - 60) / 12.0 + m.vel_cut * (v - 0.75)
+    if m.env:
+        shape = m.f_sustain + (1.0 - m.f_sustain) * np.exp(
+            -np.maximum(0.0, t - m.f_attack) / max(0.004, m.f_decay / 3.0))
+        if m.f_attack > 0:
+            shape = shape * np.clip(t / m.f_attack, 0.0, 1.0)
+        depth = m.env * (0.35 + 0.65 * v)
+        octaves = octaves + depth * (m.f_sustain if slid else shape)
+    if lfo is not None and m.lfo_cut:
+        octaves = octaves + m.lfo_cut * lfo
+    fc = np.clip(m.cutoff * 2.0 ** octaves, 30.0, 19000.0)
+
+    env = _adsr(t, ctx.dur, 0.012 if slid else m.attack, m.decay, m.sustain,
+                0.05 if ctx.slur_out else m.release)
+    if lfo is not None and m.lfo_amp:
+        env = env * (1.0 - m.lfo_amp * (0.5 - 0.5 * lfo))
+
+    # The tables hold as many harmonics as the *highest* pitch the note reaches
+    # can carry: a note that bends or glides down from above would otherwise
+    # start with harmonics past the ceiling.
+    reach = f0 * 2.0 ** ((max(0.0, float(cents.max())) + abs(m.detune) / 2 + abs(m.drift)
+                          + abs(m.lfo_pitch)) / 1200.0)
+    stack = _synth_stack(m.wave, m.resonance, m.poles, reach)
+    pulse = m.wave in ("pulse", "square")
+    width = None
+    if pulse:
+        width = np.full(n, 0.5 if m.wave == "square" and not m.pwm else m.width)
+        if m.pwm:
+            width = width + m.pwm * np.sin(2 * np.pi * m.pwm_rate * t
+                                           + lead.uniform(0, 2 * np.pi))
+            width = np.clip(width, 0.04, 0.96)
+    # A resonant peak is louder; it is tamed, not removed.
+    trim = 1.0 / math.sqrt(1.0 + (m.resonance / 3.0) ** 2)
+    count = max(1, m.unison)
+    layers: list[tuple[np.ndarray, float]] = []
+    for u in range(count):
+        rng = _rng(*ctx.key, "u", u)
+        c = cents + m.drift * _wander(t, rng)
+        if count > 1:
+            c = c + m.detune * (u / (count - 1) - 0.5) * rng.uniform(0.85, 1.0)
+        f = f0 * 2.0 ** (c / 1200.0)
+        cycles = np.cumsum(f) / SR + rng.uniform(0, 1)
+        row = _STACK_STEP * np.log2(np.maximum(fc / f, _STACK_LOW) / _STACK_LOW)
+        sig = _stack_osc(stack, cycles, row)
+        if pulse:
+            # Two saws make a pulse of twice the height; 0.7 puts it level.
+            sig = (sig - _stack_osc(stack, cycles + width, row)) * 0.7
+        pan = m.spread * (2 * u / (count - 1) - 1) if count > 1 else 0.0
+        layers.append((sig * env * (trim * _amp(ctx, m.level) / math.sqrt(count)), pan))
+    extra = np.zeros(n)
+    if m.sub:
+        phase = np.cumsum(f0 * 0.5 * 2.0 ** (cents / 1200.0)) / SR + lead.uniform(0, 1)
+        extra += m.sub * math.sqrt(2.0) * np.sin(2 * np.pi * phase)
+    if m.noise:
+        extra += m.noise * _noise_slice(_noise(ctx.instrument, *m.noise_band), n, lead)
+    if m.sub or m.noise:
+        layers.append((extra * env * _amp(ctx, m.level), 0.0))
+    return layers
+
+
+def _fm(ctx: NoteCtx, m: FM, limit: int) -> list[tuple[np.ndarray, float]]:
+    slid = ctx.slur_from is not None
+    held = m.decay <= 0
+    base = m.decay * 2.0 ** (-(ctx.pitch - 60) / 12.0 * m.decay_track)
+    release = 0.05 if ctx.slur_out else m.release
+    n = min(int((ctx.dur + release) * SR), limit)
+    if n <= 8:
+        return []
+    t = np.arange(n) / SR
+    v = ctx.vel
+    f0 = ctx.freq
+    lead = _rng(*ctx.key)
+    env = _adsr(t, ctx.dur, 0.012 if slid else m.attack, 0.0 if held else base,
+                1.0 if held else m.sustain, release)
+    if m.tremolo:
+        env = env * (1.0 - m.tremolo * (0.5 + 0.5 * np.sin(2 * np.pi * m.tremolo_rate * t)))
+    # The index is brightness. It is kept under what the sample rate can hold:
+    # sidebands reach about (index + 1) modulator-widths above the carrier.
+    # Sidebands reach about (index + 1) modulator-widths above the carrier, and
+    # two modulators' reaches add: they share one budget.
+    want = m.index * (1.0 - m.vel_index + m.vel_index * v ** 1.5)
+    want2 = m.index2 * (0.4 + 0.6 * v) if m.mod2 and m.index2 else 0.0
+    span = m.mod * (want + 1.0) + (m.mod2 * (want2 + 1.0) if want2 else 0.0)
+    budget = max(0.0, CEILING / f0 - m.ratio)
+    squeeze = min(1.0, budget / span) if span > 0 else 1.0
+    peak = max(0.0, (want + 1.0) * squeeze - 1.0)
+    peak2 = max(0.0, (want2 + 1.0) * squeeze - 1.0) if want2 else 0.0
+    shape = m.index_sustain + (1.0 - m.index_sustain) * np.exp(-t / max(0.004, m.index_decay / 3.0))
+    if m.index_attack > 0:
+        shape = shape * (1.0 - np.exp(-t / (m.index_attack / 3.0)))
+    index = peak * (m.index_sustain if slid else shape)
+    cents = np.zeros(n)
+    if slid and m.glide:
+        cents += (ctx.slur_from - ctx.pitch) * 100.0 * np.exp(-t / (m.glide / 2.5))
+    if m.vib_depth and ctx.dur > 0.3:
+        cents += m.vib_depth * np.clip((t - 0.2) / 0.4, 0.0, 1.0) * np.sin(
+            2 * np.pi * m.vib_rate * t + lead.uniform(0, 2 * np.pi))
+    layers: list[tuple[np.ndarray, float]] = []
+    count = 2 if m.detune else 1
+    for u in range(count):
+        c = cents + (m.detune * (u - 0.5) if count > 1 else 0.0)
+        # Phase follows the clock for struck sounds, as the bells' does: a key
+        # struck again while it rings adds to itself instead of cancelling.
+        phase = np.cumsum(f0 * 2.0 ** (c / 1200.0)) / SR + (f0 * ctx.start) % 1.0
+        bend = index * np.sin(2 * np.pi * m.mod * phase)
+        if m.mod2 and m.index2:
+            bend = bend + (peak2
+                           * np.exp(-t / max(0.004, m.index2_decay / 3.0))
+                           * np.sin(2 * np.pi * m.mod2 * phase))
+        sig = np.sin(2 * np.pi * m.ratio * phase + bend)
+        pan = m.spread * (2 * u - 1) if count > 1 else 0.0
+        layers.append((sig * env * (math.sqrt(2.0) * _amp(ctx, m.level) / math.sqrt(count)),
+                       pan))
+    return layers
 
 
 _BANDS = (1, 2, 3, 4, 6, 8, 12, 16, 24, 40, 100000)
