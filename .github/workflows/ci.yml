@@ -14,6 +14,8 @@ jobs:
         run: uv sync --all-extras
       - name: Tests
         run: uv run pytest tests/ -q
+      - name: Pronouncing dictionary (pinned by hash; the sung examples use English words)
+        run: uv run ms lyrics install
       - name: Dogfood build must lint clean
         run: |
           uv run python examples/build_dusk.py

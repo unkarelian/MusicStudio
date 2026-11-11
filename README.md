@@ -3,6 +3,14 @@
 A music studio built for agents. Instrumental score writing — OST rather than
 songs — where themes are objects you develop, not notes you retype.
 
+[![Four pieces written and rendered with MusicStudio: click to watch](docs/demo.jpg)](https://github.com/unkarelian/MusicStudio/releases/download/demo-1/musicstudio_four_songs.mp4)
+
+*Four pieces written and rendered with the studio — Last Train, Lanterns,
+Undertow, Splinter ([video, 8:25, 87 MB](https://github.com/unkarelian/MusicStudio/releases/download/demo-1/musicstudio_four_songs.mp4);
+[73-second teaser](https://github.com/unkarelian/MusicStudio/releases/download/demo-1/musicstudio_teaser.mp4)).
+Vocal on "Last Train": 绮萱 (Qixuan), a DiffSinger voicebank — an AI-synthesized
+singing voice ([SINGERS.md](SINGERS.md)). The backgrounds are generated images.*
+
 ## Why agents are bad at music
 
 Not for lack of taste. Five specific mechanical reasons:

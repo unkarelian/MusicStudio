@@ -21,6 +21,7 @@ gallery/renders/
 *.flac
 *.wav
 *.mkv
+*.mp4
 *.webm
 *.opus
 *.m4a
