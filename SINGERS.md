@@ -76,11 +76,52 @@ declare (phonemes, durations, pitch, breathiness, voicing, tension, energy,
 gender, velocity, a voice colour). One that needs something else is reported
 by name and the voice falls back to the synthesized singer.
 
+## Blended voices
+
+A DiffSinger model trained on several voices tells them apart by an embedding,
+a point in a space the model learned, and a point between two of them is a
+voice that is neither. Within one bank that is a colour written as a blend:
+
+```python
+add_voice("vox", "singer", bank="shisakune:smooth*0.6+solid*0.4")
+```
+
+Banks released separately sometimes share one model (Shisakune Demo v4.5.1 and
+Alemon v3.5 do: their acoustic and variance models are the same files), and
+then a voice can be blended across them and kept as a singer of its own:
+
+```bash
+uv run ms singer blend mira "shisakune:smooth*0.5+alemon:normal*0.5" --gender 0.5
+```
+
+```python
+add_voice("vox", "singer", role="melody", bank="mira")
+```
+
+`--gender` is a formant shift (-1..1) the new singer always sings with; a
+`tone` op's `gender` adds to it. It does more to move the voice away from its
+sources than the blend does. The duration and pitch models are the first
+source's. `ms singer blend` refuses voices that are not in one model.
+
+**A blend is not free of its sources.** It is an adaptation of every bank in
+its recipe, it still sounds like a relative of them, and all their terms apply
+to it: `ms singer show <name>` lists them, and the recipe is kept in the
+singer's `blend.yaml`. For the two banks above that is CC BY-NC-SA 4.0: credit
+both, non-commercial, and pass the blend on only under the same licence. Do
+not blend a bank whose terms forbid modifying it (Qixuan's do), and where the
+terms say nothing about mixing voices, ask its authors first.
+
 ## When you publish
 
 Credit the voicebank the way its terms ask. For Qixuan that is a line such as:
 
 > Vocal: 绮萱 (Qixuan), DiffSinger voicebank. AI-synthesized singing voice.
+
+For a blended voice, credit every bank it was made from:
+
+> Vocal: a blend of Shisakune Demo (试作音Demo) and Alemon (柠檬君), DiffSinger
+> voicebanks by tuskinekinase, UG and Hisaka (CC BY-NC-SA 4.0). AI-synthesized
+> singing voice.
 
 ## How it is driven
 

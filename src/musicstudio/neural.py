@@ -225,6 +225,27 @@ def parse_bank(bank: str) -> tuple[str, str]:
     return name.strip(), speaker.strip()
 
 
+def parse_mix(speaker: str) -> list[tuple[str, float]]:
+    """``"a*0.6+b*0.4"`` as ``[("a", 0.6), ("b", 0.4)]``: a voice blended from
+    several of a bank's own. The weights are relative (they are scaled to sum
+    to one) and a voice named without one counts as 1, so ``"a+b"`` is half of
+    each. A plain name is a blend of one."""
+    out: list[tuple[str, float]] = []
+    for term in speaker.split("+"):
+        name, star, weight = term.partition("*")
+        name = name.strip()
+        if not name:
+            continue
+        try:
+            w = float(weight) if star else 1.0
+        except ValueError:
+            raise ValueError(f"not a blend weight: {weight.strip()!r} in {speaker!r}") from None
+        if w < 0:
+            raise ValueError(f"a blend weight cannot be negative: {term.strip()!r}")
+        out.append((name, w))
+    return out
+
+
 def installed() -> list[str]:
     root = SINGER_DIR.expanduser()
     if not root.is_dir():
@@ -408,6 +429,159 @@ def add(name: str, source: str | Path, *, force: bool = False) -> Path:
     return dest
 
 
+BLEND_FILE = "blend.yaml"
+
+
+def _same_file(a: Path, b: Path) -> bool:
+    if a.stat().st_size != b.stat().st_size:
+        return False
+    ha, hb = hashlib.sha256(), hashlib.sha256()
+    for h, p in ((ha, a), (hb, b)):
+        with open(p, "rb") as f:
+            for chunk in iter(lambda: f.read(1 << 20), b""):
+                h.update(chunk)
+    return ha.digest() == hb.digest()
+
+
+def parse_recipe(recipe: str) -> list[tuple[str, str, float]]:
+    """``"shisakune:smooth*0.5+alemon:normal*0.5"`` as ``[(bank, voice,
+    weight), ...]``, the weights scaled to sum to one. A term without a bank
+    belongs to the bank named before it; one without a voice is that bank's
+    first."""
+    out, bank = [], ""
+    for term, w in parse_mix(recipe):
+        b, colon, voice = term.partition(":")
+        if colon:
+            bank = _clean(b)
+        elif not bank:
+            bank, voice = _clean(b), ""
+        else:
+            voice = b
+        out.append((bank, voice.strip(), w))
+    total = sum(w for _, _, w in out)
+    if not out or total <= 0:
+        raise ValueError(f"nothing to blend in {recipe!r}")
+    return [(b, v, w / total) for b, v, w in out]
+
+
+def blend(name: str, recipe: str, *, gender: float = 0.0, force: bool = False) -> Path:
+    """Make a new singer by blending voices that live in one model.
+
+    A DiffSinger model that was trained on several voices tells them apart by
+    an embedding, a point in a space the model learned; a point between two of
+    them is a voice that is neither. Banks released separately sometimes share
+    one model (their acoustic files are byte for byte the same), and then
+    their voices can be blended with each other as well. ``recipe`` names the
+    voices and their shares (:func:`parse_recipe`); ``gender`` (-1..1) is a
+    formant shift the new singer always sings with, which moves it further
+    from its sources than the blend alone does.
+
+    The result is a bank of its own under ``name``: the first source's models
+    (linked, not copied, where the disk allows), one blended embedding, and a
+    ``blend.yaml`` that records the recipe and whose voices it came from. It
+    is an adaptation of every bank in the recipe and their terms all apply to
+    it; a bank whose terms forbid modification must not be blended.
+    """
+    import yaml
+    key = _clean(name)
+    if key in CATALOGUE:
+        raise ValueError(f"{key!r} is a listed voicebank; give the blend another name")
+    parts = parse_recipe(recipe)
+    dest = singer_dir(key)
+    if dest.exists() and not force:
+        raise FileExistsError(f"{dest} exists (use force to replace it)")
+    banks = list(dict.fromkeys(b for b, _, _ in parts))
+    for b in banks:
+        if not is_installed(b):
+            raise FileNotFoundError(f"the singer {b!r} is not installed")
+        if (singer_dir(b) / BLEND_FILE).is_file():
+            raise ValueError(f"{b!r} is itself a blend; blend from its sources instead")
+    roots = {b: singer_dir(b) for b in banks}
+    models = {b: _Model(roots[b]) for b in banks}
+    base = banks[0]
+    subs = [""] + [d for d in ("dsvariance", "dspitch", "dsdur")
+                   if (roots[base] / d / "dsconfig.yaml").is_file()
+                   and _Model(roots[base] / d).speakers]
+    # The voices must be points in one space: the same model, to the byte.
+    for sub in subs:
+        mine = _Model(roots[base] / sub) if sub else models[base]
+        keys = [k for k in ("acoustic", "variance", "pitch", "dur", "linguistic") if mine.path(k)]
+        for b in banks[1:]:
+            folder = roots[b] / sub
+            other = _Model(folder) if (folder / "dsconfig.yaml").is_file() else None
+            for k in keys:
+                if other is None or other.path(k) is None \
+                        or not _same_file(mine.path(k), other.path(k)):
+                    raise ValueError(
+                        f"{base!r} and {b!r} are not voices of one model (their "
+                        f"{sub or 'acoustic'} models differ), so they cannot be blended")
+    vectors: dict[str, "np.ndarray"] = {}
+    for sub in subs:
+        total = None
+        for b, voice, w in parts:
+            m = _Model(roots[b] / sub) if sub else models[b]
+            pick = m._find(voice) if voice else (m.speakers[0] if m.speakers else None)
+            if pick is None:
+                raise ValueError(f"the singer {b!r} has no voice {voice!r}; it has "
+                                 f"{', '.join(models[b].speakers) or 'only one'}")
+            v = m._one(pick) * np.float32(w)
+            total = v if total is None else total + v
+        vectors[sub] = total.astype("<f4")
+
+    tmp = dest.with_name(dest.name + ".part")
+    if tmp.exists():
+        shutil.rmtree(tmp)
+    for src in sorted(roots[base].rglob("*")):
+        rel = src.relative_to(roots[base])
+        if src.is_dir():
+            (tmp / rel).mkdir(parents=True, exist_ok=True)
+            continue
+        # Not the source's embeddings, nor its name and portrait: this is not it.
+        if src.suffix.lower() in (".emb", ".bmp", ".png", ".jpg", ".jpeg") or src.name in (
+                "dsconfig.yaml", "SOURCE.txt", "character.txt", "character.yaml"):
+            continue
+        (tmp / rel).parent.mkdir(parents=True, exist_ok=True)
+        try:
+            os.link(src, tmp / rel)
+        except OSError:
+            shutil.copy2(src, tmp / rel)
+    for sub in ("", "dsvariance", "dspitch", "dsdur"):
+        cfg_path = roots[base] / sub / "dsconfig.yaml"
+        if not cfg_path.is_file():
+            continue
+        cfg = _yaml(cfg_path)
+        if sub in vectors:
+            cfg["speakers"] = [key]
+            (tmp / sub / f"{key}.emb").write_bytes(vectors[sub].tobytes())
+        (tmp / sub / "dsconfig.yaml").write_text(
+            yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True), encoding="utf-8")
+    sources = []
+    for b in banks:
+        e = CATALOGUE.get(b)
+        sources.append({"name": b, "title": e.title if e else b, "by": e.by if e else "",
+                        "homepage": e.homepage if e else "", "terms": e.terms if e else "",
+                        "asks": list(e.asks) if e else []})
+    (tmp / BLEND_FILE).write_text(yaml.safe_dump({
+        "name": key,
+        "recipe": [{"bank": b, "voice": v, "share": round(w, 4)} for b, v, w in parts],
+        "gender": max(-1.0, min(1.0, float(gender))),
+        "models_from": base,
+        "sources": sources,
+    }, sort_keys=False, allow_unicode=True), encoding="utf-8")
+    (tmp / "character.txt").write_text(f"name={key}\n", encoding="utf-8")
+    if dest.exists():
+        shutil.rmtree(dest)
+    tmp.rename(dest)
+    _singers.pop(key, None)
+    return dest
+
+
+def blend_info(name: str) -> dict | None:
+    """The recipe of a blended singer, or None for a bank that is not one."""
+    path = singer_dir(_clean(parse_bank(name)[0])) / BLEND_FILE
+    return _yaml(path) if path.is_file() else None
+
+
 def describe(name: str) -> dict:
     """What is known about a singer: listed terms, whether it is installed, and
     whether everything it needs to make sound is here."""
@@ -419,6 +593,22 @@ def describe(name: str) -> dict:
         info.update(title=e.title, voice=e.voice, languages=list(e.languages), by=e.by,
                     homepage=e.homepage, terms=e.terms, asks=list(e.asks),
                     megabytes=e.megabytes, vocoder=e.vocoder)
+    made = blend_info(key) if info["installed"] and available() else None
+    if made:
+        src = made.get("sources") or []
+        shares = ", ".join(f"{round(100 * float(r['share']))}% {r['bank']}"
+                           + (f":{r['voice']}" if r.get("voice") else "")
+                           for r in made.get("recipe") or [])
+        asks = [f"It is an adaptation of {' and '.join(x['title'] for x in src)}, "
+                f"and the terms of each apply to it."]
+        for x in src:
+            asks += [a for a in x.get("asks") or [] if a not in asks]
+        info.update(title=f"{key} (a blended voice)",
+                    voice=f"blended: {shares}; formant shift {float(made.get('gender', 0)):+.2f}",
+                    by="; ".join(f"{x['title']}: {x['by']}" for x in src if x.get("by")),
+                    homepage=" ".join(x["homepage"] for x in src if x.get("homepage")),
+                    terms=" ".join(x["terms"] for x in src if x.get("terms")),
+                    asks=asks, blend=made)
     if info["installed"] and available():
         try:
             s = load(key)
@@ -476,19 +666,34 @@ class _Model:
     def lang_id(self, symbol: str) -> int:
         return self.languages.get(symbol.partition("/")[0], 0) if "/" in symbol else 0
 
-    def embed(self, speaker: str, frames: int) -> "np.ndarray":
-        """``[1, frames, hidden]`` for one of the bank's voices."""
-        pick = self.speakers[0]
-        for s in self.speakers:
-            if speaker and (s == speaker or s.replace("\\", "/").split("/")[-1] == speaker):
-                pick = s
+    def _one(self, pick: str) -> "np.ndarray":
         if pick not in self._embeds:
             hidden = int(self.cfg.get("hidden_size", 256))
             raw = np.frombuffer((self.dir / (pick + ".emb")).read_bytes(), dtype="<f4")
             if len(raw) < hidden:
                 raise ValueError(f"speaker embedding {pick}.emb is too short for this model")
             self._embeds[pick] = raw[:hidden].astype(np.float32)
-        return np.broadcast_to(self._embeds[pick], (1, frames, len(self._embeds[pick]))).copy()
+        return self._embeds[pick]
+
+    def _find(self, speaker: str) -> str | None:
+        for s in self.speakers:
+            if s == speaker or s.replace("\\", "/").split("/")[-1] == speaker:
+                return s
+        return None
+
+    def embed(self, speaker: str, frames: int) -> "np.ndarray":
+        """``[1, frames, hidden]`` for one of the bank's voices, or for a blend
+        of them (``"a*0.6+b*0.4"``; see :func:`parse_mix`). A voice this model
+        does not have is left out of the blend; if none is left, the bank's
+        first voice sings."""
+        parts = [(self._find(n), w) for n, w in parse_mix(speaker)]
+        parts = [(n, w) for n, w in parts if n is not None]
+        total = sum(w for _, w in parts)
+        if not parts or total <= 0:
+            vec = self._one(self.speakers[0])
+        else:
+            vec = sum(self._one(n) * np.float32(w / total) for n, w in parts)
+        return np.broadcast_to(vec, (1, frames, len(vec))).copy()
 
 
 #: The studio's phonemes that are not a bank's own, as what to sing instead.
@@ -514,6 +719,9 @@ class Singer:
         self.dur = self._sub(root / "dsdur", "dur")
         self.pitch = self._sub(root / "dspitch", "pitch")
         self.variance = self._sub(root / "dsvariance", "variance")
+        #: A blended singer's own formant shift; a `tone` op's adds to it.
+        made = _yaml(root / BLEND_FILE) if (root / BLEND_FILE).is_file() else {}
+        self.gender = float(made.get("gender", 0.0) or 0.0)
         self.vocoder_name = str(self.acoustic.cfg.get("vocoder", ""))
         self.vocoder_cfg: dict = {}
         self.vocoder_path = self._find_vocoder(root)
@@ -1130,7 +1338,8 @@ def render_phrase(sung, singer: Singer, seed: int, *, speaker: str = "", lang: s
     feeds = {"tokens": np.array([[ac.tokens.get(s, ac.tokens.get("SP", 0)) for s in symbols]]),
              "languages": np.array([[ac.lang_id(s) for s in symbols]]),
              "durations": np.array([durations]), "f0": f0[None, :],
-             "gender": np.full((1, T), max(-1.0, min(1.0, float(tone.get("gender", 0.0)))),
+             "gender": np.full((1, T), max(-1.0, min(1.0, singer.gender
+                                                     + float(tone.get("gender", 0.0)))),
                                np.float32),
              "velocity": np.full((1, T), max(0.5, min(2.0, float(tone.get("crisp", 1.0)))),
                                  np.float32)}
