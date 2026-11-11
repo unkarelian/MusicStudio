@@ -513,6 +513,16 @@ def ms_export_midi(name: str, path: str | None = None) -> str:
 
 
 @mcp.tool(description=(
+    "Write one sung voice as a .ust file (UTAU's score format: notes, kana lyrics, "
+    "tempo) and return its path. For rendering the line in a singing editor "
+    "(UTAU, OpenUtau, and others that import .ust) with a voice the studio cannot "
+    "run. A voice sings from a UTAU voicebank inside the studio with "
+    "bank='utau:<name>' instead; `ms utau add <name> <folder or zip>` makes one known."))
+def ms_export_ust(name: str, voice: str, path: str | None = None) -> str:
+    return _guard(lambda: str(_studio.export_ust(name, voice, path)))
+
+
+@mcp.tool(description=(
     "Check a lyric before setting it: returns each syllable as it will be sung "
     "(its phonemes), how many notes the line needs, and a warning for any word "
     "whose pronunciation was guessed. To set words, add a `lyrics` op to a voice "

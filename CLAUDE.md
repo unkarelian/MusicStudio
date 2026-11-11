@@ -306,6 +306,25 @@ the words on the rendered notes, not the op text, and it reports `extra` (words
 heard that were never written) beside the share understood, which is recall
 only: every word sung amid noise scores 100%.
 
+`utau.py` sings from a UTAU voicebank the user already has (`bank="utau:<name>"`,
+made known by `ms utau add`): `oto.ini` says where each alias is in which
+recording, and the engine lays those end to end through `voicebank.psola`.
+**It fetches nothing and has no catalogue**, on purpose: every bank has its own
+author's terms, in text files inside it, and `ms utau show` points at them
+instead of summarising thousands of licences it has not read. Keep it that way
+-- a test bank is recorded from the formant singer (`tests/test_utau.py`),
+never downloaded. What is load-bearing: the preutterance point goes on the
+beat (the lead-in is hurried when there is no room; the beat never moves);
+`cutoff` is from the end of the file when positive and from the offset when
+negative; `overlap` can be negative; `oto.ini` is Shift-JIS more often than
+not, and so are the file names inside a `.zip`, which is why `add` unpacks the
+archive itself. A held note is the same recording carried on, not a new one.
+English goes through the Japanese syllables (`_syllable_keys`) and is an
+approximation that says so. It was checked once against a real bank with a
+speech recogniser (19 of 20 syllables of a romaji line); change it against
+that kind of check, not against a spectrogram. `ust` writes a voice out for
+another editor; it is an export, like MIDI, and nothing reads one back in.
+
 `neural.py` sings through a DiffSinger voicebank (ONNX: duration, pitch,
 variance, acoustic, vocoder) and is the only engine trained on singing. Rules,
 each learned or decided on purpose: **no voicebank is bundled, committed or

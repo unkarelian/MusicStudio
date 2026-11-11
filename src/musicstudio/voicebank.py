@@ -311,12 +311,21 @@ def analyze_word(x: np.ndarray, onset: str, coda: str = "") -> dict:
     if len(loud):
         x = x[max(0, loud[0] - 400):loud[-1] + 1800]
     x = np.concatenate([np.zeros(FRAME // 2), x, np.zeros(FRAME)])
+    data = voicing(x)
+    data.update(landmarks(data, 0, len(data["rms"]), onset, coda))
+    return data
+
+
+def voicing(x: np.ndarray, low: float = 110.0, high: float = 420.0) -> dict:
+    """Where ``x`` is voiced, its pitch period and one mark per cycle, in
+    ``x``'s own sample positions. ``x`` wants half a frame of silence before it
+    and a frame after; ``low`` and ``high`` bound the speaker's pitch in Hz."""
     frames = np.lib.stride_tricks.sliding_window_view(x, FRAME)[::STEP]
     rms = np.sqrt((frames ** 2).mean(axis=1))
     spec = np.abs(np.fft.rfft(frames * np.hanning(FRAME), axis=1)) ** 2
     ac = np.fft.irfft(spec, FRAME, axis=1)
     ac /= ac[:, :1] + 1e-12
-    lo, hi = int(SR / 420), int(SR / 110)
+    lo, hi = int(SR / high), int(SR / low)
     lag = lo + np.argmax(ac[:, lo:hi], axis=1)
     strength = ac[np.arange(len(ac)), lag]
     voiced_f = (strength > 0.45) & (rms > max(0.004, rms.max() * 0.05))
@@ -361,11 +370,9 @@ def analyze_word(x: np.ndarray, onset: str, coda: str = "") -> dict:
     marks_a = np.array(sorted(set(marks)), dtype=np.int64)
 
     freqs = np.fft.rfftfreq(FRAME, 1.0 / SR)
-    data = {"x": x, "marks": marks_a, "voiced": voiced, "period": period,
+    return {"x": x, "marks": marks_a, "voiced": voiced, "period": period,
             "rms": rms, "energy": _smooth(rms * voiced_f, 5),
             "bright": _smooth(spec[:, (freqs > 1000) & (freqs < 4000)].sum(axis=1), 3)}
-    data.update(landmarks(data, 0, len(rms), onset, coda))
-    return data
 
 
 def landmarks(d: dict, first: int, last: int, onset: str, coda: str) -> dict:
@@ -906,10 +913,13 @@ def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float], *,
     raises under ``strict``."""
     import warnings
     from . import neural
+    from . import utau
     from .vocal import SINGERS, phrases, plan
-    out: dict[str, tuple] = {}
+    # A UTAU voicebank is a recorded voice too, of another make (`utau.py`).
+    out: dict[str, tuple] = utau.voice_stems(piece, notes, to_sec, total, pans, strict=strict)
     for v in piece.voices:
-        if v.muted or not v.bank or v.instrument not in SINGERS or neural.knows(v.bank):
+        if (v.muted or not v.bank or v.instrument not in SINGERS or neural.knows(v.bank)
+                or utau.is_utau(v.bank)):
             continue
         mine = [n for n in notes if n.voice == v.name and not n.percussive]
         if not mine:

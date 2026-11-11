@@ -476,6 +476,43 @@ took the same song to 85%. Without a bank the voice falls back to the
 synthesized singer and says so. It sounds like speech set to pitch, because that
 is what it is; a neural singer (above) is the better voice where one may be used.
 
+### A UTAU voicebank
+
+A UTAU voicebank is a folder of short recordings and an `oto.ini` that says
+where each syllable is in them. If you have one, the studio sings from it:
+
+```bash
+uv run ms utau add teto ~/Downloads/TETO-tougou-110401.zip   # a folder or its .zip
+uv run ms utau show teto        # what it holds, and where its author's terms are
+```
+
+```python
+add_voice("vox", "singer_warm", role="melody", bank="utau:teto")
+add_op("vox", "lyrics", text="sa ku ra sa ku ra ya yo i no so ra wa")
+```
+
+**The studio downloads no voicebank and lists none.** Each is a person's voice
+under terms its author wrote (often: non-commercial use, no redistribution);
+they are in the text files inside the bank, and `ms utau show` prints where.
+`add` uses a folder where it is, or unpacks a `.zip` with its Japanese file
+names intact -- a plain unzip on Linux or macOS usually turns them to noise.
+
+It reads Japanese banks: kana or romaji aliases, separate syllables (CV) or
+chained ones (VCV, used wherever the bank has them), and `prefix.map` for banks
+recorded at several pitches. The preutterance point of each recording is put on
+the beat, so consonants are sung ahead of the note, like every singer here. A
+lyric in romaji maps straight onto the bank: on the one bank this was checked
+against (Kasane Teto's free UTAU library, 1,244 recordings) a speech recogniser
+wrote down 19 of 20 syllables of an unprepared line. English is sung through
+the same Japanese syllables, so it has a Japanese accent and is only partly
+understood (about half the words of a test line). Banks with English aliases
+(arpasing, VCCV) are not read yet.
+
+For a voice the studio cannot run at all -- a paid Synthesizer V or Vocaloid
+voice lives inside its own editor -- `ms ust <piece> <voice>` writes the line
+as a `.ust` file (notes, kana lyrics, tempo), which UTAU and OpenUtau open and
+other singing editors import.
+
 ## Use it
 
 ```bash

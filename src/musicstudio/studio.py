@@ -434,12 +434,18 @@ class Studio:
 
     @staticmethod
     def singer(name: str, *, install: bool = False, accept_terms: bool = False,
-               source: str | None = None, force: bool = False, progress=None) -> dict:
+               source: str | None = None, force: bool = False, progress=None,
+               blend: str | None = None, gender: float = 0.0) -> dict:
         """One neural singer. ``install`` downloads a listed one, and only with
         ``accept_terms``: a voicebank is someone's voice under their terms.
-        ``source`` registers a voicebank you downloaded yourself instead."""
+        ``source`` registers a voicebank you downloaded yourself instead.
+        ``blend`` makes a new singer from installed voices that share a model
+        (``"shisakune:smooth*0.5+alemon:normal*0.5"``), sung with a formant
+        shift of ``gender``; every source's terms apply to it."""
         from . import neural
-        if source:
+        if blend:
+            neural.blend(name, blend, gender=gender, force=force)
+        elif source:
             neural.add(name, source, force=force)
         elif install:
             neural.install(name, accept=accept_terms, progress=progress, force=force)
@@ -633,6 +639,19 @@ class Studio:
     def export_midi(self, name: str, path: str | None = None) -> Path:
         p = self.get(name)
         return save_midi(p, Path(path) if path else self.renders_dir / f"{name}.mid")
+
+    def export_ust(self, name: str, voice: str, path: str | None = None) -> Path:
+        """Write one sung voice as a ``.ust`` (UTAU's score format), for
+        rendering it in a singing editor with a voice the studio cannot run."""
+        from . import utau
+        p = self.get(name)
+        p.get_voice(voice)
+        text = utau.ust(p, render(p).notes, voice)
+        out = Path(path) if path else self.renders_dir / f"{name}.{voice}.ust"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        # Shift-JIS is what UTAU itself reads; the lyrics are kana.
+        out.write_bytes(text.encode("cp932"))
+        return out
 
     def export_wav(self, name: str, path: str | None = None, *, stereo: bool = True,
                    reverb: bool | None = None, models: bool | None = None,

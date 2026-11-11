@@ -36,6 +36,49 @@ def _bars(s: str | None):
     return (int(parts[0]), int(parts[-1]))
 
 
+def _utau(a) -> int:
+    """`ms utau ...`: voicebanks the user has. Nothing is downloaded here."""
+    from . import utau
+
+    def show(d: dict) -> None:
+        who = " / ".join(x for x in (d["voice"], d["author"]) if x)
+        print(f"{d['name']:<12} {who}")
+        print(f"  {d['path']}")
+        print(f"  {d['aliases']} recordings ({d['chained']} chained to the vowel before), "
+              f"{d['syllables']} of the {d['of']} basic syllables"
+              + (f", {d['pitches']} pitch sets" if d["pitches"] > 1 else ""))
+        if d["missing_files"]:
+            print(f"  {d['missing_files']} entries name a recording that is not there "
+                  f"(a .zip unpacked with the wrong file-name encoding does this: "
+                  f"`ms utau add` the .zip itself)")
+        if d["terms"]:
+            print("  its author's terms and notes -- read them before publishing anything:")
+            for t in d["terms"]:
+                print(f"    {t}")
+        print(f"  a voice sings with it as bank=\"utau:{d['name']}\"")
+
+    if a.action == "list":
+        names = utau.banks()
+        for n in names:
+            show(utau.describe(n))
+        if not names:
+            print("no UTAU voicebanks yet: `ms utau add <name> <folder or .zip>` "
+                  "adds one you have")
+        return 0
+    if not a.bank:
+        raise ValueError(f"`ms utau {a.action}` needs the bank's name")
+    if a.action == "add":
+        if not a.path:
+            raise ValueError("`ms utau add <name> <path>` needs the voicebank's folder or .zip")
+        show(utau.add(a.bank, a.path, force=a.force))
+    elif a.action == "remove":
+        utau.remove(a.bank)
+        print(f"forgot {a.bank}")
+    else:
+        show(utau.describe(a.bank))
+    return 0
+
+
 def _singer(s, a) -> int:
     """`ms singer ...`: the neural singers and what their terms ask."""
     from . import soundfonts
@@ -47,7 +90,7 @@ def _singer(s, a) -> int:
             print(f"  voice      {i['voice']}")
         if i.get("languages"):
             print(f"  languages  {' '.join(i['languages'])}")
-        if i.get("speakers"):
+        if i.get("speakers") and not i.get("blend"):
             print(f"  colours    {' '.join(i['speakers'])}   (bank=\"{i['name']}:<colour>\")")
         if i.get("by"):
             print(f"  by         {i['by']}")
@@ -75,11 +118,16 @@ def _singer(s, a) -> int:
     if a.action == "add" and not a.source:
         print("ms singer add <name> <zip or folder>", file=sys.stderr)
         return 2
+    if a.action == "blend" and not a.source:
+        print("ms singer blend <name> \"shisakune:smooth*0.5+alemon:normal*0.5\" "
+              "[--gender 0.5]", file=sys.stderr)
+        return 2
     try:
         i = s.singer(a.name, install=a.action == "install", accept_terms=a.accept_terms,
                      source=a.source if a.action == "add" else None, force=a.force,
-                     progress=soundfonts._progress if a.action == "install" else None)
-    except PermissionError as exc:
+                     progress=soundfonts._progress if a.action == "install" else None,
+                     blend=a.source if a.action == "blend" else None, gender=a.gender)
+    except (PermissionError, FileNotFoundError, FileExistsError, ValueError) as exc:
         print(exc, file=sys.stderr)
         return 1
     show(i)
@@ -263,13 +311,18 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("singer", help="neural singers (DiffSinger voicebanks): list "
                                       "them, read one's terms, install or add one")
-    p.add_argument("action", choices=("list", "show", "install", "add", "check"),
+    p.add_argument("action", choices=("list", "show", "install", "add", "blend", "check"),
                    help="install: download a listed voicebank (needs --accept-terms). "
-                        "add: register one you downloaded yourself. check: render a "
+                        "add: register one you downloaded yourself. blend: make a "
+                        "new singer from installed voices that share a model. check: render a "
                         "piece's singer alone and have a speech recogniser write "
                         "down what it hears (paid, needs OPENROUTER_API_KEY)")
     p.add_argument("name", nargs="?", help="a singer, or a piece for check")
-    p.add_argument("source", nargs="?", help="with add: the zip or folder")
+    p.add_argument("source", nargs="?", help="with add: the zip or folder. With blend: "
+                   "the recipe, e.g. \"shisakune:smooth*0.5+alemon:normal*0.5\"")
+    p.add_argument("--gender", type=float, default=0.0,
+                   help="with blend: a formant shift (-1..1) the new singer always "
+                        "sings with; positive is a smaller, brighter voice")
     p.add_argument("--accept-terms", action="store_true",
                    help="you have read the voicebank's terms of use and agree to them")
     p.add_argument("--force", action="store_true", help="replace what is installed")
@@ -323,6 +376,14 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--write", "-w", action="store_true",
                    help="save it as scores/<name>.ms instead of printing it")
 
+    p = sub.add_parser("utau", help="UTAU voicebanks you have: list them, show one, "
+                                    "add a folder or .zip, or forget one")
+    p.add_argument("action", choices=("list", "show", "add", "remove"))
+    p.add_argument("bank", nargs="?", help="the name a voice asks for: bank='utau:<name>'")
+    p.add_argument("path", nargs="?", help="with add: the voicebank's folder, or its .zip")
+    p.add_argument("--force", action="store_true", help="with add: replace one of that name")
+    p = sub.add_parser("ust", help="export one sung voice as a .ust, for a singing editor")
+    p.add_argument("name"); p.add_argument("voice"); p.add_argument("--out", "-o")
     p = sub.add_parser("midi", help="export a .mid")
     p.add_argument("name"); p.add_argument("--out", "-o")
     p = sub.add_parser("wav", help="export a .wav")
@@ -340,7 +401,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("action", nargs="?", choices=("show", "install", "banks"),
                    default="show")
     p.add_argument("bank", nargs="?", default=None,
-                   help="which bank to install: hq (default) or standard")
+                   help="which bank to install: hq (default), standard, or any name "
+                        "`ms soundfont banks` lists")
     p.add_argument("--url", help="install some other .sf2/.sf3 instead")
     p.add_argument("--sha256", help="required with --url")
     p.add_argument("--force", action="store_true", help="download again")
@@ -602,6 +664,11 @@ def _dispatch(s: Studio, a) -> int:
     if c == "midi":
         print(s.export_midi(a.name, a.out))
         return 0
+    if c == "ust":
+        print(s.export_ust(a.name, a.voice, a.out))
+        return 0
+    if c == "utau":
+        return _utau(a)
     if c == "soundfont":
         from . import audio, soundfonts
         if a.action == "banks":
