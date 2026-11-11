@@ -1,0 +1,3690 @@
+{
+  "schema": 1,
+  "name": "nightshade",
+  "key": "G minor",
+  "tempo": 142,
+  "meter": "4/4",
+  "style": "electronic",
+  "loop": false,
+  "meta": {
+    "master": {
+      "room": {
+        "decay": 2.6,
+        "wet": 0.22
+      },
+      "stops": [
+        {
+          "from": "88:3",
+          "until": "89",
+          "keep": [
+            "acid"
+          ]
+        }
+      ],
+      "push": 9.0
+    }
+  },
+  "sections": [
+    {
+      "name": "intro",
+      "bars": 16,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mp",
+      "note": ""
+    },
+    {
+      "name": "rise",
+      "bars": 16,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "drop",
+      "bars": 32,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "f",
+      "note": ""
+    },
+    {
+      "name": "break",
+      "bars": 24,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mp",
+      "note": ""
+    },
+    {
+      "name": "drop2",
+      "bars": 16,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    },
+    {
+      "name": "lift",
+      "bars": 16,
+      "meter": "4/4",
+      "tempo": null,
+      "key": "bb minor",
+      "dynamic": "ff",
+      "note": ""
+    },
+    {
+      "name": "outro",
+      "bars": 16,
+      "meter": "4/4",
+      "tempo": null,
+      "key": "bb minor",
+      "dynamic": "mf",
+      "note": ""
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "2",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "4",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "6",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "8",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "10",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "12",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "14",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "16",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "17",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "18",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "19",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "20",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "21",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "22",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "23",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "24",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "25",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "26",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "27",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "28",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "29",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "30",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "31",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "32",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "33",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "34",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "35",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "36",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "37",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "38",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "39",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "40",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "41",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "42",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "43",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "44",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "45",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "46",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "47",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "48",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "49",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "50",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "51",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "52",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "53",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "54",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "55",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "56",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "57",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "58",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "59",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "60",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "61",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "62",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "63",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "64",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "65",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "66",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "67",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "68",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "69",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "70",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "71",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "72",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "73",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "74",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "75",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "76",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "77",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "78",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "79",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "80",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "81",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "82",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "83",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "84",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "85",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "86",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "87",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "88",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "89",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "90",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "91",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "92",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "93",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "94",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "95",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "96",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "97",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "98",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "99",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "100",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "101",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "102",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "103",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "104",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "105",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "106",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "107",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "108",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "109",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "110",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "111",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "112",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "113",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "114",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "115",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "116",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "117",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "118",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "119",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "120",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "121",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "122",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "123",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "124",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "125",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "126",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "127",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "128",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "129",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "130",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "131",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "132",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "133",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "134",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "135",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "136",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "acid",
+      "anchor": "chord",
+      "unit": "1/16",
+      "source": "0 0 3! 0 r 0 1@leg 2! 0 r 3 0 bb3! r 0@leg 3 0 0 3! 0 r #0@leg 0 5!! 3 r 0 0 1! 2@leg 4! r",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 3,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "art": "legato"
+        },
+        {
+          "dur": "1/16",
+          "deg": 2,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 3
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 3,
+          "alt": -2,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "art": "legato"
+        },
+        {
+          "dur": "1/16",
+          "deg": 3
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 3,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "alt": 1,
+          "art": "legato"
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 5,
+          "accent": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 3
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 2,
+          "art": "legato"
+        },
+        {
+          "dur": "1/16",
+          "deg": 4,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        }
+      ],
+      "note": "the line: two bars of sixteenths in chord tones. Root and octave, accents off the beat, a slide into the fifth; the second bar leans on the flat second and leaps to the high fifth. The rests are where the kick is heard"
+    },
+    {
+      "name": "acid_turn",
+      "anchor": "chord",
+      "unit": "1/16",
+      "source": "1@leg 2! 0 r 3 0 bb3! r 0@leg 3 0 0 3! 0 r #0@leg 0 5!! 3 r 0 0 1! 2@leg 4! r 0 0 3! 0 r 0",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "art": "legato"
+        },
+        {
+          "dur": "1/16",
+          "deg": 2,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 3
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 3,
+          "alt": -2,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "art": "legato"
+        },
+        {
+          "dur": "1/16",
+          "deg": 3
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 3,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "alt": 1,
+          "art": "legato"
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 5,
+          "accent": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 3
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 2,
+          "art": "legato"
+        },
+        {
+          "dur": "1/16",
+          "deg": 4,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 3,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        }
+      ],
+      "note": "the same pattern started six steps in: every accent lands somewhere new against the kick",
+      "derived_from": "acid",
+      "lineage": [
+        "rotate:6"
+      ]
+    },
+    {
+      "name": "acid_back",
+      "anchor": "chord",
+      "unit": "1/16",
+      "source": "r 4! 2@leg 1! 0 0 r 3 5!! 0 #0@leg r 0 3! 0 0 3 0@leg r bb3! 0 3 r 0 2! 1@leg 0 r 0 3! 0 0",
+      "steps": [
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 4,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 2,
+          "art": "legato"
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 3
+        },
+        {
+          "dur": "1/16",
+          "deg": 5,
+          "accent": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "alt": 1,
+          "art": "legato"
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 3,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 3
+        },
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "art": "legato"
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 3,
+          "alt": -2,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 3
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 2,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "art": "legato"
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 3,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        }
+      ],
+      "note": "backwards, for the square-wave machine an octave above",
+      "derived_from": "acid",
+      "lineage": [
+        "retrograde"
+      ]
+    },
+    {
+      "name": "roll",
+      "anchor": "chord",
+      "unit": "1/16",
+      "source": "r 0 0 0",
+      "steps": [
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        }
+      ],
+      "note": "the rolling bass: the root on the three sixteenths the kick does not take"
+    },
+    {
+      "name": "roll_push",
+      "anchor": "chord",
+      "unit": "1/16",
+      "source": "r 0 0! 0",
+      "steps": [
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        }
+      ],
+      "note": "the same, leaning on the off-beat eighth",
+      "derived_from": "roll",
+      "lineage": [
+        "accentuate:[2]"
+      ]
+    },
+    {
+      "name": "hook",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/8. 7:1/8. 6:1/8. 4:1/8. 2:1/4 4:1/2. 2 4 5:1/8. 9:1/8. 7:1/8. 5:1/8. 9:1/4 7:1/2. 6 5 3:1/8. 7:1/8. 5:1/8. 3:1/8. 2:1/4 3:1/2. 2 3 b1:1/8. b8:1/8. 5:1/8. 3:1/8. b1:1/4 #6:1/2 4:1/2",
+      "steps": [
+        {
+          "dur": "1/8.",
+          "deg": 4
+        },
+        {
+          "dur": "1/8.",
+          "deg": 7
+        },
+        {
+          "dur": "1/8.",
+          "deg": 6
+        },
+        {
+          "dur": "1/8.",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/2.",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8.",
+          "deg": 5
+        },
+        {
+          "dur": "1/8.",
+          "deg": 9
+        },
+        {
+          "dur": "1/8.",
+          "deg": 7
+        },
+        {
+          "dur": "1/8.",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 9
+        },
+        {
+          "dur": "1/2.",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8.",
+          "deg": 3
+        },
+        {
+          "dur": "1/8.",
+          "deg": 7
+        },
+        {
+          "dur": "1/8.",
+          "deg": 5
+        },
+        {
+          "dur": "1/8.",
+          "deg": 3
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/2.",
+          "deg": 3
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 3
+        },
+        {
+          "dur": "1/8.",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8.",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/8.",
+          "deg": 5
+        },
+        {
+          "dur": "1/8.",
+          "deg": 3
+        },
+        {
+          "dur": "1/4",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/2",
+          "deg": 6,
+          "alt": 1
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        }
+      ],
+      "note": "eight bars. A figure in dotted eighths -- three, three, three, three, four -- that leaps a fourth and falls back, then a held note; restated on the sixth and the fourth, each time reaching higher, then on the flat second, and left on the leading tone, unresolved"
+    },
+    {
+      "name": "hook_head",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/8. 7:1/8. 6:1/8. 4:1/8. 2:1/4",
+      "steps": [
+        {
+          "dur": "1/8.",
+          "deg": 4
+        },
+        {
+          "dur": "1/8.",
+          "deg": 7
+        },
+        {
+          "dur": "1/8.",
+          "deg": 6
+        },
+        {
+          "dur": "1/8.",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        }
+      ],
+      "note": "its first bar alone: heard in the drop before the theme has been stated",
+      "derived_from": "hook",
+      "lineage": [
+        "fragment:0,5"
+      ]
+    }
+  ],
+  "voices": [
+    {
+      "name": "acid",
+      "instrument": "acid_bass",
+      "role": "melody",
+      "octave": 2,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "a_intro",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 8,
+            "every": "2/1",
+            "dynamic": null,
+            "articulation": "portato",
+            "anchor": null,
+            "motif": "acid",
+            "at": "1"
+          }
+        },
+        {
+          "id": "a_rise",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 8,
+            "every": "2/1",
+            "dynamic": null,
+            "articulation": "portato",
+            "anchor": null,
+            "motif": "acid",
+            "at": "17"
+          }
+        },
+        {
+          "id": "a_shut",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "pp",
+            "end": "p",
+            "from": "1",
+            "until": "17"
+          }
+        },
+        {
+          "id": "a_open",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "p",
+            "end": "ff",
+            "from": "17",
+            "until": "33"
+          }
+        },
+        {
+          "id": "a_drop",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 8,
+            "every": "2/1",
+            "dynamic": "f",
+            "articulation": "portato",
+            "anchor": null,
+            "motif": "acid",
+            "at": "33"
+          }
+        },
+        {
+          "id": "a_drop_b0",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 2,
+            "every": "2/1",
+            "dynamic": "f",
+            "articulation": "portato",
+            "anchor": null,
+            "motif": "acid",
+            "at": "49"
+          }
+        },
+        {
+          "id": "a_drop_b1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 2,
+            "every": "2/1",
+            "dynamic": "ff",
+            "articulation": "portato",
+            "anchor": null,
+            "motif": "acid_turn",
+            "at": "53"
+          }
+        },
+        {
+          "id": "a_drop_b2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 2,
+            "every": "2/1",
+            "dynamic": "f",
+            "articulation": "portato",
+            "anchor": null,
+            "motif": "acid",
+            "at": "57"
+          }
+        },
+        {
+          "id": "a_drop_b3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 2,
+            "every": "2/1",
+            "dynamic": "ff",
+            "articulation": "portato",
+            "anchor": null,
+            "motif": "acid_turn",
+            "at": "61"
+          }
+        },
+        {
+          "id": "a_break",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 8,
+            "every": "2/1",
+            "dynamic": null,
+            "articulation": "portato",
+            "anchor": null,
+            "motif": "acid",
+            "at": "73"
+          }
+        },
+        {
+          "id": "a_climb",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "pp",
+            "end": "fff",
+            "from": "73",
+            "until": "89"
+          }
+        },
+        {
+          "id": "a_drop2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 8,
+            "every": "2/1",
+            "dynamic": "ff",
+            "articulation": "portato",
+            "anchor": null,
+            "motif": "acid_turn",
+            "at": "89"
+          }
+        },
+        {
+          "id": "a_lift",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 8,
+            "every": "2/1",
+            "dynamic": "ff",
+            "articulation": "portato",
+            "anchor": null,
+            "motif": "acid",
+            "at": "105"
+          }
+        },
+        {
+          "id": "a_outro",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 8,
+            "every": "2/1",
+            "dynamic": null,
+            "articulation": "portato",
+            "anchor": null,
+            "motif": "acid",
+            "at": "121"
+          }
+        },
+        {
+          "id": "a_close",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "ff",
+            "end": "pp",
+            "from": "121",
+            "until": "137"
+          }
+        },
+        {
+          "id": "a_hole",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "88:3",
+            "until": "89"
+          }
+        },
+        {
+          "id": "a_scream",
+          "kind": "phrase",
+          "enabled": true,
+          "note": "up through the dominant chord, two octaves and a fifth, every note slid: the one bar where nothing else plays",
+          "params": {
+            "unit": "1/16",
+            "octave": 2,
+            "transpose": 0,
+            "dynamic": "fff",
+            "articulation": null,
+            "anchor": "chord",
+            "at": "88:3",
+            "steps": "0!!@leg 1!!@leg 2!!@leg 3!!@leg 4!!@leg 5!!@leg 6!!@leg 8!!"
+          }
+        },
+        {
+          "id": "fx_acid_intro",
+          "kind": "filter",
+          "enabled": true,
+          "note": "a second filter over the machine's own, for the long moves",
+          "params": {
+            "end": 2500,
+            "mode": "lowpass",
+            "resonance": 0.3,
+            "from": "1",
+            "until": "17",
+            "start": 500
+          }
+        },
+        {
+          "id": "fx_acid_break",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 9000,
+            "mode": "lowpass",
+            "resonance": 0.4,
+            "from": "73",
+            "until": "89",
+            "start": 600
+          }
+        },
+        {
+          "id": "fx_acid_close",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 350,
+            "mode": "lowpass",
+            "resonance": 0.4,
+            "from": "121",
+            "until": "137",
+            "start": 9000
+          }
+        },
+        {
+          "id": "fx_acid_bite",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.8,
+            "mode": "soft"
+          }
+        },
+        {
+          "id": "fx_acid_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 0
+          }
+        }
+      ],
+      "pan": 0.08
+    },
+    {
+      "name": "acid2",
+      "instrument": "acid_square",
+      "role": "counter",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "a_lift2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 8,
+            "every": "2/1",
+            "dynamic": "f",
+            "articulation": "portato",
+            "anchor": null,
+            "motif": "acid_back",
+            "at": "105"
+          }
+        },
+        {
+          "id": "a_outro2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 4,
+            "every": "2/1",
+            "dynamic": null,
+            "articulation": "portato",
+            "anchor": null,
+            "motif": "acid_back",
+            "at": "121"
+          }
+        },
+        {
+          "id": "a2_close",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "f",
+            "end": "pp",
+            "from": "121",
+            "until": "129"
+          }
+        },
+        {
+          "id": "fx_acid2_bite",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.6,
+            "mode": "soft"
+          }
+        },
+        {
+          "id": "fx_acid2_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -5
+          }
+        }
+      ],
+      "pan": -0.3
+    },
+    {
+      "name": "lead",
+      "instrument": "supersaw",
+      "role": "melody",
+      "octave": 4,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "h_tease1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "motif": "hook_head",
+            "at": "49"
+          }
+        },
+        {
+          "id": "h_tease2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "hook_head",
+            "at": "57"
+          }
+        },
+        {
+          "id": "h_break1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": "tenuto",
+            "anchor": null,
+            "motif": "hook",
+            "at": "73"
+          }
+        },
+        {
+          "id": "h_break2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "f",
+            "articulation": "tenuto",
+            "anchor": null,
+            "motif": "hook",
+            "at": "81"
+          }
+        },
+        {
+          "id": "h_hole",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "88:3",
+            "until": "89"
+          }
+        },
+        {
+          "id": "h_drop2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 2,
+            "every": "8/1",
+            "dynamic": "ff",
+            "articulation": "tenuto",
+            "anchor": null,
+            "motif": "hook",
+            "at": "89"
+          }
+        },
+        {
+          "id": "h_lift",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 2,
+            "every": "8/1",
+            "dynamic": "ff",
+            "articulation": "tenuto",
+            "anchor": null,
+            "motif": "hook",
+            "at": "105"
+          }
+        },
+        {
+          "id": "fx_lead_far",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 1400,
+            "mode": "lowpass",
+            "resonance": 0.0,
+            "from": "49",
+            "until": "65",
+            "start": 1400
+          }
+        },
+        {
+          "id": "fx_lead_break",
+          "kind": "filter",
+          "enabled": true,
+          "note": "the hook starts dull and opens as the roll arrives",
+          "params": {
+            "end": 7000,
+            "mode": "lowpass",
+            "resonance": 0.2,
+            "from": "73",
+            "until": "89",
+            "start": 900
+          }
+        },
+        {
+          "id": "fx_lead_duck",
+          "kind": "duck",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "depth": 3,
+            "release": 0.12,
+            "drum": null,
+            "from": null,
+            "until": null,
+            "source": "kick"
+          }
+        },
+        {
+          "id": "fx_lead_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "echo",
+      "instrument": "supersaw",
+      "role": "ornament",
+      "octave": 4,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "h_echo",
+          "kind": "double",
+          "enabled": true,
+          "note": "the hook again a dotted eighth later, off to one side",
+          "params": {
+            "interval": 0,
+            "octaves": 0,
+            "dynamic": "p",
+            "delay": "3/16",
+            "from": null,
+            "until": null,
+            "source": "lead"
+          }
+        },
+        {
+          "id": "fx_echo_dark",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 2200,
+            "mode": "lowpass",
+            "resonance": 0.0,
+            "from": null,
+            "until": null,
+            "start": 2200
+          }
+        }
+      ],
+      "pan": 0.45
+    },
+    {
+      "name": "stab",
+      "instrument": "supersaw",
+      "role": "harmony",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "s_drop",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "block",
+            "rhythm": "1/16",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "mf",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": "staccato",
+            "at": "49",
+            "bars": 16
+          }
+        },
+        {
+          "id": "s_drop_gate",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "49",
+            "until": "65",
+            "order": "_ . _ _ . _ . _ _ . _ _ . _ . ."
+          }
+        },
+        {
+          "id": "s_drop2",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "block",
+            "rhythm": "1/16",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "mf",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": "staccato",
+            "at": "89",
+            "bars": 32
+          }
+        },
+        {
+          "id": "s_drop2_gate",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "89",
+            "until": "121",
+            "order": "_ . _ _ . _ . _ _ . _ _ . _ . ."
+          }
+        },
+        {
+          "id": "fx_stab_thin",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 350,
+            "mode": "highpass",
+            "resonance": 0.0,
+            "from": null,
+            "until": null,
+            "start": 350
+          }
+        },
+        {
+          "id": "fx_stab_duck",
+          "kind": "duck",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "depth": 6,
+            "release": 0.14,
+            "drum": null,
+            "from": null,
+            "until": null,
+            "source": "kick"
+          }
+        },
+        {
+          "id": "fx_stab_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 0
+          }
+        }
+      ],
+      "pan": -0.2
+    },
+    {
+      "name": "pad",
+      "instrument": "synth_pad",
+      "role": "pad",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "p_intro",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "9",
+            "bars": 24
+          }
+        },
+        {
+          "id": "p_intro_swell",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "pp",
+            "end": "mf",
+            "from": "9",
+            "until": "33"
+          }
+        },
+        {
+          "id": "p_drop",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "mp",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "33",
+            "bars": 32
+          }
+        },
+        {
+          "id": "p_break",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 4,
+            "dynamic": "mf",
+            "spread": true,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "65",
+            "bars": 24
+          }
+        },
+        {
+          "id": "p_drop2",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "mf",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "89",
+            "bars": 32
+          }
+        },
+        {
+          "id": "p_outro",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 4,
+            "dynamic": "mf",
+            "spread": true,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "121",
+            "bars": 16
+          }
+        },
+        {
+          "id": "p_outro_fade",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "mf",
+            "end": "pp",
+            "from": "129",
+            "until": "137"
+          }
+        },
+        {
+          "id": "pad_hole",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "88:3",
+            "until": "89"
+          }
+        },
+        {
+          "id": "fx_pad_pump",
+          "kind": "duck",
+          "enabled": true,
+          "note": "the pump",
+          "params": {
+            "depth": 9,
+            "release": 0.22,
+            "drum": null,
+            "from": null,
+            "until": null,
+            "source": "kick"
+          }
+        }
+      ]
+    },
+    {
+      "name": "choir",
+      "instrument": "choir",
+      "role": "pad",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "c_break",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "mp",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "65",
+            "bars": 24
+          }
+        },
+        {
+          "id": "c_break_swell",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "mp",
+            "end": "f",
+            "from": "73",
+            "until": "89"
+          }
+        },
+        {
+          "id": "c_lift",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "f",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "105",
+            "bars": 16
+          }
+        },
+        {
+          "id": "c_outro",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "mp",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "121",
+            "bars": 8
+          }
+        },
+        {
+          "id": "choir_hole",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "88:3",
+            "until": "89"
+          }
+        },
+        {
+          "id": "fx_choir_pump",
+          "kind": "duck",
+          "enabled": true,
+          "note": "the pump",
+          "params": {
+            "depth": 9,
+            "release": 0.22,
+            "drum": null,
+            "from": null,
+            "until": null,
+            "source": "kick"
+          }
+        }
+      ]
+    },
+    {
+      "name": "wall",
+      "instrument": "noise_wall",
+      "role": "pad",
+      "octave": 4,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "w_rise",
+          "kind": "drone",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "degree": 4,
+            "octave": null,
+            "dynamic": "mf",
+            "retrigger": null,
+            "at": "25",
+            "bars": 8
+          }
+        },
+        {
+          "id": "w_rise_sweep",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 7000,
+            "mode": "highpass",
+            "resonance": 0.5,
+            "from": "25",
+            "until": "33",
+            "start": 300
+          }
+        },
+        {
+          "id": "w_rise_swell",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "pp",
+            "end": "f",
+            "from": "25",
+            "until": "33"
+          }
+        },
+        {
+          "id": "w_break",
+          "kind": "drone",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "degree": 4,
+            "octave": null,
+            "dynamic": "mf",
+            "retrigger": null,
+            "at": "81",
+            "bars": 8
+          }
+        },
+        {
+          "id": "w_break_sweep",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 7000,
+            "mode": "highpass",
+            "resonance": 0.5,
+            "from": "81",
+            "until": "89",
+            "start": 300
+          }
+        },
+        {
+          "id": "w_break_swell",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "pp",
+            "end": "f",
+            "from": "81",
+            "until": "89"
+          }
+        },
+        {
+          "id": "w_lift",
+          "kind": "drone",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "degree": 4,
+            "octave": null,
+            "dynamic": "mf",
+            "retrigger": null,
+            "at": "104",
+            "bars": 1
+          }
+        },
+        {
+          "id": "w_lift_sweep",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 7000,
+            "mode": "highpass",
+            "resonance": 0.5,
+            "from": "104",
+            "until": "105",
+            "start": 300
+          }
+        },
+        {
+          "id": "w_lift_swell",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "pp",
+            "end": "f",
+            "from": "104",
+            "until": "105"
+          }
+        },
+        {
+          "id": "w_hole",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "88:3",
+            "until": "89"
+          }
+        },
+        {
+          "id": "fx_wall_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -6
+          }
+        }
+      ]
+    },
+    {
+      "name": "bass",
+      "instrument": "acid_bass",
+      "role": "bass",
+      "octave": 1,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "b_rise",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 60,
+            "every": "1/4",
+            "dynamic": "mp",
+            "articulation": "staccato",
+            "anchor": null,
+            "motif": "roll",
+            "at": "17"
+          }
+        },
+        {
+          "id": "b_drop",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 128,
+            "every": "1/4",
+            "dynamic": "mf",
+            "articulation": "staccato",
+            "anchor": null,
+            "motif": "roll_push",
+            "at": "33"
+          }
+        },
+        {
+          "id": "b_drop2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 128,
+            "every": "1/4",
+            "dynamic": "mf",
+            "articulation": "staccato",
+            "anchor": null,
+            "motif": "roll_push",
+            "at": "89"
+          }
+        },
+        {
+          "id": "b_outro",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 48,
+            "every": "1/4",
+            "dynamic": "mp",
+            "articulation": "staccato",
+            "anchor": null,
+            "motif": "roll",
+            "at": "121"
+          }
+        },
+        {
+          "id": "b_break",
+          "kind": "bass",
+          "enabled": true,
+          "note": "in the break it only holds the root, shut",
+          "params": {
+            "pattern": "root",
+            "rhythm": "1/1",
+            "octave": null,
+            "dynamic": "p",
+            "degree": 0,
+            "articulation": "legato",
+            "at": "65",
+            "bars": 20
+          }
+        },
+        {
+          "id": "b_end",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "root",
+            "rhythm": "1/1",
+            "octave": null,
+            "dynamic": "p",
+            "degree": 0,
+            "articulation": "legato",
+            "at": "133",
+            "bars": 4
+          }
+        },
+        {
+          "id": "bass_hole",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "88:3",
+            "until": "89"
+          }
+        },
+        {
+          "id": "fx_bass_duck",
+          "kind": "duck",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "depth": 5,
+            "release": 0.09,
+            "drum": null,
+            "from": null,
+            "until": null,
+            "source": "kick"
+          }
+        },
+        {
+          "id": "fx_bass_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -2
+          }
+        }
+      ]
+    },
+    {
+      "name": "kick",
+      "instrument": "kit_power",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "k_intro",
+          "kind": "beat",
+          "enabled": true,
+          "note": "bar 32 has no kick: the drop is a subtraction first",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "1",
+            "bars": 31,
+            "lanes": {
+              "kick": "X...x...x...x..."
+            }
+          }
+        },
+        {
+          "id": "k_drop",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "33",
+            "bars": 32,
+            "lanes": {
+              "kick": "X...x...x...x..."
+            }
+          }
+        },
+        {
+          "id": "k_back",
+          "kind": "beat",
+          "enabled": true,
+          "note": "it comes back under the roll",
+          "params": {
+            "res": "1/16",
+            "dynamic": "mf",
+            "tune": 0,
+            "cycle": null,
+            "at": "85",
+            "bars": 2,
+            "lanes": {
+              "kick": "X...x...x...x..."
+            }
+          }
+        },
+        {
+          "id": "k_rush",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "mf",
+            "tune": 0,
+            "cycle": null,
+            "at": "87",
+            "bars": 2,
+            "lanes": {
+              "kick": "x.x.x.x.x.x.x.x.|x.x.x.x.xxxxxxxx"
+            }
+          }
+        },
+        {
+          "id": "k_drop2",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "89",
+            "bars": 32,
+            "lanes": {
+              "kick": "X...x...x...x..."
+            }
+          }
+        },
+        {
+          "id": "k_outro",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "121",
+            "bars": 12,
+            "lanes": {
+              "kick": "X...x...x...x..."
+            }
+          }
+        },
+        {
+          "id": "k_last",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "133",
+            "bars": 1,
+            "lanes": {
+              "kick": "X..............."
+            }
+          }
+        },
+        {
+          "id": "k_gap40",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "40:3",
+            "until": "41"
+          }
+        },
+        {
+          "id": "k_gap48",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "48:3",
+            "until": "49"
+          }
+        },
+        {
+          "id": "k_gap56",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "56:3",
+            "until": "57"
+          }
+        },
+        {
+          "id": "k_gap64",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "64:3",
+            "until": "65"
+          }
+        },
+        {
+          "id": "k_gap96",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "96:3",
+            "until": "97"
+          }
+        },
+        {
+          "id": "k_gap104",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "104:3",
+            "until": "105"
+          }
+        },
+        {
+          "id": "k_gap112",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "112:3",
+            "until": "113"
+          }
+        },
+        {
+          "id": "k_gap120",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "120:3",
+            "until": "121"
+          }
+        },
+        {
+          "id": "fx_kick_tight",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 38,
+            "mode": "highpass",
+            "resonance": 0.0,
+            "from": null,
+            "until": null,
+            "start": 38
+          }
+        },
+        {
+          "id": "fx_kick_click",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.5,
+            "from": null,
+            "until": null,
+            "freq": 3200,
+            "gain": 9
+          }
+        },
+        {
+          "id": "fx_kick",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "mode": "soft"
+          }
+        },
+        {
+          "id": "fx_kick_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -3
+          }
+        }
+      ]
+    },
+    {
+      "name": "drums",
+      "instrument": "kit_electronic",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "d_intro",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "mp",
+            "tune": 0,
+            "cycle": null,
+            "at": "5",
+            "bars": 12,
+            "lanes": {
+              "hat": "..o...o...o...o."
+            }
+          }
+        },
+        {
+          "id": "d_intro2",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "p",
+            "tune": 0,
+            "cycle": null,
+            "at": "9",
+            "bars": 8,
+            "lanes": {
+              "shaker": "o.o.o.o.o.o.o.o."
+            }
+          }
+        },
+        {
+          "id": "d_rise",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "17",
+            "bars": 14,
+            "lanes": {
+              "hat": "o.xoo.xoo.xoo.xo",
+              "open": "..x...x...x...x."
+            }
+          }
+        },
+        {
+          "id": "d_rise_clap",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "25",
+            "bars": 6,
+            "lanes": {
+              "clap": "....x.......x..."
+            }
+          }
+        },
+        {
+          "id": "d_rise_roll",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "31",
+            "bars": 2,
+            "lanes": {
+              "snare": "x...x...x...x...|x.x.x.x.xxxxxxxx",
+              "open": "..x...x...x...x."
+            }
+          }
+        },
+        {
+          "id": "d_rise_swell",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "mp",
+            "end": "ff",
+            "from": "31",
+            "until": "33"
+          }
+        },
+        {
+          "id": "d_rise_climb",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the roll climbs in pitch into the drop",
+          "params": {
+            "slices": 4,
+            "from": "32",
+            "until": "33",
+            "order": "0 1 2*2^0>4 3*2^4>9"
+          }
+        },
+        {
+          "id": "d_drop",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "33",
+            "bars": 32,
+            "lanes": {
+              "hat": "o.xoo.xoo.xoo.xo",
+              "open": "..x...x...x...x.",
+              "clap": "....x.......x...",
+              "crash": "X..............................................................................................................................................................................................................................................................."
+            }
+          }
+        },
+        {
+          "id": "d_drop2",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "89",
+            "bars": 32,
+            "lanes": {
+              "hat": "o.xoo.xoo.xoo.xo",
+              "open": "..x...x...x...x.",
+              "clap": "....x.......x...",
+              "ride": "x...x...x...x...",
+              "crash": "X..............................................................................................................................................................................................................................................................."
+            }
+          }
+        },
+        {
+          "id": "d_gap40",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "40:3",
+            "until": "41"
+          }
+        },
+        {
+          "id": "d_fill40",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "40",
+            "bars": 1,
+            "lanes": {
+              "snare": "........x.x.xxxx",
+              "tom_hi": "..............x.",
+              "tom_lo": "...............x"
+            }
+          }
+        },
+        {
+          "id": "d_gap48",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "48:3",
+            "until": "49"
+          }
+        },
+        {
+          "id": "d_fill48",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "48",
+            "bars": 1,
+            "lanes": {
+              "snare": "........x.x.xxxx",
+              "tom_hi": "..............x.",
+              "tom_lo": "...............x"
+            }
+          }
+        },
+        {
+          "id": "d_gap56",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "56:3",
+            "until": "57"
+          }
+        },
+        {
+          "id": "d_fill56",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "56",
+            "bars": 1,
+            "lanes": {
+              "snare": "........x.x.xxxx",
+              "tom_hi": "..............x.",
+              "tom_lo": "...............x"
+            }
+          }
+        },
+        {
+          "id": "d_gap64",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "64:3",
+            "until": "65"
+          }
+        },
+        {
+          "id": "d_fill64",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "64",
+            "bars": 1,
+            "lanes": {
+              "snare": "........x.x.xxxx",
+              "tom_hi": "..............x.",
+              "tom_lo": "...............x"
+            }
+          }
+        },
+        {
+          "id": "d_gap96",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "96:3",
+            "until": "97"
+          }
+        },
+        {
+          "id": "d_fill96",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "96",
+            "bars": 1,
+            "lanes": {
+              "snare": "........x.x.xxxx",
+              "tom_hi": "..............x.",
+              "tom_lo": "...............x"
+            }
+          }
+        },
+        {
+          "id": "d_gap104",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "104:3",
+            "until": "105"
+          }
+        },
+        {
+          "id": "d_fill104",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "104",
+            "bars": 1,
+            "lanes": {
+              "snare": "........x.x.xxxx",
+              "tom_hi": "..............x.",
+              "tom_lo": "...............x"
+            }
+          }
+        },
+        {
+          "id": "d_gap112",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "112:3",
+            "until": "113"
+          }
+        },
+        {
+          "id": "d_fill112",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "112",
+            "bars": 1,
+            "lanes": {
+              "snare": "........x.x.xxxx",
+              "tom_hi": "..............x.",
+              "tom_lo": "...............x"
+            }
+          }
+        },
+        {
+          "id": "d_gap120",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "120:3",
+            "until": "121"
+          }
+        },
+        {
+          "id": "d_fill120",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "120",
+            "bars": 1,
+            "lanes": {
+              "snare": "........x.x.xxxx",
+              "tom_hi": "..............x.",
+              "tom_lo": "...............x"
+            }
+          }
+        },
+        {
+          "id": "d_break_roll",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "85",
+            "bars": 4,
+            "lanes": {
+              "snare": "x...x...x...x...|x...x...x.x.x.x.|x.x.x.x.x.x.x.x.|xxxxxxxxxxxxxxxx"
+            }
+          }
+        },
+        {
+          "id": "d_break_swell",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "p",
+            "end": "ff",
+            "from": "85",
+            "until": "89"
+          }
+        },
+        {
+          "id": "d_break_climb",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 4,
+            "from": "88",
+            "until": "89",
+            "order": "0 1^2 2*2^2>5 3*2^5>12"
+          }
+        },
+        {
+          "id": "d_outro",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "121",
+            "bars": 12,
+            "lanes": {
+              "hat": "o.xoo.xoo.xoo.xo",
+              "open": "..x...x...x...x.",
+              "crash": "X..............................................................................................................................................................................................."
+            }
+          }
+        },
+        {
+          "id": "d_outro_fade",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "f",
+            "end": "p",
+            "from": "121",
+            "until": "133"
+          }
+        },
+        {
+          "id": "d_last",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "cycle": null,
+            "at": "133",
+            "bars": 1,
+            "lanes": {
+              "crash": "X..............."
+            }
+          }
+        },
+        {
+          "id": "d_swing",
+          "kind": "swing",
+          "enabled": true,
+          "note": "a few percent: enough that the sixteenths lean",
+          "params": {
+            "amount": 0.54,
+            "res": "1/16",
+            "from": null,
+            "until": null
+          }
+        },
+        {
+          "id": "fx_drums_slab",
+          "kind": "compress",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "ratio": 3,
+            "threshold": -16,
+            "makeup": 0.0
+          }
+        },
+        {
+          "id": "fx_drums_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 8
+          }
+        }
+      ]
+    }
+  ]
+}

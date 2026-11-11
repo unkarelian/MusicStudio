@@ -463,6 +463,20 @@ def ms_check_lyrics(text: str, lang: str = "auto") -> str:
 
 
 @mcp.tool(description=(
+    "Draw a rhythm pattern on a grid, one line per cycle, before using it in a "
+    "`beat` op with cycle=1. The notation says the shape of a bar rather than "
+    "its grid: 'x . x .' steps; '[x x]' a divided step; 'x*4' a roll; 'x!3' "
+    "repeats; 'x@3' a long step; 'x(3,8)' three hits spread over eight; '<x o>' "
+    "one choice per cycle; 'a | b' bars in turn; 'x?' sometimes (shown as '?'). "
+    "'x' is a hit, 'X' an accent, 'o' a ghost note, '.' a rest."))
+def ms_check_pattern(text: str, cycles: int = 4, steps: int = 16) -> str:
+    def run():
+        from . import pattern
+        return pattern.describe(text, cycles, steps)
+    return _guard(run)
+
+
+@mcp.tool(description=(
     "Neural singers: trained singing voices (DiffSinger voicebanks) that a "
     "`singer` voice uses when its bank names one, e.g. add_voice(..., 'singer', "
     "bank='qixuan'). Lists which are installed and, for each, what its terms of "

@@ -739,6 +739,34 @@ def test_processing_ops_shape_the_sound_and_leave_the_notes_alone():
         audio.synthesize(p, reverb=False)
 
 
+def test_an_acid_note_opens_with_velocity_and_a_slide_does_not_reopen_it():
+    """The acid machine's velocity is its cutoff knob: a loud note is brighter,
+    not just louder. A note slid into keeps what is left of the last envelope
+    instead of firing a new one, and the filter -- which does not follow the
+    keyboard -- is never shut on the note itself, so a high note still sounds."""
+    np = pytest.importorskip("numpy")
+    from musicstudio import synth
+
+    def note(pitch, vel, slur_from=None, name="acid_bass"):
+        ctx = synth.NoteCtx(name, "v", pitch, 0.0, 0.1, vel, slur_from, False,
+                            ("v", 0, pitch))
+        return synth.render_note(ctx, 10 ** 7)[0][0]
+
+    def centroid(sig):
+        spec = np.abs(np.fft.rfft(sig[:2048] * np.hanning(2048)))
+        return float((spec * np.fft.rfftfreq(2048, 1 / synth.SR)).sum() / spec.sum())
+
+    def rms(sig):
+        return float(np.sqrt(np.mean(sig ** 2)))
+
+    for name in ("acid_bass", "acid_square"):
+        assert centroid(note(43, 120, name=name)) > 2 * centroid(note(43, 40, name=name))
+    assert centroid(note(43, 120, slur_from=50)) < centroid(note(43, 120))
+    assert rms(note(88, 100)) > 0.25 * rms(note(43, 100))
+    # It may not lengthen a note by more than its few milliseconds of release.
+    assert len(note(43, 100)) <= int(0.13 * synth.SR)
+
+
 def test_a_sub_bass_is_nearly_all_fundamental_and_a_reese_is_not():
     np = pytest.importorskip("numpy")
     from musicstudio import synth
@@ -900,6 +928,64 @@ def test_a_retuned_note_sounds_the_same_whatever_was_rendered_before_it():
         after = [layer for layer, _ in synth.render_note(tuned, 44100)]
         assert len(alone) == len(after) and all(
             np.array_equal(a, b) for a, b in zip(alone, after)), inst
+
+
+def test_a_rhythm_pattern_says_the_shape_of_a_bar():
+    from fractions import Fraction as F
+    from musicstudio import pattern
+    def at(text, cycle=0):
+        return [(e.start, e.symbol) for e in pattern.events(pattern.parse(text), cycle)]
+    assert at("x . x .") == [(F(0), "x"), (F(1, 2), "x")]
+    assert at("x [o o] . X") == [(F(0), "x"), (F(1, 4), "o"), (F(3, 8), "o"), (F(3, 4), "X")]
+    assert [s for s, _ in at("x*4 .")] == [F(0), F(1, 8), F(1, 4), F(3, 8)]
+    assert [s for s, _ in at("x!3 o")] == [F(0), F(1, 4), F(1, 2), F(3, 4)]
+    assert at("x@3 o") == [(F(0), "x"), (F(3, 4), "o")]
+    # Three over eight is the tresillo; rotated, it starts somewhere else.
+    assert pattern.describe("x(3,8)", steps=8) == "x..x..x."
+    assert pattern.describe("x(3,8,2)", steps=8) == "x.x..x.."
+    assert pattern.describe("x(5,8)", steps=8) == "x.xx.xx."
+    # Alternation is by cycle, at any depth, and '|' is whole bars in turn.
+    assert [at("<x o> .", c)[0][1] for c in range(4)] == ["x", "o", "x", "o"]
+    assert pattern.describe("x . . . | . . x .", 3, 4) == "x...\n..x.\nx..."
+    assert pattern.describe("x <o [o o]>", 2, 4) == "x.o.\nx.oo"
+    assert pattern.describe("x o?", 1, 2) == "x?"
+    for bad, why in (("x [o", "never closed"), ("x(9,8)", "do not fit"), ("", "empty"),
+                     ("x*0", "at least 1"), ("x(3 8)", "hits,steps"), ("<>", "choose from")):
+        with pytest.raises(pattern.PatternError, match=why):
+            pattern.parse(bad)
+
+
+def test_beat_takes_patterns_and_chance_is_the_same_every_render():
+    def kit(lanes, bars=4, **kw):
+        p = Piece("k", "C major", tempo=120, style="electronic")
+        p.sections.append(Section("A", bars))
+        p.voices.append(Voice("d", "kit", "percussion"))
+        p.add_op("d", "beat", id="b", at="1", bars=bars, lanes=lanes, **kw)
+        return p
+    # The same bar written both ways is the same notes.
+    grid = render(kit({"kick": "x.....x...x.....", "snare": "....x.......x...",
+                       "hat": "x.x.x.x.x.x.x.x."})).notes
+    said = render(kit({"kick": "x . . x . x . .", "snare": ". x . x", "hat": "x*8"},
+                      cycle=1)).notes
+    key = lambda n: (n.start, n.pitch, n.velocity, n.dur)
+    assert sorted(map(key, grid)) == sorted(map(key, said))
+    # Accents and ghosts mean what they mean on the grid.
+    vel = {n.start: n.velocity for n in render(kit({"snare": "x X o ."}, 1, cycle=1)).notes}
+    assert vel[480] > vel[0] > vel[960]
+    # A two-bar cycle, and a fill that only happens every fourth bar.
+    two = render(kit({"kick": "x . . . . . . x"}, cycle=2)).notes
+    assert sorted(n.start for n in two) == [0, 3360, 3840, 7200]
+    fill = render(kit({"tom_hi": "<. . . [. . . x*4]>"}, cycle=1)).notes
+    assert len(fill) == 4 and min(n.start for n in fill) == 3 * 1920 + 1440
+    # "Sometimes" is seeded: some but not all, and identical on a second render.
+    p = kit({"hat": "o?*16"}, 8, cycle=1)
+    first, again = render(p).notes, render(p).notes
+    assert 30 < len(first) < 100 and [key(n) for n in first] == [key(n) for n in again]
+    bad = kit({"kick": "x q"}, cycle=1)
+    with pytest.raises(ValueError, match="made of 'x' hit"):
+        render(bad)
+    with pytest.raises(ValueError, match="lane 'kick'.*never closed"):
+        render(kit({"kick": "x [x"}, cycle=1))
 
 
 def test_eq_cuts_its_band_and_leaves_the_rest_alone():

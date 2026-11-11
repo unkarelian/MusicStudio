@@ -99,8 +99,14 @@ OP_SPECS: dict[str, OpSpec] = {
               "under a one-beat hat is two short strings. Drums: kick snare rim clap "
               "hat pedal open tom_lo tom_mid tom_hi ride bell crash splash tamb cow "
               "shaker. tune shifts the whole kit in semitones (a sped-up break is "
-              "tune=3 to 7).",
-              ["at", "bars", "lanes"], res="1/16", dynamic=None, tune=0),
+              "tune=3 to 7). With cycle=1 (bars per turn) each lane is a *pattern* "
+              "instead of a grid, and says the shape of the bar: 'x . x .' four "
+              "steps; 'x [x x]' a step divided; 'x*4' a roll in one step; 'x!3 o' "
+              "repeated steps; 'x@3 x' a long step; 'x(3,8)' three hits spread "
+              "over eight (the Euclidean rhythms); '<x o>' a different choice "
+              "each turn; 'a | b' whole bars in turn; 'o?' or 'x?0.3' sometimes "
+              "(seeded: the same every render). ms_check_pattern draws one.",
+              ["at", "bars", "lanes"], res="1/16", dynamic=None, tune=0, cycle=None),
         _spec("chop",
               "Cut what this voice plays into slices and re-order them -- how a "
               "break is chopped. slices is how many per bar; order names a source "

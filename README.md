@@ -302,8 +302,32 @@ and higher, which is most of what makes a break sound like a break.
 
 A roll can climb as it goes: `3*8^0>12` is eight retriggers rising an octave.
 
+A lane can also be written as a **pattern** rather than a grid. Give `beat` a
+`cycle` (bars per turn) and each lane says the shape of the bar:
+
+```python
+add("drums", "beat", at="1", bars=8, cycle=1, lanes={
+    "kick":  "x(3,8)",                 # three hits spread over eight: the tresillo
+    "snare": ". x . <x [x x]>",        # the last backbeat doubles every other bar
+    "hat":   "x*8",                    # eight to the bar
+    "open":  ". . . [. o?]",           # a ghosted open hat, sometimes
+    "tom_hi": "<. . . [. . . x*4]>",   # a roll into every fourth bar
+})
+```
+
+`x . x .` is four equal steps, `[x x]` divides a step, `x*4` is a roll inside
+one, `x!3` repeats it, `x@3` makes it three times as long, `x(3,8)` is a
+Euclidean rhythm, `<a b>` picks a different one each turn, `a | b` is whole
+bars in turn, and `x?` plays half the time (seeded, so every render is the
+same). `ms pattern "x(5,8) [x x]"` draws any of it on a grid.
+
 Under it: `sub_bass` (nearly a sine, slides between slurred notes),
 `reese_bass` (detuned saws under a filter), `electric_bass` and `upright_bass`.
+`acid_bass` and `acid_square` are the bass-line machine: one oscillator through
+a resonant filter that every note re-opens. Velocity is its cutoff knob — soft
+is a round pluck, loud squelches, an accent (`!`) screams — so a build is a
+`dynamics` op, and a note marked `@leg` slides into the next without re-opening
+the filter (`examples/build_nightshade.py`).
 And on any voice, ops that shape sound rather than notes: `filter` (a lowpass
 or highpass sweep across a span — the build and the drop), `drive`, `compress`
 (denser, not louder), `crush`, `eq` (a bell cut or boost: room for a voice),

@@ -187,10 +187,11 @@ def build() -> Studio:
     s.add_motif(P, "float_1", "r:1/2 4:1/4 4:1/4 | 7:1/2. 5:1/4 | 4:1/2 6:1/2 | 4:1/1")
     s.add_motif(P, "float_2", "r:1/2 4:1/4 4:1/4 | 7:1/2. 5:1/4 | 8:1/2 7:1/2 | 8:1/1")
     # Band figures.
-    s.add_motif(P, "slap", "0:1/8 r:1/16 0:1/16 4:1/8 r:1/16 0:1/16 r:1/8 3:1/16 "
-                           "4:1/16 2:1/8 4:1/8", anchor="chord",
-                note="the verse bass: root, its octave, and a run through the seventh "
-                     "in the gaps the kick leaves")
+    s.add_motif(P, "slap", "0:1/8 r:1/8 4:1/8 r:1/8 r:1/8 0:1/8 r:1/8 2:1/8", anchor="chord",
+                note="the verse bass: root, its octave, root, fifth, with air between. "
+                     "It used to end every bar on a run of sixteenths through the "
+                     "seventh, which driven hard and doubled by the kick was a drum "
+                     "fill in every bar -- the first thing heard, and all that was")
     s.add_motif(P, "disco", "0:1/8 4:1/8 r:1/16 0:1/16 4:1/8 0:1/8 4:1/8 2:1/16 3:1/16 4:1/8",
                 anchor="chord",
                 note="the chorus bass: octaves with a hole in them and a run up to "
@@ -413,31 +414,48 @@ def build() -> Studio:
     add("bass", "bass", id="bs_end", at=at("chorale", 3), bars=1, pattern="root", rhythm="1/1")
 
     # -- drums ----------------------------------------------------------------
+    # The grooves are written as patterns (`pattern.py`): the shape of a bar,
+    # with the turns a drummer would take -- a pickup every other bar, a drag
+    # into every fourth -- said once instead of typed out sixteen steps at a
+    # time. The first version also had ghost notes and a shaker that played
+    # "some of the time" (`o?`), and under a vocal that read as distracting:
+    # the ear follows whatever is irregular. What varies here varies on a
+    # two- or four-bar cycle, which is a phrase; nothing is left to chance.
     # Space is the groove: ghosted hats between the played ones, nothing ringing.
-    FUNK = {"kick": "x..x..x...x.x...", "snare": "....x.......x...",
-            "hat": "x.o.x.o.x.o.x...", "open": "..............x."}
-    FUNK_STOP = {"kick": "x..x..x.........", "snare": "....x...........",
-                 "hat": "x.x.x.x.........", "crash": "x..............."}
-    TICK = {"hat": "o.o.o.o.o.o.o.o.", "rim": "....x.......x..."}
-    FOUR = {"kick": "x...x...x...x...", "hat": "..x...x...x...x."}
-    BIG = {"kick": "x.....x.x.....x.", "snare": "....x.......x...", "clap": "....x.......x...",
-           "hat": "x.x.x.x.x.x.x.x."}
+    # Three kicks a bar and a pickup every other one. With five, plus the bass
+    # landing on each, the low end was a continuous rumble of hits.
+    FUNK = {"kick": "x [. . x .] [. . x .] <. [. . . x]>",
+            "snare": ". x . <x x x [x . o o]>",
+            "hat": "x o x o x o x .",
+            "open": ". . . . . . . <x x x .>"}
+    FUNK_STOP = {"kick": "x [. . x .] . .", "snare": ". x . .",
+                 "hat": "x x x x . . . .", "crash": "x . . ."}
+    TICK = {"hat": "o*8", "rim": ". x . <x [x . . x]>"}
+    FOUR = {"kick": "x*4", "hat": "[. x]*4"}
+    # Accented on the beat, so eight hats to the bar have a pulse in them, and
+    # a kick that pushes into every fourth bar. The fills belong to the toms.
+    BIG = {"kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>",
+           "snare": ". x . x", "clap": ". x . x", "hat": "[X x]*4"}
+    ONCE = "<x .!15>"                        # a crash at the start, and not again
 
     def drums(op_id, where, bars, lanes, **kw):
         add("drums", "beat", id=op_id, at=where, bars=bars, lanes=lanes, **kw)
 
-    drums("d_groove", at("groove"), 2, {**FUNK, "crash": "x" + "." * 31})
+    def groove(op_id, where, bars, lanes):
+        drums(op_id, where, bars, lanes, cycle=1)
+
+    groove("d_groove", at("groove"), 2, {**FUNK, "crash": ONCE})
     for sec in VERSES:
         for half, first in enumerate((1, 9) if sec == "verse" else (1,)):
-            drums(f"d_{sec}_{half}", at(sec, first), 7, FUNK)
-            drums(f"d_{sec}_{half}_stop", at(sec, first + 7), 1, FUNK_STOP)
+            groove(f"d_{sec}_{half}", at(sec, first), 7, FUNK)
+            groove(f"d_{sec}_{half}_stop", at(sec, first + 7), 1, FUNK_STOP)
     drums("d_break", at("verse", 17), 2,
           {"kick": "x.....x...x.....|x...x...x.x.x.x.", "snare": "....x.......x...|....x...x.x.xxxx",
            "hat": "x.x.x.x.x.x.x.x.|x.x.x.x........."})
-    drums("d_verse2_tag", at("verse2", 9), 2,
-          {**FUNK, "snare": "....x.......x...|....x...x.x.xxxx"})
+    groove("d_verse2_tag", at("verse2", 9), 2,
+           {**FUNK, "snare": ". x . x | . x [x . x .] x*4"})
     for sec in PRES:
-        drums(f"d_{sec}_a", at(sec), 4, TICK)
+        groove(f"d_{sec}_a", at(sec), 4, TICK)
         drums(f"d_{sec}_b", at(sec, 5), 5,
               {"kick": "|".join(["x...x...x...x..."] * 4 + ["x...x..........."]),
                "hat": "|".join(["..x...x...x...x."] * 4 + ["................"]),
@@ -449,13 +467,13 @@ def build() -> Studio:
         add("drums", "dynamics", id=f"d_{sec}_swell", **span(sec, 7, 9), start="mp", end="ff")
     for sec in CHORUSES:
         if sec != "chorus3":
-            drums(f"d_{sec}_a", at(sec), 8, {**BIG, "crash": "x" + "." * 127})
-        drums(f"d_{sec}_b", at(sec, 9), 5, {**BIG, "crash": "x" + "." * 79})
+            groove(f"d_{sec}_a", at(sec), 8, {**BIG, "crash": ONCE})
+        groove(f"d_{sec}_b", at(sec, 9), 5, {**BIG, "crash": ONCE})
         drums(f"d_{sec}_hole", at(sec, 14), 1, {"kick": "x.....x.........",
                                                "snare": "....x...........",
                                                "hat": "x.x.x.x........."})
-        drums(f"d_{sec}_c", at(sec, 15), 2,
-              {**BIG, "crash": "x" + "." * 31, "snare": "....x.......x...|....x.......x.xx"})
+        groove(f"d_{sec}_c", at(sec, 15), 2,
+               {**BIG, "crash": ONCE})
     # Toms into the half-way point and out of the end of every chorus.
     for sec in CHORUSES:
         for tag_, bar in (("mid", 8), ("end", 16)):
@@ -471,21 +489,21 @@ def build() -> Studio:
     drums("d_c3_roll", at("chorus3", 7), 2,
           {"snare": "x...x...x...x...|x.x.x.x.xxxxxxxx", "kick": "x.......x.......|x...x...x...x..."})
     add("drums", "dynamics", id="d_c3_swell", **span("chorus3", 7, 8), start="mp", end="ff")
-    drums("d_post", at("post"), 6, {**BIG, "crash": "x" + "." * 95})
-    drums("d_post2", at("post2"), 4, {**BIG, "crash": "x" + "." * 63})
-    drums("d_bridge", at("bridge", 5), 4,
-          {**FOUR, "snare": "................|....x.......x...|....x...x...x...|x.x.x.x.xxxxxxxx"})
+    groove("d_post", at("post"), 6, {**BIG, "crash": ONCE})
+    groove("d_post2", at("post2"), 4, {**BIG, "crash": ONCE})
+    groove("d_bridge", at("bridge", 5), 4,
+           {**FOUR, "snare": ". | . x . x | . x x x | x*2 x*2 x*8@2"})
     add("drums", "dynamics", id="d_bridge_swell", **span("bridge", 5, 8), start="mp", end="ff")
     drums("d_drop", at("bridge", 10), 1,
           {"kick": "x..x..x...x.x.xx", "snare": "x..x..x...x.x.xx", "crash": "x.....x.....x..."})
-    drums("d_tag", at("tag"), 8, {**BIG, "crash": "x" + "." * 31, "open": "......x.......x."})
+    groove("d_tag", at("tag"), 8, {**BIG, "crash": "<x .>", "open": ". [. x] . [. x]"})
     drums("d_end", at("chorale", 3), 1, {"kick": "x" + "." * 15, "crash": "x" + "." * 15,
                                         "snare": "x" + "." * 15})
     # The same kicks on a synthesized drum: the sampled kit's is all click.
     for op in list(p.get_voice("drums").ops):
         if op.kind == "beat" and "kick" in op.params["lanes"]:
             add("thump", "beat", id="t_" + op.id, at=op.params["at"], bars=op.params["bars"],
-                lanes={"kick": op.params["lanes"]["kick"]})
+                lanes={"kick": op.params["lanes"]["kick"]}, cycle=op.params.get("cycle"))
 
     # -- risers ---------------------------------------------------------------
     for op_id, sec, first, last in (("r_pre", "pre", 5, 9), ("r_pre2", "pre2", 5, 9),
@@ -513,7 +531,7 @@ def build() -> Studio:
         add(voice, "gain", id=f"lvl_{voice}", db=db)
     add("bass", "duck", id="pump_bass", source="thump", drum="kick", depth=6, release=0.08,
         note="a little, so the kick's front edge is the kick's")
-    add("bass", "drive", id="fx_bass", amount=0.7)
+    add("bass", "drive", id="fx_bass", amount=0.45)
     add("bass", "gain", id="lvl_bass", db=-3)
     add("drums", "compress", id="fx_drums", ratio=4, threshold=-18)
     add("drums", "gain", id="lvl_drums", db=-1)

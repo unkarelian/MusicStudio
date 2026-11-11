@@ -736,9 +736,14 @@ def _op_beat(piece: Piece, voice: Voice, op: Op) -> list[Note]:
     grid = ticks(op.params.get("res") or "1/16")
     tune = float(op.params.get("tune") or 0)
     notes: list[Note] = []
+    cycle = op.params.get("cycle")
     for drum, source in lanes.items():
         if drum not in KIT_DRUMS:
             raise ValueError(f"unknown drum {drum!r}; a kit has {sorted(KIT_DRUMS)}")
+        if cycle:
+            notes += _pattern_lane(piece, voice, op, drum, str(source), float(cycle),
+                                   start, end, tune)
+            continue
         pattern = str(source).replace("|", "").replace(" ", "")
         bad = set(pattern) - set("xXoO.-")
         if not pattern or bad:
@@ -758,6 +763,52 @@ def _op_beat(piece: Piece, voice: Voice, op: Op) -> list[Note]:
             tick += grid
             i += 1
     return notes
+
+
+def _pattern_lane(piece: Piece, voice: Voice, op: Op, drum: str, source: str,
+                  bars: float, start: int, end: int, tune: float) -> list[Note]:
+    """One drum written as a pattern (``pattern.py``) that fills ``bars`` bars
+    each time round. ``x`` is a stroke, ``X`` an accent, ``o`` a ghost note."""
+    import zlib
+    from . import pattern
+    from .ensemble import KIT_DRUMS
+    if bars <= 0:
+        raise ValueError("beat cycle must be a number of bars above zero")
+    try:
+        tree = pattern.parse(source)
+    except pattern.PatternError as exc:
+        raise ValueError(f"lane {drum!r}: {exc}") from None
+
+    def lucky(ev, odds: float) -> bool:
+        # Seeded from stable data, like everything random in a render: the
+        # same piece plays the same "sometimes" every time.
+        seed = zlib.crc32(f"{voice.name}|{op.id}|{drum}|{turn}|{ev.path}".encode())
+        return seed / 2 ** 32 < odds
+
+    out: list[Note] = []
+    short = ticks("1/16")
+    tick, turn = start, 0
+    while tick < end:
+        length = max(1, int(round(piece.section_of_tick(tick).bar_ticks * bars)))
+        for ev in pattern.play(tree, turn, lucky):
+            if ev.symbol not in ("x", "X", "o", "O"):
+                raise ValueError(f"lane {drum!r}: a drum pattern is made of 'x' hit, "
+                                 f"'X' accent, 'o' ghost and '.' rest; got {ev.symbol!r}")
+            at = tick + int(round(ev.start * length))
+            if at >= end:
+                continue
+            vel = _velocity(piece, voice, op, at, 1 if ev.symbol == "X" else 0)
+            if ev.symbol in "oO":
+                vel = max(1, int(vel * 0.45))
+            # A stroke is a stroke however long its step is: no longer than
+            # the grid's sixteenth, or a crash written as one step of a bar
+            # would count as a bar of sound.
+            out.append(Note(voice.name, KIT_DRUMS[drum], at,
+                            max(1, min(short, int(round(ev.length * length)))), vel, op.id,
+                            percussive=True, tune=tune))
+        tick += length
+        turn += 1
+    return out
 
 
 def _op_chop(piece: Piece, voice: Voice, op: Op, notes: list[Note]) -> list[Note]:

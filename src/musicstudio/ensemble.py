@@ -149,6 +149,15 @@ INSTRUMENTS: dict[str, Instrument] = {i.name: i for i in [
     _i("reese_bass", "synth", "C0", "C4", "E1", "C3", 38, polyphony=1, timbre="saw",
        notes=("Detuned saws under a low filter: it growls and slowly phases. A long "
               "note is its idiom; it smears fast lines.",)),
+    _i("acid_bass", "synth", "C1", "C7", "E1", "C5", 38, polyphony=1, timbre="saw",
+       notes=("The bass-line machine: a saw through a resonant filter that every "
+              "note re-opens. Velocity is the cutoff knob -- soft is a round "
+              "pluck, loud squelches, an accent ('!') screams -- so shape it with "
+              "`dynamics`. A note marked @leg slides into the next without "
+              "re-opening the filter. Write sixteenths with rests in them.",)),
+    _i("acid_square", "synth", "C1", "C7", "E1", "C5", 38, polyphony=1, timbre="pulse50",
+       notes=("The same machine on its square wave: hollower, more nasal. A "
+              "second line an octave above the saw.",)),
     _i("electric_bass", "plucked", "E1", "G4", "E1", "G3", 33, polyphony=1, timbre="pluck",
        notes=("Fingered bass guitar. Notes speak at once and die away: write the "
               "rests, they are half the groove.",)),

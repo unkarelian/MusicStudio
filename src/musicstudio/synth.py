@@ -227,6 +227,30 @@ class Bell:
 
 
 @dataclass(frozen=True)
+class Acid:
+    """One oscillator through a resonant low-pass that every note re-opens:
+    the bass-line machine. The filter is the instrument -- its peak sweeping
+    down through the harmonics is the squelch -- and how hard a note is
+    played is how far it opens, so an accent screams and a crescendo is the
+    cutoff knob being turned."""
+
+    wave: str = "saw"               # or "square": odd harmonics only, hollower
+    #: Where the filter rests, in Hz. Fixed, like a body: it does not follow
+    #: the note, which is why a low note growls and a high one whistles.
+    cutoff: float = 170.0
+    #: Octaves a full-velocity note lifts the resting cutoff: the knob itself.
+    open: float = 2.4
+    #: Octaves the envelope opens the filter, on top of that, at full velocity.
+    sweep: float = 3.4
+    #: Seconds for a soft note's filter to fall back; a loud one is quicker.
+    decay: float = 0.2
+    resonance: float = 7.0
+    glide: float = 0.06             # seconds to slide into a slurred note
+    level: float = 1.0
+    send: float = 0.25
+
+
+@dataclass(frozen=True)
 class Drum:
     #: One drum, or ``"kit"``: then each note's key says which drum it is.
     kind: str = "snare"
@@ -425,6 +449,11 @@ MODELS: dict[str, Sustained | Plucked | Bell | Drum] = {
                             attack=0.02, release=0.12, bloom=0.25, settle=1.0,
                             drift=1.5, glide=0.05, unison=3, detune=22.0, spread=0.12,
                             level=0.8, send=0.15),
+    # The acid line. Closed and played softly it is a round, plucked bass;
+    # played hard it is the lead.
+    "acid_bass": Acid(),
+    "acid_square": Acid(wave="square", cutoff=210.0, sweep=3.0, resonance=6.0,
+                        level=0.95),
     "electric_bass": Plucked(slope=0.95, position=0.22, lowpass=3000,
                              formants=((90, 0.5, 0.8), (700, 0.6, 0.4)), decay=2.2,
                              decay_track=0.3, damping=0.55, vel_tilt=0.9, release=0.07,
@@ -539,6 +568,8 @@ def render_note(ctx: NoteCtx, limit: int) -> list[tuple[np.ndarray, float]]:
         return [(_plucked(ctx, model, limit), 0.0)]
     if isinstance(model, Bell):
         return [(_bell(ctx, model, limit), 0.0)]
+    if isinstance(model, Acid):
+        return [(_acid(ctx, model, limit), 0.0)]
     return [_drum(ctx, model, limit)]
 
 
@@ -629,6 +660,62 @@ def _sustained(ctx: NoteCtx, m: Sustained, limit: int) -> list[tuple[np.ndarray,
         pan = m.spread * (2 * u / (count - 1) - 1) if count > 1 else 0.0
         layers.append((sig * (_amp(ctx, m.level) / math.sqrt(count)), pan))
     return layers
+
+
+def _acid(ctx: NoteCtx, m: Acid, limit: int) -> np.ndarray:
+    """A saw or square under a moving resonant filter, summed harmonic by
+    harmonic: each one's level is the filter's response at the frequency it
+    has *at that moment*, so the sweep is exact and the model keeps no state
+    from one note to the next."""
+    slid = ctx.slur_from is not None
+    release = 0.03 if ctx.slur_out else 0.018
+    n = min(int((ctx.dur + release) * SR), limit)
+    if n <= 8:
+        return np.zeros(0)
+    rng = _rng(*ctx.key)
+    t = np.arange(n) / SR
+    v = ctx.vel
+    f = np.full(n, ctx.freq)
+    if slid and m.glide:
+        f = f * 2.0 ** ((ctx.slur_from - ctx.pitch) / 12.0 * np.exp(-t / (m.glide / 2.5)))
+    phase = np.cumsum(f) / SR + rng.uniform(0, 1)
+
+    # Velocity is the envelope's depth and its speed, and a little resonance.
+    # A note slid into does not fire the envelope again: it inherits what is
+    # left of the last one, which is why a slide sounds like one long vowel.
+    depth = m.sweep * (0.1 + 0.9 * v ** 1.6) * (0.4 if slid else 1.0)
+    fall = m.decay * (1.3 - 0.75 * v)
+    fc = m.cutoff * 2.0 ** (m.open * v ** 1.5 + depth * np.exp(-t / fall))
+    # The filter does not follow the keyboard, but it is never shut on the
+    # note itself: a line that climbs two octaves must not climb into silence.
+    fc = np.maximum(fc, 1.2 * f)
+    q = m.resonance * (0.55 + 0.65 * v)
+
+    top = min(CEILING, 6.0 * float(fc.max()))
+    count = max(1, int(top / float(f.min())))
+    step = 2 if m.wave == "square" else 1
+    out = np.zeros(n)
+    ks = np.arange(1, count + 1, step, dtype=np.float64)
+    for a in range(0, len(ks), 24):
+        k = ks[a:a + 24, None]
+        hz = k * f[None, :]
+        x2 = (hz / fc[None, :]) ** 2
+        gain = 1.0 / np.sqrt(((1.0 - x2) ** 2 + x2 / (q * q)) * (1.0 + x2))
+        gain = np.where(hz < CEILING, gain, 0.0) / k
+        out += np.sum(gain * np.sin(2 * np.pi * k * phase[None, :]), axis=0)
+    # The peak is tamed, not removed: a resonant filter is louder, but q of 9
+    # must not be 19 dB louder.
+    out /= 0.9 * math.sqrt(1.0 + (q / 3.0) ** 2)
+
+    env = np.exp(-t / 1.5)
+    k = min(n, int((0.02 if slid else 0.003) * SR))
+    if k > 1:
+        env[:k] *= np.arange(k) / k
+    r0 = min(n, int(ctx.dur * SR))
+    if n > r0:
+        rel = 1.0 - np.arange(n - r0) / max(1, n - r0)
+        env[r0:] *= rel * rel
+    return out * env * (LEVEL * m.level * (0.3 + 0.8 * v)) * 1.25
 
 
 _BANDS = (1, 2, 3, 4, 6, 8, 12, 16, 24, 40, 100000)

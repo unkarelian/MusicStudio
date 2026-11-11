@@ -175,6 +175,18 @@ joins its bus like any other; it must fall back to the model, with a warning,
 when FluidSynth or a bank is missing, because CI has neither. One drum
 channel means one kit per piece in MIDI; the first kit voice chooses it.
 
+`pattern.py` is a notation for rhythm that says the *shape* of a bar instead of
+its grid (`x(3,8)`, `<x o>`, `x*4`, `x?`), used by `beat` when it is given
+`cycle=`. The idea is the live-coding pattern languages'; the grammar and code
+are the studio's own -- learn from other tools, never copy from them. It is
+exact (`Fraction`s within one cycle; the caller makes ticks), a pattern is a
+pure function of the cycle number, and chance is decided by the caller from a
+`crc32` seed, so "sometimes" is the same every render
+(`test_beat_takes_patterns_and_chance_is_the_same_every_render`, which also
+holds that a bar written as a grid and as a pattern is the same notes). Keep it
+a way of *writing* ops: a pattern lives in the op's params and stays editable;
+it must not become a second place where music is stored.
+
 `lyrics.py` turns text into one `Syllable` (onset, nucleus, coda) per note and
 `vocal.py` sings them. Lyrics live *on the notes* (`Note.lyric`, `Note.sung`),
 put there by the `lyrics` modifier op, so they follow a note through `double`,

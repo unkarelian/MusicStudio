@@ -1868,54 +1868,42 @@
       "name": "slap",
       "anchor": "chord",
       "unit": "1/8",
-      "source": "0 r:1/16 0:1/16 4 r:1/16 0:1/16 r 3:1/16 4:1/16 2 4",
+      "source": "0 r 4 r r 0 r 2",
       "steps": [
         {
           "dur": "1/8",
           "deg": 0
         },
         {
-          "dur": "1/16",
+          "dur": "1/8",
           "rest": true
-        },
-        {
-          "dur": "1/16",
-          "deg": 0
         },
         {
           "dur": "1/8",
           "deg": 4
         },
         {
-          "dur": "1/16",
+          "dur": "1/8",
           "rest": true
-        },
-        {
-          "dur": "1/16",
-          "deg": 0
         },
         {
           "dur": "1/8",
           "rest": true
         },
         {
-          "dur": "1/16",
-          "deg": 3
+          "dur": "1/8",
+          "deg": 0
         },
         {
-          "dur": "1/16",
-          "deg": 4
+          "dur": "1/8",
+          "rest": true
         },
         {
           "dur": "1/8",
           "deg": 2
-        },
-        {
-          "dur": "1/8",
-          "deg": 4
         }
       ],
-      "note": "the verse bass: root, its octave, and a run through the seventh in the gaps the kick leaves"
+      "note": "the verse bass: root, its octave, root, fifth, with air between. It used to end every bar on a run of sixteenths through the seventh, which driven hard and doubled by the kick was a drum fill in every bar -- the first thing heard, and all that was"
     },
     {
       "name": "disco",
@@ -6112,7 +6100,7 @@
           "enabled": true,
           "note": "",
           "params": {
-            "amount": 0.7,
+            "amount": 0.45,
             "mode": "soft"
           }
         },
@@ -6365,14 +6353,15 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "4",
             "bars": 2,
             "lanes": {
-              "kick": "x..x..x...x.x...",
-              "snare": "....x.......x...",
-              "hat": "x.o.x.o.x.o.x...",
-              "open": "..............x.",
-              "crash": "x..............................."
+              "kick": "x [. . x .] [. . x .] <. [. . . x]>",
+              "snare": ". x . <x x x [x . o o]>",
+              "hat": "x o x o x o x .",
+              "open": ". . . . . . . <x x x .>",
+              "crash": "<x .!15>"
             }
           }
         },
@@ -6385,13 +6374,14 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "6",
             "bars": 7,
             "lanes": {
-              "kick": "x..x..x...x.x...",
-              "snare": "....x.......x...",
-              "hat": "x.o.x.o.x.o.x...",
-              "open": "..............x."
+              "kick": "x [. . x .] [. . x .] <. [. . . x]>",
+              "snare": ". x . <x x x [x . o o]>",
+              "hat": "x o x o x o x .",
+              "open": ". . . . . . . <x x x .>"
             }
           }
         },
@@ -6404,13 +6394,14 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "13",
             "bars": 1,
             "lanes": {
-              "kick": "x..x..x.........",
-              "snare": "....x...........",
-              "hat": "x.x.x.x.........",
-              "crash": "x..............."
+              "kick": "x [. . x .] . .",
+              "snare": ". x . .",
+              "hat": "x x x x . . . .",
+              "crash": "x . . ."
             }
           }
         },
@@ -6423,13 +6414,14 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "14",
             "bars": 7,
             "lanes": {
-              "kick": "x..x..x...x.x...",
-              "snare": "....x.......x...",
-              "hat": "x.o.x.o.x.o.x...",
-              "open": "..............x."
+              "kick": "x [. . x .] [. . x .] <. [. . . x]>",
+              "snare": ". x . <x x x [x . o o]>",
+              "hat": "x o x o x o x .",
+              "open": ". . . . . . . <x x x .>"
             }
           }
         },
@@ -6442,13 +6434,14 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "21",
             "bars": 1,
             "lanes": {
-              "kick": "x..x..x.........",
-              "snare": "....x...........",
-              "hat": "x.x.x.x.........",
-              "crash": "x..............."
+              "kick": "x [. . x .] . .",
+              "snare": ". x . .",
+              "hat": "x x x x . . . .",
+              "crash": "x . . ."
             }
           }
         },
@@ -6461,13 +6454,14 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "55",
             "bars": 7,
             "lanes": {
-              "kick": "x..x..x...x.x...",
-              "snare": "....x.......x...",
-              "hat": "x.o.x.o.x.o.x...",
-              "open": "..............x."
+              "kick": "x [. . x .] [. . x .] <. [. . . x]>",
+              "snare": ". x . <x x x [x . o o]>",
+              "hat": "x o x o x o x .",
+              "open": ". . . . . . . <x x x .>"
             }
           }
         },
@@ -6480,13 +6474,14 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "62",
             "bars": 1,
             "lanes": {
-              "kick": "x..x..x.........",
-              "snare": "....x...........",
-              "hat": "x.x.x.x.........",
-              "crash": "x..............."
+              "kick": "x [. . x .] . .",
+              "snare": ". x . .",
+              "hat": "x x x x . . . .",
+              "crash": "x . . ."
             }
           }
         },
@@ -6499,6 +6494,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "22",
             "bars": 2,
             "lanes": {
@@ -6517,13 +6513,14 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "63",
             "bars": 2,
             "lanes": {
-              "kick": "x..x..x...x.x...",
-              "snare": "....x.......x...|....x...x.x.xxxx",
-              "hat": "x.o.x.o.x.o.x...",
-              "open": "..............x."
+              "kick": "x [. . x .] [. . x .] <. [. . . x]>",
+              "snare": ". x . x | . x [x . x .] x*4",
+              "hat": "x o x o x o x .",
+              "open": ". . . . . . . <x x x .>"
             }
           }
         },
@@ -6536,11 +6533,12 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "24",
             "bars": 4,
             "lanes": {
-              "hat": "o.o.o.o.o.o.o.o.",
-              "rim": "....x.......x..."
+              "hat": "o*8",
+              "rim": ". x . <x [x . . x]>"
             }
           }
         },
@@ -6553,6 +6551,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "28",
             "bars": 5,
             "lanes": {
@@ -6571,6 +6570,7 @@
             "res": "1/32",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "32",
             "bars": 1,
             "lanes": {
@@ -6599,11 +6599,12 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "65",
             "bars": 4,
             "lanes": {
-              "hat": "o.o.o.o.o.o.o.o.",
-              "rim": "....x.......x..."
+              "hat": "o*8",
+              "rim": ". x . <x [x . . x]>"
             }
           }
         },
@@ -6616,6 +6617,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "69",
             "bars": 5,
             "lanes": {
@@ -6634,6 +6636,7 @@
             "res": "1/32",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "73",
             "bars": 1,
             "lanes": {
@@ -6662,14 +6665,15 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "33",
             "bars": 8,
             "lanes": {
-              "kick": "x.....x.x.....x.",
-              "snare": "....x.......x...",
-              "clap": "....x.......x...",
-              "hat": "x.x.x.x.x.x.x.x.",
-              "crash": "x..............................................................................................................................."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>",
+              "snare": ". x . x",
+              "clap": ". x . x",
+              "hat": "[X x]*4",
+              "crash": "<x .!15>"
             }
           }
         },
@@ -6682,14 +6686,15 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "41",
             "bars": 5,
             "lanes": {
-              "kick": "x.....x.x.....x.",
-              "snare": "....x.......x...",
-              "clap": "....x.......x...",
-              "hat": "x.x.x.x.x.x.x.x.",
-              "crash": "x..............................................................................."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>",
+              "snare": ". x . x",
+              "clap": ". x . x",
+              "hat": "[X x]*4",
+              "crash": "<x .!15>"
             }
           }
         },
@@ -6702,6 +6707,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "46",
             "bars": 1,
             "lanes": {
@@ -6720,14 +6726,15 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "47",
             "bars": 2,
             "lanes": {
-              "kick": "x.....x.x.....x.",
-              "snare": "....x.......x...|....x.......x.xx",
-              "clap": "....x.......x...",
-              "hat": "x.x.x.x.x.x.x.x.",
-              "crash": "x..............................."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>",
+              "snare": ". x . x",
+              "clap": ". x . x",
+              "hat": "[X x]*4",
+              "crash": "<x .!15>"
             }
           }
         },
@@ -6740,14 +6747,15 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "74",
             "bars": 8,
             "lanes": {
-              "kick": "x.....x.x.....x.",
-              "snare": "....x.......x...",
-              "clap": "....x.......x...",
-              "hat": "x.x.x.x.x.x.x.x.",
-              "crash": "x..............................................................................................................................."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>",
+              "snare": ". x . x",
+              "clap": ". x . x",
+              "hat": "[X x]*4",
+              "crash": "<x .!15>"
             }
           }
         },
@@ -6760,14 +6768,15 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "82",
             "bars": 5,
             "lanes": {
-              "kick": "x.....x.x.....x.",
-              "snare": "....x.......x...",
-              "clap": "....x.......x...",
-              "hat": "x.x.x.x.x.x.x.x.",
-              "crash": "x..............................................................................."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>",
+              "snare": ". x . x",
+              "clap": ". x . x",
+              "hat": "[X x]*4",
+              "crash": "<x .!15>"
             }
           }
         },
@@ -6780,6 +6789,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "87",
             "bars": 1,
             "lanes": {
@@ -6798,14 +6808,15 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "88",
             "bars": 2,
             "lanes": {
-              "kick": "x.....x.x.....x.",
-              "snare": "....x.......x...|....x.......x.xx",
-              "clap": "....x.......x...",
-              "hat": "x.x.x.x.x.x.x.x.",
-              "crash": "x..............................."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>",
+              "snare": ". x . x",
+              "clap": ". x . x",
+              "hat": "[X x]*4",
+              "crash": "<x .!15>"
             }
           }
         },
@@ -6818,14 +6829,15 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "114",
             "bars": 5,
             "lanes": {
-              "kick": "x.....x.x.....x.",
-              "snare": "....x.......x...",
-              "clap": "....x.......x...",
-              "hat": "x.x.x.x.x.x.x.x.",
-              "crash": "x..............................................................................."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>",
+              "snare": ". x . x",
+              "clap": ". x . x",
+              "hat": "[X x]*4",
+              "crash": "<x .!15>"
             }
           }
         },
@@ -6838,6 +6850,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "119",
             "bars": 1,
             "lanes": {
@@ -6856,14 +6869,15 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "120",
             "bars": 2,
             "lanes": {
-              "kick": "x.....x.x.....x.",
-              "snare": "....x.......x...|....x.......x.xx",
-              "clap": "....x.......x...",
-              "hat": "x.x.x.x.x.x.x.x.",
-              "crash": "x..............................."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>",
+              "snare": ". x . x",
+              "clap": ". x . x",
+              "hat": "[X x]*4",
+              "crash": "<x .!15>"
             }
           }
         },
@@ -6876,6 +6890,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "40",
             "bars": 1,
             "lanes": {
@@ -6906,6 +6921,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "48",
             "bars": 1,
             "lanes": {
@@ -6936,6 +6952,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "81",
             "bars": 1,
             "lanes": {
@@ -6966,6 +6983,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "89",
             "bars": 1,
             "lanes": {
@@ -6996,6 +7014,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "121",
             "bars": 1,
             "lanes": {
@@ -7026,6 +7045,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "112",
             "bars": 2,
             "lanes": {
@@ -7055,14 +7075,15 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "49",
             "bars": 6,
             "lanes": {
-              "kick": "x.....x.x.....x.",
-              "snare": "....x.......x...",
-              "clap": "....x.......x...",
-              "hat": "x.x.x.x.x.x.x.x.",
-              "crash": "x..............................................................................................."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>",
+              "snare": ". x . x",
+              "clap": ". x . x",
+              "hat": "[X x]*4",
+              "crash": "<x .!15>"
             }
           }
         },
@@ -7075,14 +7096,15 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "90",
             "bars": 4,
             "lanes": {
-              "kick": "x.....x.x.....x.",
-              "snare": "....x.......x...",
-              "clap": "....x.......x...",
-              "hat": "x.x.x.x.x.x.x.x.",
-              "crash": "x..............................................................."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>",
+              "snare": ". x . x",
+              "clap": ". x . x",
+              "hat": "[X x]*4",
+              "crash": "<x .!15>"
             }
           }
         },
@@ -7095,12 +7117,13 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "100",
             "bars": 4,
             "lanes": {
-              "kick": "x...x...x...x...",
-              "hat": "..x...x...x...x.",
-              "snare": "................|....x.......x...|....x...x...x...|x.x.x.x.xxxxxxxx"
+              "kick": "x*4",
+              "hat": "[. x]*4",
+              "snare": ". | . x . x | . x x x | x*2 x*2 x*8@2"
             }
           }
         },
@@ -7125,6 +7148,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "105",
             "bars": 1,
             "lanes": {
@@ -7143,15 +7167,16 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "122",
             "bars": 8,
             "lanes": {
-              "kick": "x.....x.x.....x.",
-              "snare": "....x.......x...",
-              "clap": "....x.......x...",
-              "hat": "x.x.x.x.x.x.x.x.",
-              "crash": "x...............................",
-              "open": "......x.......x."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>",
+              "snare": ". x . x",
+              "clap": ". x . x",
+              "hat": "[X x]*4",
+              "crash": "<x .>",
+              "open": ". [. x] . [. x]"
             }
           }
         },
@@ -7164,6 +7189,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "132",
             "bars": 1,
             "lanes": {
@@ -7227,10 +7253,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "4",
             "bars": 2,
             "lanes": {
-              "kick": "x..x..x...x.x..."
+              "kick": "x [. . x .] [. . x .] <. [. . . x]>"
             }
           }
         },
@@ -7243,10 +7270,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "6",
             "bars": 7,
             "lanes": {
-              "kick": "x..x..x...x.x..."
+              "kick": "x [. . x .] [. . x .] <. [. . . x]>"
             }
           }
         },
@@ -7259,10 +7287,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "13",
             "bars": 1,
             "lanes": {
-              "kick": "x..x..x........."
+              "kick": "x [. . x .] . ."
             }
           }
         },
@@ -7275,10 +7304,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "14",
             "bars": 7,
             "lanes": {
-              "kick": "x..x..x...x.x..."
+              "kick": "x [. . x .] [. . x .] <. [. . . x]>"
             }
           }
         },
@@ -7291,10 +7321,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "21",
             "bars": 1,
             "lanes": {
-              "kick": "x..x..x........."
+              "kick": "x [. . x .] . ."
             }
           }
         },
@@ -7307,10 +7338,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "55",
             "bars": 7,
             "lanes": {
-              "kick": "x..x..x...x.x..."
+              "kick": "x [. . x .] [. . x .] <. [. . . x]>"
             }
           }
         },
@@ -7323,10 +7355,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "62",
             "bars": 1,
             "lanes": {
-              "kick": "x..x..x........."
+              "kick": "x [. . x .] . ."
             }
           }
         },
@@ -7339,6 +7372,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "22",
             "bars": 2,
             "lanes": {
@@ -7355,10 +7389,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "63",
             "bars": 2,
             "lanes": {
-              "kick": "x..x..x...x.x..."
+              "kick": "x [. . x .] [. . x .] <. [. . . x]>"
             }
           }
         },
@@ -7371,6 +7406,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "28",
             "bars": 5,
             "lanes": {
@@ -7387,6 +7423,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "69",
             "bars": 5,
             "lanes": {
@@ -7403,10 +7440,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "33",
             "bars": 8,
             "lanes": {
-              "kick": "x.....x.x.....x."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>"
             }
           }
         },
@@ -7419,10 +7457,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "41",
             "bars": 5,
             "lanes": {
-              "kick": "x.....x.x.....x."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>"
             }
           }
         },
@@ -7435,6 +7474,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "46",
             "bars": 1,
             "lanes": {
@@ -7451,10 +7491,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "47",
             "bars": 2,
             "lanes": {
-              "kick": "x.....x.x.....x."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>"
             }
           }
         },
@@ -7467,10 +7508,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "74",
             "bars": 8,
             "lanes": {
-              "kick": "x.....x.x.....x."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>"
             }
           }
         },
@@ -7483,10 +7525,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "82",
             "bars": 5,
             "lanes": {
-              "kick": "x.....x.x.....x."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>"
             }
           }
         },
@@ -7499,6 +7542,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "87",
             "bars": 1,
             "lanes": {
@@ -7515,10 +7559,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "88",
             "bars": 2,
             "lanes": {
-              "kick": "x.....x.x.....x."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>"
             }
           }
         },
@@ -7531,10 +7576,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "114",
             "bars": 5,
             "lanes": {
-              "kick": "x.....x.x.....x."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>"
             }
           }
         },
@@ -7547,6 +7593,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "119",
             "bars": 1,
             "lanes": {
@@ -7563,10 +7610,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "120",
             "bars": 2,
             "lanes": {
-              "kick": "x.....x.x.....x."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>"
             }
           }
         },
@@ -7579,6 +7627,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "112",
             "bars": 2,
             "lanes": {
@@ -7595,10 +7644,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "49",
             "bars": 6,
             "lanes": {
-              "kick": "x.....x.x.....x."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>"
             }
           }
         },
@@ -7611,10 +7661,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "90",
             "bars": 4,
             "lanes": {
-              "kick": "x.....x.x.....x."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>"
             }
           }
         },
@@ -7627,10 +7678,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "100",
             "bars": 4,
             "lanes": {
-              "kick": "x...x...x...x..."
+              "kick": "x*4"
             }
           }
         },
@@ -7643,6 +7695,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "105",
             "bars": 1,
             "lanes": {
@@ -7659,10 +7712,11 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": 1,
             "at": "122",
             "bars": 8,
             "lanes": {
-              "kick": "x.....x.x.....x."
+              "kick": "[x . . .] [. . x .] [x . . .] <[. . x .]!3 [. x x .]>"
             }
           }
         },
@@ -7675,6 +7729,7 @@
             "res": "1/16",
             "dynamic": null,
             "tune": 0,
+            "cycle": null,
             "at": "132",
             "bars": 1,
             "lanes": {

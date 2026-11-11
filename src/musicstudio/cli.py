@@ -255,6 +255,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("text", nargs="*", help="a lyric line, or 'install'")
     p.add_argument("--lang", default="auto", choices=("auto", "ja", "en"))
 
+    p = sub.add_parser("pattern", help="draw a rhythm pattern (the notation `beat` "
+                                       "takes with cycle=1) on a grid")
+    p.add_argument("text", nargs="+", help="e.g. 'x(3,8)' or '<x o> [x x]*2 . x?'")
+    p.add_argument("--cycles", "-n", type=int, default=4)
+    p.add_argument("--steps", type=int, default=16)
+
     p = sub.add_parser("singer", help="neural singers (DiffSinger voicebanks): list "
                                       "them, read one's terms, install or add one")
     p.add_argument("action", choices=("list", "show", "install", "add", "check"),
@@ -504,6 +510,10 @@ def _dispatch(s: Studio, a) -> int:
         for w in warnings:
             print(f"warning: {w}")
         print(f"{len(syllables)} syllables: one note each")
+        return 0
+    if c == "pattern":
+        from . import pattern
+        print(pattern.describe(" ".join(a.text), a.cycles, a.steps))
         return 0
     if c == "singer" and a.action != "check":
         return _singer(s, a)
