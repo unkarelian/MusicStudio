@@ -335,6 +335,20 @@ class FM:
 
 
 @dataclass(frozen=True)
+class Crackle:
+    """The surface of a record. It has no pitch: the note says only when the
+    needle is down and how worn the record is."""
+    #: Small pops a second at mezzo-forte.
+    rate: float = 6.0
+    #: Hiss under the pops, relative to them.
+    hiss: float = 0.006
+    #: Seconds a revolution: 33 1/3 turns a minute.
+    turn: float = 1.8
+    level: float = 1.0
+    send: float = 0.0
+
+
+@dataclass(frozen=True)
 class Drum:
     #: One drum, or ``"kit"``: then each note's key says which drum it is.
     kind: str = "snare"
@@ -521,6 +535,7 @@ MODELS: dict[str, Sustained | Plucked | Bell | Acid | Synth | FM | Drum] = {
                             release=0.2, settle=1.0, drift=0.0, glide=0.0,
                             noise=3.0, chiff=0.0, noise_band=(150.0, 14000.0),
                             tone=0.15, level=0.5, send=0.4),
+    "vinyl": Crackle(),
     # -- basses ------------------------------------------------------------
     # A sub is a sine with just enough second harmonic to be found on small
     # speakers; it slides between slurred notes, which is half its character.
@@ -824,6 +839,8 @@ def render_note(ctx: NoteCtx, limit: int) -> list[tuple[np.ndarray, float]]:
         return _synth(ctx, model, limit)
     if isinstance(model, FM):
         return _fm(ctx, model, limit)
+    if isinstance(model, Crackle):
+        return _crackle(ctx, model, limit)
     return [_drum(ctx, model, limit)]
 
 
@@ -1427,6 +1444,48 @@ def _hit(kind: str, variant: int, flavour: str = "acoustic") -> np.ndarray:
     peak = float(np.abs(out).max()) or 1.0
     _hits[key] = out / peak
     return _hits[key]
+
+
+def _crackle(ctx: NoteCtx, m: Crackle, limit: int) -> list[tuple[np.ndarray, float]]:
+    """Record surface noise for as long as the note lasts, one layer a side.
+
+    Three things, because each is what the ear takes for a record and not for
+    noise: pops at random (dust -- most of them tiny, a few not), a pair of
+    ticks at the same place every revolution (a scratch), and hiss far under
+    both. All of it is drawn from the note's own seed.
+    """
+    n = min(int(ctx.dur * SR), limit)
+    if n <= 64:
+        return []
+    v = ctx.vel
+    click = np.exp(-np.arange(96) / 9.0) * np.sin(np.arange(96) * 0.9)
+    layers = []
+    for side, pan in (("l", -0.7), ("r", 0.7)):
+        rng = _rng(*ctx.key, "vinyl", side)
+        sig = np.zeros(n + len(click))
+        count = int(rng.poisson(m.rate * (0.4 + 1.2 * v) * n / SR))
+        at = rng.integers(0, n, count)
+        # Heavy-tailed: a hundred specks to every pop that makes you look up.
+        size = np.minimum(rng.pareto(2.2, count) * 0.12, 1.0) * rng.choice((-1.0, 1.0), count)
+        np.add.at(sig, at, size)
+        # The scratch: the same two ticks every turn, a little to one side.
+        scratch = _rng(*ctx.key, "scratch")
+        offset = scratch.uniform(0.0, m.turn)
+        gap = scratch.uniform(0.004, 0.012)
+        lean = 0.55 if side == "l" else 0.3
+        for k in range(int(n / SR / m.turn) + 1):
+            for d, a in ((0.0, lean), (gap, lean * 0.6)):
+                i = int((offset + k * m.turn + d) * SR)
+                if i < n:
+                    sig[i] += a
+        sig = np.convolve(sig, click)[:n]
+        hiss = _noise_slice(_noise("vinyl", 500.0, 9000.0), n, rng)
+        sig = sig + hiss * m.hiss
+        k = min(n // 2, int(0.05 * SR))
+        sig[:k] *= np.linspace(0.0, 1.0, k)
+        sig[-k:] *= np.linspace(1.0, 0.0, k)
+        layers.append((sig * (LEVEL * m.level * (0.35 + 0.65 * v)), pan))
+    return layers
 
 
 def _drum(ctx: NoteCtx, m: Drum, limit: int) -> tuple[np.ndarray, float]:

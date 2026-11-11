@@ -75,10 +75,12 @@ OP_SPECS: dict[str, OpSpec] = {
               "sound played. spread opens the voicing; roll='1/32' strums it low to "
               "high; ring=True lets each note sound until the chord changes (harp, "
               "guitar, a pedalled piano); figure='0 2 1 2' or '0 1+2 1+2' writes "
-              "your own pattern in chord-tone indices.",
+              "your own pattern in chord-tone indices. rootless=True builds the "
+              "voicing from the third up (third, fifth, seventh, ninth with "
+              "tones=4): what a keyboard plays when a bass already has the root.",
               ["at", "bars"], voicing="block", rhythm=None, octave=None, tones=3,
               dynamic=None, spread=False, lead=False, ring=False, roll=None,
-              figure=None, articulation=None),
+              figure=None, articulation=None, rootless=False),
         _spec("bass",
               "Realize the scaffold's bass line. Patterns: root, root_fifth, "
               "octaves, walking, pedal, ostinato.",
@@ -178,6 +180,16 @@ OP_SPECS: dict[str, OpSpec] = {
               "Reduce this voice's sample rate (rate, Hz) and bit depth (bits): the "
               "grit of an old sampler. Audio only.",
               [], rate=11025, bits=10, modifier=True),
+        _spec("echo",
+              "Repeat this voice's sound after `time` (a note value: '1/8.', "
+              "'3/16', '1/4' -- it follows the tempo), each repeat `feedback` times "
+              "the one before and duller (`tone`, Hz); `mix` is how loud the first "
+              "repeat is against the dry sound, and `spread` (0-1) sends the "
+              "repeats to alternate sides. Only what the voice plays inside "
+              "from/until is repeated, and the repeats ring on past it: an echo on "
+              "one bar is a throw. Audio only.",
+              [], time="1/8.", feedback=0.4, mix=0.35, tone=3000, spread=0.6,
+              modifier=True, **{"from": None, "until": None}),
         _spec("lyrics",
               "Words for a voice: one syllable per note, in order, across the span. "
               "Hyphenate words over several notes ('lan-terns'); '-' alone holds "

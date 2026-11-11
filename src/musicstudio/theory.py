@@ -285,8 +285,12 @@ ROMAN_INDEX = {"i": 0, "ii": 1, "iii": 2, "iv": 3, "v": 4, "vi": 5, "vii": 6}
 _ROMAN_RE = re.compile(r"^([b#]*)(iii|ii|iv|vii|vi|v|i|III|II|IV|VII|VI|V|I)(.*)$")
 
 #: Suffix -> what it does to the stacked-thirds default.
-QUALITY_SUFFIXES = ("maj7", "sus4", "sus2", "add9", "13", "11", "9", "7", "6", "o7",
-                    "%", "o", "+", "5")
+QUALITY_SUFFIXES = ("maj9", "maj7", "sus4", "sus2", "add9", "b13", "#11", "b9", "#9", "13", "11",
+                    "9", "7", "6", "o7", "%", "o", "+", "5")
+
+#: Altered tensions: semitones above the root. Each implies the seventh, as
+#: ``9`` does -- ``V7b9`` and ``Vb9`` are the same chord.
+ALTERED_TENSIONS = {"b9": 13, "#9": 15, "#11": 18, "b13": 20}
 
 
 @dataclass(frozen=True, slots=True)
@@ -370,7 +374,8 @@ def _parse_chord(numeral: str, key: Key) -> Chord:
     so. Case and suffixes only apply corrections on top of that -- which is the
     one place agents reliably go wrong when spelling chords by hand.
 
-    Understood: ``I ii V7 vii%7 bVII #ivo IVmaj7 Vsus4 i6``, secondary chords
+    Understood: ``I ii V7 vii%7 bVII #ivo IVmaj7 Vsus4 i6 IVmaj9 V7b9 V7#9 IVmaj7#11 V7b13``,
+    secondary chords
     as ``V/V``, and inversions as a trailing ``_1`` / ``_2`` (first, second).
     """
     text = str(numeral).strip()
@@ -453,20 +458,26 @@ def _parse_chord(numeral: str, key: Key) -> Chord:
             intervals.append(seventh)
         elif tok == "maj7":
             intervals.append(11)
+        elif tok == "maj9":
+            intervals += [11, 14]
         elif tok == "6":
             intervals.append(9)
         elif tok == "9":
-            if seventh not in intervals:
+            if seventh not in intervals and 11 not in intervals:
                 intervals.append(seventh)
             intervals.append(14)
         elif tok == "add9":
             intervals.append(14)
+        elif tok in ALTERED_TENSIONS:
+            if seventh not in intervals and 11 not in intervals:
+                intervals.append(seventh)
+            intervals.append(ALTERED_TENSIONS[tok])
         elif tok == "11":
-            if seventh not in intervals:
+            if seventh not in intervals and 11 not in intervals:
                 intervals.append(seventh)
             intervals += [14, 17]
         elif tok == "13":
-            if seventh not in intervals:
+            if seventh not in intervals and 11 not in intervals:
                 intervals.append(seventh)
             intervals += [14, 21]
 

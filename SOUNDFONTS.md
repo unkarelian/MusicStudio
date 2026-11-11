@@ -40,6 +40,7 @@ version of a Debian package at a permanent address.
 |---|---|---|---|
 | `guitar_dist` | Electric guitar FSBS, distorted, bridge pickup. 127 MB to fetch, 390 MB installed. | FreePats | CC0 |
 | `guitar_clean` | Electric guitar FSBS, clean, bridge pickup (the small set). | FreePats | CC0 |
+| `guitar_nylon` | Spanish classical guitar, recorded note by note in 2008. | roberto@zenvoid.org, for FreePats | CC0 |
 | `bass_picked` | Electric bass YR, picked. | FreePats | CC0 |
 | `bass_finger` | Electric bass YR, fingered. | FreePats | CC0 |
 | `muldjord` | MuldjordKit: a recorded rock and metal drum kit. 55 MB to fetch, 220 MB installed. | Lars Muldjord; FreePats version by roberto@zenvoid.org | CC-BY 4.0: **credit Lars Muldjord** |

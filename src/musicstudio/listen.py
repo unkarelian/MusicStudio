@@ -1471,7 +1471,7 @@ def at(piece: Piece, *, time: str | float | None = None, bar: str | int | None =
         for op_id in dict.fromkeys(n.op for n in (mine or soon) if n.op):
             ops.append(f"{op_id} (line {lines[op_id]})" if op_id in lines else op_id)
         shaped = [o.id for o in v.ops if o.enabled and o.kind in
-                  ("gain", "filter", "eq", "drive", "crush", "compress", "dynamics",
+                  ("gain", "filter", "eq", "drive", "crush", "compress", "dynamics", "echo",
                    "duck", "cut") and _covers(piece, o, tick)]
         out.append(f"  {v.name:<10}{v.instrument:<18}{what:<24} from {', '.join(ops) or '?'}"
                    + (f"   shaped by {', '.join(shaped)}" if shaped else ""))

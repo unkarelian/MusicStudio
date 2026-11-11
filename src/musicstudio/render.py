@@ -52,7 +52,8 @@ ARTICULATIONS: dict[str, tuple[float, int]] = {
 
 #: Ops that shape the sound and leave the notes alone. ``audio.voice_fx`` reads
 #: them; here they are deliberately nothing.
-AUDIO_ONLY = ("filter", "drive", "compress", "crush", "gain", "eq", "duck", "cut", "tone")
+AUDIO_ONLY = ("filter", "drive", "compress", "crush", "gain", "eq", "duck", "cut", "tone",
+              "echo")
 
 
 @dataclass
@@ -152,6 +153,8 @@ def _render_voice(piece: Piece, voice: Voice, cache: dict[str, list[Note]],
                 raise type(exc)(f"op {op.id!r} ({op.kind}) on voice {voice.name!r}: {exc}") from None
         if upto is not None and op.id == upto:
             break
+    if voice.inst.unpitched:
+        notes = [n if n.percussive else replace(n, percussive=True) for n in notes]
     notes.sort(key=lambda n: (n.start, n.pitch))
     cache[voice.name] = notes
     return notes
@@ -452,7 +455,10 @@ def _op_chords(piece: Piece, voice: Voice, op: Op) -> list[Note]:
         chord, key = piece.chord_at(lo)
         if chord is None:
             continue
-        pitches = [chord.tone(key, i + chord.inversion, octave) for i in range(tones)]
+        # Rootless: the same stack of thirds, begun one tone up. A triad has
+        # no tone to spare, so it keeps its root.
+        skip = 1 if op.params.get("rootless") and chord.size > 3 else 0
+        pitches = [chord.tone(key, i + chord.inversion + skip, octave) for i in range(tones)]
         if lead and prev is not None:
             pitches = _nearest_voicing(pitches, prev)
         prev = list(pitches)

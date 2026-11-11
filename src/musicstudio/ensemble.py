@@ -33,6 +33,10 @@ class Instrument:
     #: Synthesis recipe for the WAV render; see ``audio.VOICES``.
     timbre: str = "bow"
     percussive: bool = False
+    #: Noise with no pitch that is not a drum either (the surface of a record).
+    #: Its notes say when it sounds; harmony, voice leading and the low-interval
+    #: limit have nothing to say about them.
+    unpitched: bool = False
     #: GM percussion key, for instruments that live on channel 10.
     drum_key: int | None = None
     notes: tuple[str, ...] = ()
@@ -156,6 +160,11 @@ INSTRUMENTS: dict[str, Instrument] = {i.name: i for i in [
     _i("noise_wall", "synth", "C1", "C7", "C2", "C6", 122, polyphony=2, timbre="saw",
        notes=("Almost pure noise. Hold it under everything, sweep a filter across "
               "it for a riser, or gate it with `chop`.",)),
+    _i("vinyl", "synth", "C1", "C7", "C2", "C6", 122, polyphony=2, timbre="saw",
+       unpitched=True,
+       notes=("The surface of a record: crackle, a little hiss, and a tick once "
+              "a revolution. Hold one note under a loop that is meant to sound "
+              "found; a harder dynamic is a dirtier record. It has no pitch.",)),
     _i("synth_bass", "synth", "C0", "C4", "C1", "C3", 38, polyphony=1, timbre="saw"),
     _i("sub_bass", "synth", "C0", "C3", "D1", "G2", 39, polyphony=1, timbre="tri",
        notes=("Nearly a sine: felt more than heard, and inaudible on small speakers. "
@@ -402,10 +411,18 @@ INSTRUMENTS.update({i.name: i for i in [
     _f("strat_clean", "plucked", "E2", "E6", "guitar_clean", (0, 0), "guitar", 27, 6,
        ("Clean electric guitar, bridge pickup: thin and bright. Arpeggios and "
         "funk chords; add `drive` for crunch.",)),
-    _f("rbx_picked_bass", "plucked", "B0", "G4", "bass_picked", (0, 0), "picked_bass",
-       34, 1, ("A recorded bass guitar played with a pick. Reaches a low B.",)),
-    _f("rbx_finger_bass", "plucked", "B0", "G4", "bass_finger", (0, 0), "electric_bass",
-       33, 1, ("The same bass, fingers: rounder, less attack.",)),
+    _f("classical_guitar", "plucked", "E2", "E6", "guitar_nylon", (0, 0), "guitar", 24, 6,
+       ("A recorded Spanish guitar, nylon strings: dark, close and a little "
+        "uneven from note to note, which is what makes it a guitar. The one to "
+        "use when a guitar carries a piece on its own.",)),
+    # The ranges are the banks' own key zones (26-46 and 26-45), read out of
+    # the files: a note written above them is not played at all, so it has to
+    # be a range error and not a silence found later by `ms hear`.
+    _f("rbx_picked_bass", "plucked", "D1", "A#2", "bass_picked", (0, 0), "picked_bass",
+       34, 1, ("A recorded bass guitar played with a pick. Low D to the B flat "
+               "a thirteenth above: a bass line's octave and no more.",)),
+    _f("rbx_finger_bass", "plucked", "D1", "A2", "bass_finger", (0, 0), "electric_bass",
+       33, 1, ("The same bass, fingers: rounder, less attack. Low D to A.",)),
     _kit("kit_rock", "muldjord", (0, 0), "kit_power",
          "A recorded rock kit, close and room microphones mixed: big toms, a "
          "long snare. The lanes are the usual ones; `splash` is its second "

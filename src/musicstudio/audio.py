@@ -487,6 +487,12 @@ def voice_fx(piece: Piece, to_sec, notes=()) -> dict[str, list[tuple]]:
                                if n.voice == params["source"] and lo <= n.start < hi
                                and (drum is None or n.pitch == KIT_DRUMS[drum])})
                 params = {**params, "_hits": hits}
+            if op.kind == "echo":
+                # A note value, so the repeats sit on the grid; measured at
+                # the tempo where the echo starts.
+                from .theory import ticks
+                span = ticks(str(params.get("time") or "1/8."))
+                params = {**params, "_delay": to_sec(lo + span) - to_sec(lo)}
             out.setdefault(v.name, []).append(
                 (op.kind, params, int(to_sec(lo) * SR), int(to_sec(max(hi, lo)) * SR)))
     for lo, hi, keep in stops(piece, to_sec):
@@ -560,6 +566,56 @@ def _bell(x, lo: int, hi: int, freq: float, db: float, width: float):
     out = x.copy()
     out[lo:hi] = seg + (wet - seg) * mix
     return out
+
+
+def _echo(left, right, lo: int, hi: int, delay: float, feedback: float, mix: float,
+          tone: float, spread: float):
+    """A feedback delay over samples ``lo..hi`` of a bus.
+
+    Each repeat is the one before it, quieter and duller, the way a tape or a
+    bucket-brigade echo loses its top on every pass; with ``spread`` the
+    repeats take alternate sides. Only sound that starts inside the span is
+    repeated, and the repeats ring on past its end. It is laid down repeat by
+    repeat instead of run as a recursive filter, so the same input always gives
+    the same output whatever came before the span.
+    """
+    np = _np
+    n = len(left)
+    lo, hi = max(0, lo), min(n, hi)
+    step = int(round(delay * SR))
+    if hi - lo < 16 or step < 1 or mix <= 0:
+        return left, right
+    feedback = max(0.0, min(0.92, feedback))
+    k = min(int(0.005 * SR), (hi - lo) // 2)
+    gate = np.ones(hi - lo)
+    gate[:k] = np.linspace(0.0, 1.0, k)
+    gate[-k:] = np.linspace(1.0, 0.0, k)
+    tap = (0.5 * (left[lo:hi] + right[lo:hi]) * gate if spread
+           else None)
+    taps = [tap] if spread else [left[lo:hi] * gate, right[lo:hi] * gate]
+    # One-pole lowpass as a short kernel: applied once per repeat, so the
+    # fifth echo has been through it five times.
+    a = math.exp(-2.0 * math.pi * max(200.0, min(tone, SR / 2.2)) / SR)
+    kernel = (1.0 - a) * a ** np.arange(64)
+    kernel /= kernel.sum()
+    out_l, out_r = left.copy(), right.copy()
+    level, at, count = mix, lo + step, 0
+    while level > 1e-3 and at < n and count < 48:
+        taps = [np.convolve(t, kernel)[:len(t)] for t in taps]
+        end = min(n, at + (hi - lo))
+        if spread:
+            side = 1.0 if count % 2 == 0 else -1.0     # first repeat to the left
+            gl = math.sqrt(0.5 * (1.0 + side * spread))
+            gr = math.sqrt(0.5 * (1.0 - side * spread))
+            out_l[at:end] += taps[0][:end - at] * level * gl * math.sqrt(2.0)
+            out_r[at:end] += taps[0][:end - at] * level * gr * math.sqrt(2.0)
+        else:
+            out_l[at:end] += taps[0][:end - at] * level
+            out_r[at:end] += taps[1][:end - at] * level
+        level *= feedback
+        at += step
+        count += 1
+    return out_l, out_r
 
 
 def _apply_fx(left, right, chain):
@@ -660,6 +716,16 @@ def _apply_fx(left, right, chain):
         elif kind == "gain":
             level = 10 ** (float(params["db"]) / 20.0)
             left, right = left * level, right * level
+        elif kind == "echo":
+            left, right = _echo(left, right, lo, hi, float(params.get("_delay") or 0.0),
+                                float(params.get("feedback") if params.get("feedback")
+                                      is not None else 0.4),
+                                float(params.get("mix") if params.get("mix") is not None
+                                      else 0.35),
+                                float(params.get("tone") or 3000.0),
+                                max(0.0, min(1.0, float(
+                                    params.get("spread") if params.get("spread")
+                                    is not None else 0.6))))
         elif kind == "crush":
             step = max(1, int(round(SR / max(500.0, float(params.get("rate") or SR)))))
             levels = 2.0 ** (max(2, int(params.get("bits") or 16)) - 1)

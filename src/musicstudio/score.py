@@ -15,6 +15,7 @@ be written down, read, searched and edited as a file, and compiled in one step:
       1: i i VI VII | i iv V7 i          # one chord a bar, from bar 1
                                          # (a comment is `# ` with a space: #4 is a sharp)
       @B: [VI VII]*3 V7 i                # from a section; groups repeat
+      @C: iv9 . VII13 .                  # `.` holds the chord before for another bar
       @B.7:3: V7                         # a change inside a bar
 
     motif hero = 0 2 4:1/4 3 2:1/2       -- the tune
@@ -502,7 +503,8 @@ class _Compiler:
                 continue
             bar = int(at)
             for chord, dur in chords:
-                entries.append(HarmonyEntry(str(bar), chord, dur, note))
+                if chord != ".":                   # `.`: the chord before carries on
+                    entries.append(HarmonyEntry(str(bar), chord, dur, note))
                 bar += 1
         entries.sort(key=lambda e: self.piece.tick_of(e.at))
         self.piece.harmony = entries
