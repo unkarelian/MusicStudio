@@ -88,8 +88,17 @@ VOICED_CONSONANTS = {"b", "d", "g", "jh", "v", "dh", "z", "zh", "m", "n", "ng", 
                      "r", "w", "y"}
 
 
+def _folder(name: str) -> str:
+    """A voice or model name as one folder name: nothing in it can climb out
+    of the cache (``..``, ``/abs``) however the bank was spelled in a piece."""
+    out = re.sub(r"[^a-z0-9._-]+", "_", str(name).lower()).strip(".")
+    if not out:
+        raise ValueError(f"{name!r} is not a voice bank name")
+    return out
+
+
 def bank_dir(voice: str, model: str = DEFAULT_MODEL) -> Path:
-    return CACHE_DIR.expanduser() / re.sub(r"[^a-z0-9.-]+", "_", model.lower()) / voice.lower()
+    return CACHE_DIR.expanduser() / _folder(model) / _folder(voice)
 
 
 def _clean(word: str) -> str:
@@ -890,8 +899,11 @@ def render_phrase(sung: list[Sung], bank: Bank, singer, seed: int,
     return out * (LEVEL * singer.level / VOWEL_RMS), t0
 
 
-def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float]) -> dict[str, tuple]:
-    """``{voice: (left, right)}`` for every singer whose bank has been recorded."""
+def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float], *,
+                strict: bool = False) -> dict[str, tuple]:
+    """``{voice: (left, right)}`` for every singer whose bank has been recorded.
+    A bank that is missing is left to the formant singer with a warning, or
+    raises under ``strict``."""
     import warnings
     from . import neural
     from .vocal import SINGERS, phrases, plan
@@ -905,6 +917,9 @@ def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float]) -> dic
         voice_name, model = parse_bank(v.bank)
         bank = load(voice_name, model)
         if bank is None:
+            if strict:
+                raise RuntimeError(f"voice {v.name!r}: the bank {v.bank!r} has not "
+                                   f"been recorded")
             warnings.warn(f"voice {v.name!r} falls back to the synthesized singer: the "
                           f"bank {v.bank!r} has not been recorded. Run "
                           f"`ms voicebank build {voice_name}`.", stacklevel=2)
@@ -1023,3 +1038,19 @@ def words_heard(written: list[str], heard: str) -> tuple[float, list[str]]:
             kept[i] = True
     missed = [w for w, k in zip(want, kept) if not k]
     return (sum(kept) / len(want) if want else 0.0), missed
+
+
+def words_added(written: list[str], heard: str) -> list[str]:
+    """What the recogniser wrote that the lyric does not say. ``words_heard``
+    is recall, and recall alone is satisfied by a voice that sings every word
+    among a lot of noise the recogniser also took for words; this is the other
+    half of the score."""
+    import difflib
+    want = [_clean(w) for w in written if _clean(w)]
+    got = [_clean(w) for w in re.split(r"[^A-Za-z']+", heard) if _clean(w)]
+    match = difflib.SequenceMatcher(a=want, b=got, autojunk=False)
+    kept = [False] * len(got)
+    for block in match.get_matching_blocks():
+        for i in range(block.b, block.b + block.size):
+            kept[i] = True
+    return [w for w, k in zip(got, kept) if not k]

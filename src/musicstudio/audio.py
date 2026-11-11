@@ -279,8 +279,16 @@ def _gains(pan: float) -> tuple[float, float]:
 
 def synthesize(piece: Piece, rend: Render | None = None, *, tail: float = 1.5,
                gain: float = 0.72, stereo: bool = True,
-               reverb: bool | None = None, models: bool | None = None):
+               reverb: bool | None = None, models: bool | None = None,
+               strict: bool = False, engines: dict | None = None):
     """Render to sample buffers: ``(left, right)``, or ``(mono, mono)``.
+
+    A voice that asks for an engine this machine cannot run (a voicebank that
+    is not installed, a SoundFont voice without FluidSynth) is played by the
+    next engine down, with a warning. ``strict=True`` raises instead, which is
+    what a test of an engine wants; ``engines``, if given, is filled with
+    ``{voice: engine}`` for every voice rendered whole, so a caller can see who
+    actually sang.
 
     ``reverb=None`` and ``models=None`` both mean "if numpy is available".
     ``models`` plays each voice through its instrument model (``synth.py``)
@@ -291,6 +299,11 @@ def synthesize(piece: Piece, rend: Render | None = None, *, tail: float = 1.5,
     r = rend if rend is not None else render(piece)
     to_sec = _tick_seconds(piece)
     room = ROOMS.get(piece.style, ROOMS["freeform"])
+    how = (piece.meta.get("master") or {}).get("room")
+    if how:
+        # The piece's own room: (seconds of tail, how much of it), in place of
+        # the style's. A pop vocal wants far less of it than a string section.
+        room = (float(how.get("decay", room[0])), float(how.get("wet", room[1])))
     use_reverb = (has_fast_path() if reverb is None else reverb) and room[1] > 0
     if use_reverb and not has_fast_path():
         raise RuntimeError("reverb needs numpy; `uv sync --extra analysis`, or "
@@ -308,13 +321,69 @@ def synthesize(piece: Piece, rend: Render | None = None, *, tail: float = 1.5,
     if has_fast_path():
         left, right, send = _synth_numpy(
             r.notes, voices, pans, to_sec, total, gain, use_models,
-            1.0 if stereo else 0.0, voice_fx(piece, to_sec),
-            prerendered(piece, r.notes, to_sec, total, pans) if use_models else None)
+            1.0 if stereo else 0.0, voice_fx(piece, to_sec, r.notes),
+            prerendered(piece, r.notes, to_sec, total, pans, strict=strict,
+                        engines=engines) if use_models else None)
     else:
+        lost = _lost_without_numpy(piece)
+        if lost and strict:
+            raise RuntimeError(f"this render needs numpy (`uv sync --extra "
+                               f"analysis`): {lost}")
+        if lost:
+            import warnings
+            warnings.warn(f"rendering without numpy, so this is not the piece as "
+                          f"written: {lost}. `uv sync --extra analysis` renders "
+                          f"all of it.", stacklevel=2)
         left, right = _synth_python(r.notes, voices, pans, to_sec, total, gain)
     if use_reverb:
-        left, right = _reverb(left, right, *room, send=send)
+        wet_l, wet_r = _reverb(left, right, *room, send=send)
+        dead = stops(piece, to_sec)
+        if dead:
+            # The room stops with the band: the tail of what came before a
+            # stop is taken out, so what is kept through it is heard dry.
+            live = _np.ones(len(left))
+            for lo, hi, _ in dead:
+                _fade_out(live, lo, hi)
+            wet_l = left + (wet_l - left) * live
+            wet_r = right + (wet_r - right) * live
+        left, right = wet_l, wet_r
     return left, right
+
+
+def _fade_out(gain, lo: int, hi: int, ms: float = 4.0) -> None:
+    """Take ``gain`` to zero across ``lo..hi`` in place, with a few
+    milliseconds of ramp at each end so the cut is silent, not a click."""
+    np = _np
+    lo, hi = max(0, lo), min(len(gain), hi)
+    if hi <= lo:
+        return
+    k = max(1, min(int(ms * SR / 1000), (hi - lo) // 2))
+    shape = np.zeros(hi - lo)
+    shape[:k] = np.linspace(1.0, 0.0, k)
+    shape[-k:] = np.linspace(0.0, 1.0, k)
+    gain[lo:hi] = np.minimum(gain[lo:hi], shape)
+
+
+def _lost_without_numpy(piece: Piece) -> str:
+    """What the pure-stdlib render leaves out of this piece, in words. It
+    plays the same notes; it has no per-voice processing and no singers, and a
+    fader that is silently ignored is a different mix, so it must say so."""
+    from .render import AUDIO_ONLY
+
+    def is_singer(instrument: str) -> bool:     # vocal.py itself needs numpy
+        return instrument.startswith("singer")
+    fx = sorted({op.kind for v in piece.voices if not v.muted
+                 for op in v.ops if op.enabled and op.kind in AUDIO_ONLY})
+    sung = [v.name for v in piece.voices if not v.muted and is_singer(v.instrument)]
+    sampled = [v.name for v in piece.voices if not v.muted and v.engine == "soundfont"]
+    parts = []
+    if fx:
+        parts.append(f"the {', '.join(fx)} ops are ignored")
+    if sung:
+        parts.append(f"{', '.join(sung)} will not sing (a plain tone instead)")
+    if sampled:
+        parts.append(f"{', '.join(sampled)} will not be sampled")
+    return "; ".join(parts)
 
 
 def _note_plan(n, voice: Voice, to_sec, total: int, gain: float):
@@ -368,9 +437,25 @@ def _synth_python(notes, voices, pans, to_sec, total, gain):
     return left, right
 
 
-def voice_fx(piece: Piece, to_sec) -> dict[str, list[tuple]]:
+def stops(piece: Piece, to_sec) -> list[tuple[int, int, tuple]]:
+    """The piece's hard stops as ``(first sample, last sample, voices kept)``.
+
+    A stop is the whole band cut to nothing -- ringing notes, releases and the
+    room's tail -- while the voices in ``keep`` carry on, dry. It lives in
+    ``meta['master']['stops']`` because it belongs to no one voice."""
+    out = []
+    for st in (piece.meta.get("master") or {}).get("stops") or []:
+        lo, hi = piece.tick_of(st["from"]), piece.tick_of(st["until"])
+        if hi > lo:
+            out.append((int(to_sec(lo) * SR), int(to_sec(hi) * SR), tuple(st.get("keep") or ())))
+    return out
+
+
+def voice_fx(piece: Piece, to_sec, notes=()) -> dict[str, list[tuple]]:
     """``{voice: [(kind, params, first sample, last sample)]}`` for the ops that
-    shape a voice's sound rather than its notes, in the order they were added."""
+    shape a voice's sound rather than its notes, in the order they were added.
+    ``notes`` are the rendered notes, which a `duck` needs to know when its
+    source plays; the piece's stops are added to every voice they silence."""
     from .render import AUDIO_ONLY
     out: dict[str, list[tuple]] = {}
     for v in piece.voices:
@@ -380,8 +465,34 @@ def voice_fx(piece: Piece, to_sec) -> dict[str, list[tuple]]:
             lo = piece.tick_of(op.params["from"]) if op.params.get("from") else 0
             hi = (piece.tick_of(op.params["until"]) if op.params.get("until")
                   else piece.total_ticks)
+            params = op.params
+            if op.kind == "duck":
+                from .ensemble import KIT_DRUMS
+                piece.get_voice(params["source"])            # a typo fails here
+                drum = params.get("drum")
+                if drum is not None and drum not in KIT_DRUMS:
+                    raise ValueError(f"duck drum {drum!r} is not a drum; a kit has "
+                                     f"{sorted(KIT_DRUMS)}")
+                source = piece.get_voice(params["source"])
+                played = notes
+                if source.muted:
+                    # A muted key still keys: a pad soloed (as `ms hear` does)
+                    # must pump the way it does in the mix.
+                    import copy
+                    alone = copy.deepcopy(piece)
+                    for other in alone.voices:
+                        other.muted = other.name != source.name
+                    played = render(alone).notes
+                hits = sorted({int(to_sec(n.start) * SR) for n in played
+                               if n.voice == params["source"] and lo <= n.start < hi
+                               and (drum is None or n.pitch == KIT_DRUMS[drum])})
+                params = {**params, "_hits": hits}
             out.setdefault(v.name, []).append(
-                (op.kind, op.params, int(to_sec(lo) * SR), int(to_sec(max(hi, lo)) * SR)))
+                (op.kind, params, int(to_sec(lo) * SR), int(to_sec(max(hi, lo)) * SR)))
+    for lo, hi, keep in stops(piece, to_sec):
+        for v in piece.voices:
+            if v.name not in keep:
+                out.setdefault(v.name, []).append(("cut", {}, lo, hi))
     return out
 
 
@@ -425,6 +536,32 @@ def _sweep_filter(x, lo: int, hi: int, start: float, end: float, mode: str,
     return y
 
 
+def _bell(x, lo: int, hi: int, freq: float, db: float, width: float):
+    """A bell-shaped boost or cut, ``width`` octaves across at half its depth,
+    over samples ``lo..hi``. Done on the spectrum, so it has no phase of its
+    own and a cut at 3 kHz leaves 300 Hz exactly as it was; the span is faded
+    in and out over 20 ms so it does not click."""
+    np = _np
+    lo, hi = max(0, lo), min(len(x), hi)
+    if hi - lo < 16:
+        return x
+    seg = x[lo:hi]
+    spec = np.fft.rfft(seg)
+    f = np.fft.rfftfreq(len(seg), 1.0 / SR)
+    octaves = np.log2(np.maximum(f, 1e-6) / freq)
+    curve = 10 ** (db / 20.0 * np.exp(-0.5 * (octaves / (width / 2.355)) ** 2))
+    wet = np.fft.irfft(spec * curve, len(seg))
+    k = min(int(0.02 * SR), (hi - lo) // 2)
+    mix = np.ones(len(seg))
+    if lo > 0:
+        mix[:k] = np.linspace(0.0, 1.0, k)
+    if hi < len(x):
+        mix[-k:] = np.linspace(1.0, 0.0, k)
+    out = x.copy()
+    out[lo:hi] = seg + (wet - seg) * mix
+    return out
+
+
 def _apply_fx(left, right, chain):
     """Run a voice's processing chain over its own bus."""
     np = _np
@@ -438,6 +575,38 @@ def _apply_fx(left, right, chain):
             res = max(0.0, min(1.0, float(params.get("resonance") or 0.0)))
             left = _sweep_filter(left, lo, hi, start, end, mode, res)
             right = _sweep_filter(right, lo, hi, start, end, mode, res)
+        elif kind == "cut":
+            keep = np.ones(len(left))
+            _fade_out(keep, lo, hi)
+            left, right = left * keep, right * keep
+        elif kind == "duck":
+            depth = max(0.0, min(40.0, float(params.get("depth") or 8.0)))
+            release = max(0.01, float(params.get("release") or 0.18))
+            floor = 10 ** (-depth / 20.0)
+            # Down in 5 ms at each hit, back up along an exponential: the
+            # shape a compressor keyed from the kick draws.
+            n = int(release * 5 * SR)
+            swell = 1.0 - (1.0 - floor) * np.exp(-np.arange(n) / (release * SR))
+            attack = int(0.005 * SR)
+            curve = np.ones(len(left))
+            for hit in params.get("_hits") or ():
+                a = max(0, hit - attack)
+                if a >= len(curve):
+                    continue
+                curve[a:hit] = np.minimum(curve[a:hit],
+                                          np.linspace(curve[a], floor, hit - a))
+                b = min(len(curve), hit + n)
+                curve[hit:b] = np.minimum(curve[hit:b], swell[:b - hit])
+            left, right = left * curve, right * curve
+        elif kind == "eq":
+            freq = float(params["freq"])
+            db = max(-24.0, min(24.0, float(params["gain"])))
+            width = max(0.1, float(params.get("width") or 1.0))
+            if not 20.0 <= freq <= SR / 2:
+                raise ValueError(f"eq freq must be between 20 Hz and {SR // 2}, got {freq}")
+            if db:
+                left = _bell(left, lo, hi, freq, db, width)
+                right = _bell(right, lo, hi, freq, db, width)
         elif kind == "drive":
             amount = max(0.0, min(4.0, float(params.get("amount") or 0.0)))
             mode = params.get("mode") or "soft"
@@ -700,10 +869,12 @@ def _master(left, right, ceiling: float = 0.95, push: float = 3.5, clip: float =
 
 def save_wav(piece: Piece, path: str | Path, rend: Render | None = None, *,
              stereo: bool = True, reverb: bool | None = None,
-             models: bool | None = None) -> Path:
+             models: bool | None = None, strict: bool = False,
+             engines: dict | None = None) -> Path:
     """Normalize and write 16-bit PCM. Normalization is peak-based, not RMS, so
     a quiet cue stays quiet relative to its own loud moments."""
-    left, right = synthesize(piece, rend, stereo=stereo, reverb=reverb, models=models)
+    left, right = synthesize(piece, rend, stereo=stereo, reverb=reverb, models=models,
+                             strict=strict, engines=engines)
     channels = 2 if stereo else 1
     if _np is not None:
         how = piece.meta.get("master") or {}
@@ -802,23 +973,41 @@ def soundfont_available() -> bool:
     return True
 
 
-def prerendered(piece: Piece, notes, to_sec, total: int, pans) -> dict[str, tuple]:
+def prerendered(piece: Piece, notes, to_sec, total: int, pans, *,
+                strict: bool = False, engines: dict | None = None) -> dict[str, tuple]:
     """Voices that are rendered whole rather than note by note: sampled ones
-    from the SoundFont, and singers, whose syllables run into each other."""
+    from the SoundFont, and singers, whose syllables run into each other.
+
+    Each voice is rendered once, by the first engine that can: its bank if it
+    names one, the formant singer otherwise *or if the bank could not be run*
+    (which warns, or raises under ``strict``). ``engines`` records which.
+    """
     from .vocal import voice_stems
-    out = dict(voice_stems(piece, notes, to_sec, total, pans))
+    out: dict[str, tuple] = {}
+    used: dict[str, str] = {}
     if any(v.bank for v in piece.voices):
         # A bank is either a neural singer (a trained voicebank) or a recorded
         # voice; a name the neural engine knows is never tried as the other.
         from .neural import voice_stems as neural
         from .voicebank import voice_stems as banked
-        out.update(banked(piece, notes, to_sec, total, pans))
-        out.update(neural(piece, notes, to_sec, total, pans))
-    out.update(sampled_stems(piece, notes, to_sec, total))
+        bank_of = {v.name: v.bank for v in piece.voices}
+        for label, stems in (("voicebank", banked), ("neural", neural)):
+            got = stems(piece, notes, to_sec, total, pans, strict=strict)
+            out.update(got)
+            used.update({name: f"{label}:{bank_of[name]}" for name in got})
+    plain = voice_stems(piece, notes, to_sec, total, pans, skip=set(out))
+    out.update(plain)
+    used.update({name: "formant" for name in plain})
+    sampled = sampled_stems(piece, notes, to_sec, total, strict=strict)
+    out.update(sampled)
+    used.update({name: "soundfont" for name in sampled})
+    if engines is not None:
+        engines.update(used)
     return out
 
 
-def sampled_stems(piece: Piece, notes, to_sec, total: int) -> dict[str, tuple]:
+def sampled_stems(piece: Piece, notes, to_sec, total: int, *,
+                  strict: bool = False) -> dict[str, tuple]:
     """Render the voices marked ``engine='soundfont'`` from the SoundFont.
 
     Returns ``{voice: (left, right)}`` at the built-in render's level, ready for
@@ -836,6 +1025,9 @@ def sampled_stems(piece: Piece, notes, to_sec, total: int) -> dict[str, tuple]:
         return {}
     if not soundfont_available():
         import warnings
+        if strict:
+            raise RuntimeError("voices with engine='soundfont' cannot be sampled: "
+                               "FluidSynth or a SoundFont is missing")
         warnings.warn("voices with engine='soundfont' are being played by the "
                       "instrument models: FluidSynth or a SoundFont is missing "
                       "(`ms soundfont install`)", stacklevel=2)
@@ -871,17 +1063,27 @@ def sampled_stems(piece: Piece, notes, to_sec, total: int) -> dict[str, tuple]:
                 first = min(to_sec(n.start) for n in group)
                 last = max(to_sec(n.end) for n in group)
                 length = (last - first + 2.5) * ratio
-                ends: dict[int, int] = {}
+                # One note-off per pitch: a note struck again while it still
+                # rings ends where the next one starts, or its own later
+                # note-off would land inside the new note and silence it
+                # (the rule `midi._sounding_ends` applies to the MIDI export).
+                spans: list[list[int]] = []
+                ringing: dict[int, list[int]] = {}
                 for n in sorted(group, key=lambda n: n.start):
                     on = int((cursor + (to_sec(n.start) - first) * ratio) * rate)
                     off = max(on + 1, int((cursor + (to_sec(n.end) - first) * ratio) * rate))
                     pitch = max(0, min(127, n.pitch))
-                    if ends.get(pitch, -1) > on:      # one note-off per pitch
-                        events.append((on, bytes([0x80 | ch, pitch, 0])))
+                    before = ringing.get(pitch)
+                    if before is not None and before[1] > on:
+                        before[1] = max(before[0] + 1, on)
                     vel = max(1, min(127, round(127 * (max(1, n.velocity) / 127) ** curve)))
-                    events.append((on, bytes([0x90 | ch, pitch, vel])))
-                    events.append((off, bytes([0x80 | ch, pitch, 0])))
-                    ends[pitch] = off
+                    span = [on, off, pitch, vel]
+                    spans.append(span)
+                    ringing[pitch] = span
+                # Offs first, so an off and an on at one tick end the old note
+                # rather than the new one.
+                events += [(off, bytes([0x80 | ch, pitch, 0])) for _, off, pitch, _ in spans]
+                events += [(on, bytes([0x90 | ch, pitch, vel])) for on, _, pitch, vel in spans]
                 layout.append((ratio, first, cursor, length))
                 cursor += length
             meta = _track([(0, b"\xff\x51\x03" + struct.pack(">I", 500000)[1:])])

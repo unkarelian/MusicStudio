@@ -514,6 +514,8 @@ def _dispatch(s: Studio, a) -> int:
         print(f"  heard:  {r['heard']}")
         if r["missed"]:
             print(f"  missed: {' '.join(r['missed'])}")
+        if r.get("extra"):
+            print(f"  heard but not written ({len(r['extra'])}): {' '.join(r['extra'])}")
         return 0
     if c == "voicebank":
         def tick(done, total, word):

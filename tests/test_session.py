@@ -10,6 +10,7 @@ from the file.
 from __future__ import annotations
 
 import json
+import math
 import wave
 
 import pytest
@@ -96,6 +97,31 @@ def test_a_failed_mutation_does_not_leave_a_half_applied_edit_behind(tmp_path):
     s.add_voice("p", "low", "cello", role="bass")
     on_disk = json.loads(s.path_for("p").read_text())
     assert on_disk["sections"][0]["dynamic"] == "mf"
+
+
+def test_an_edit_that_cannot_be_rendered_never_reaches_the_file(tmp_path):
+    """The piece is rendered *before* it is saved. Saved first, an op that
+    validates but will not render was on disk by the time the render raised,
+    and evicting the cache only reloaded the broken piece."""
+    s = _studio(tmp_path)
+    before = s.path_for("p").read_text()
+    voice = s.get("p").voices[0].name
+    with pytest.raises(Exception):
+        s.add_op("p", voice, "phrase", id="bad", steps="not-a-note", at="1")
+    assert s.path_for("p").read_text() == before
+    assert all(op.id != "bad" for _, op in s.get("p").all_ops())
+    assert s.history("p") == s.history("p") and not list(s.pieces_dir.glob(".*part"))
+    s.lint("p")                                   # and the piece still renders
+
+
+def test_a_piece_name_is_a_file_name_and_nothing_more(tmp_path):
+    s = _studio(tmp_path)
+    for name in ("../escaped", "a/b", "..", "", "/abs"):
+        with pytest.raises(ValueError, match="not a piece name"):
+            s.path_for(name)
+    with pytest.raises(ValueError, match="not a piece name"):
+        s.create("../escaped")
+    assert not (tmp_path / "escaped.ms.json").exists()
 
 
 def test_an_edit_made_outside_the_session_is_not_overwritten(tmp_path):
@@ -825,7 +851,127 @@ def test_a_chopped_pitch_moves_a_pitched_voice_too():
     assert up.freq == pytest.approx(base.freq * 2)
     q = _line("0:1/1 | 0:1/1")
     q.add_op("v", "chop", id="c", **{"from": "1", "until": "2"}, slices=4, order="0*4^0>12 . . .")
-    assert sorted(n.tune for n in render(q).notes if n.start < 480) == [0.0, 4.0, 8.0, 12.0]
+    # On a pitched voice a whole-semitone shift is a different note, so it is
+    # the *pitch* that moves: lint, the tension view and MIDI see what sounds.
+    roll = sorted((n for n in render(q).notes if n.start < 480), key=lambda n: n.start)
+    assert [n.pitch - roll[0].pitch for n in roll] == [0, 4, 8, 12]
+    assert all(n.tune == 0.0 for n in roll)
+    # Only the fraction of a shift is tuning.
+    h = _line("0:1/1 | 0:1/1")
+    h.add_op("v", "chop", id="c", **{"from": "1", "until": "2"}, slices=4, order="0^2.5 . . .")
+    first = min(render(h).notes, key=lambda n: n.start)
+    assert (first.pitch - roll[0].pitch, first.tune) in ((2, 0.5), (3, -0.5))
+
+
+def test_a_chopped_theme_is_not_reported_as_written_and_chop_refuses_dust():
+    p = Piece("c", "C major", tempo=100, style="electronic")
+    p.sections.append(Section("A", 2))
+    p.add_motif("hero", "0 2 4 2", unit="1/4")
+    p.voices.append(Voice("v", "synth_lead", "melody", octave=4))
+    p.add_op("v", "play", id="s", motif="hero", at="1")
+    assert {n.form for n in render(p).notes} == {""}
+    p.add_op("v", "chop", id="c", **{"from": "1", "until": "2"}, slices=4, order="3 2 1 0")
+    notes = sorted(render(p).notes, key=lambda n: n.start)
+    assert {n.form for n in notes} == {"chopped"} and {n.motif for n in notes} == {"hero"}
+    from musicstudio.readback import motif_map
+    assert "chopped" in motif_map(p, render(p))
+    # A slot left where it was ('_') is still the theme as written.
+    p.update_op("c", order="_ _ 3 2")
+    notes = sorted(render(p).notes, key=lambda n: n.start)
+    assert [n.form for n in notes[:2]] == ["", ""]
+    p.update_op("c", slices=100000)
+    with pytest.raises(ValueError, match="finer than"):
+        render(p)
+
+
+def test_a_retuned_note_sounds_the_same_whatever_was_rendered_before_it():
+    """The table cache is keyed by the frequency a table is built from. Keyed
+    by written pitch alone, a tuned note inherited the untuned note's table --
+    or left its own behind -- and a render depended on its history."""
+    np = pytest.importorskip("numpy")
+    from musicstudio import synth
+    for inst in ("clarinet", "piano"):
+        plain = synth.NoteCtx(inst, "v", 60, 0.0, 0.4, 90, None, False, ("v", 0, 60))
+        tuned = synth.NoteCtx(inst, "v", 60, 0.0, 0.4, 90, None, False, ("v", 0, 60), 7.0)
+        synth._tables.clear()
+        alone = [layer for layer, _ in synth.render_note(tuned, 44100)]
+        synth._tables.clear()
+        synth.render_note(plain, 44100)
+        after = [layer for layer, _ in synth.render_note(tuned, 44100)]
+        assert len(alone) == len(after) and all(
+            np.array_equal(a, b) for a, b in zip(alone, after)), inst
+
+
+def test_eq_cuts_its_band_and_leaves_the_rest_alone():
+    np = pytest.importorskip("numpy")
+    def bands(piece):
+        x, _ = audio.synthesize(piece, reverb=False)
+        spec = np.abs(np.fft.rfft(x)) ** 2
+        f = np.fft.rfftfreq(len(x), 1 / audio.SR)
+        return [float(spec[(f >= a) & (f < b)].sum()) for a, b in ((100, 600), (2400, 4200))]
+    plain = _line("0:1/1 | 0:1/1")
+    cut = _line("0:1/1 | 0:1/1")
+    cut.add_op("v", "eq", id="e", freq=3200, gain=-12, width=1.0)
+    low0, mid0 = bands(plain)
+    low1, mid1 = bands(cut)
+    assert 10 * math.log10(mid1 / mid0) < -6           # the band is down
+    assert abs(10 * math.log10(low1 / low0)) < 0.2     # two octaves away, untouched
+    # It is audio only: the notes and the MIDI file are the same.
+    from musicstudio.midi import to_bytes
+    assert to_bytes(plain) == to_bytes(cut)
+    cut.update_op("e", freq=5)
+    with pytest.raises(ValueError, match="eq freq"):
+        audio.synthesize(cut, reverb=False)
+
+
+def test_a_duck_pumps_against_its_source_and_a_stop_silences_band_and_room(tmp_path):
+    np = pytest.importorskip("numpy")
+    p = Piece("d", "C major", tempo=120, style="electronic")
+    p.sections.append(Section("A", 2))
+    p.voices.append(Voice("pad", "synth_pad", "pad", octave=4))
+    p.voices.append(Voice("drums", "kit", "percussion"))
+    p.voices.append(Voice("solo", "synth_lead", "melody", octave=5))
+    p.add_op("pad", "phrase", id="hold", steps="0:1/1 | 0:1/1", at="1")
+    p.add_op("solo", "phrase", id="tune", steps="4:1/1 | 4:1/1", at="1")
+    p.add_op("drums", "beat", id="b", at="1", bars=2, lanes={"kick": "x...x...x...x...",
+                                                            "hat": "..x...x...x...x."})
+    only = lambda q, name: [setattr(v, "muted", v.name != name) for v in q.voices]
+
+    import copy
+    flat = copy.deepcopy(p); only(flat, "pad")
+    plain, _ = audio.synthesize(flat, reverb=False)
+    p.add_op("pad", "duck", id="pump", source="drums", drum="kick", depth=12, release=0.1)
+    ducked = copy.deepcopy(p); only(ducked, "pad")
+    pumped, _ = audio.synthesize(ducked, reverb=False)
+    beat = int(0.5 * audio.SR)
+    def level(x, at, span=0.02):
+        a = int(at * audio.SR)
+        return float(np.sqrt(np.mean(x[a:a + int(span * audio.SR)] ** 2)))
+    # Down by about the depth just after a kick, back up before the next one,
+    # and the hats (not the drum asked for) do not move it.
+    assert level(pumped, 0.505) < 0.4 * level(plain, 0.505)
+    assert level(pumped, 0.45) > 0.9 * level(plain, 0.45)
+    assert level(pumped, 0.25 + 0.2) > 0.9 * level(plain, 0.25 + 0.2)
+    with pytest.raises(ValueError, match="not a drum"):
+        p.update_op("pump", drum="cowbell-ish"); audio.synthesize(p, reverb=False)
+    p.update_op("pump", drum="kick")
+
+    # A stop: band and room go dead, the kept voice carries on.
+    s = Studio(tmp_path)
+    p.name = "d"; s.save(p)
+    wet_before, _ = audio.synthesize(s.get("d"), reverb=True)
+    s.set_master("d", stops=[{"from": "2", "until": "2:3", "keep": ["solo"]}])
+    alone = copy.deepcopy(s.get("d")); only(alone, "solo")
+    alone.meta = {}
+    dry_solo, _ = audio.synthesize(alone, reverb=False)
+    stopped, _ = audio.synthesize(s.get("d"), reverb=True)
+    a, b = int(2.02 * audio.SR), int(2.9 * audio.SR)
+    assert np.allclose(stopped[a:b], dry_solo[a:b], atol=1e-9)      # only the solo, dry
+    assert not np.allclose(wet_before[a:b], dry_solo[a:b], atol=1e-3)
+    assert float(np.abs(stopped[int(3.2 * audio.SR):int(3.4 * audio.SR)]).max()) > 0.01
+    with pytest.raises(ValueError, match="end after"):
+        s.set_master("d", stops=[{"from": "2", "until": "2"}])
+    assert s.set_master("d", stops=[])["master"].get("stops") is None
 
 
 def test_drive_modes_get_harsher_and_a_noise_wall_is_noise():
@@ -1207,6 +1353,15 @@ def test_a_consonant_played_faster_keeps_its_tone():
 def test_how_much_of_a_lyric_was_understood():
     pytest.importorskip("numpy")
     from musicstudio import voicebank as vb
+    # Recall alone is satisfied by every word sung among a lot of noise.
+    assert vb.words_heard(["hold", "on"], "nonsense hold nonsense on nonsense")[0] == 1.0
+    assert vb.words_added(["hold", "on"], "nonsense hold nonsense on nonsense") == \
+        ["nonsense"] * 3
+    assert vb.words_added(["hold", "on"], "Hold on.") == []
+    for name in ("../../up", "/abs/olute", ".."):
+        with pytest.raises(ValueError) if name == ".." else _no_raise():
+            inside = vb.bank_dir(name).resolve()
+            assert vb.CACHE_DIR.expanduser().resolve() in inside.parents
     share, missed = vb.words_heard(["neon", "in", "the", "puddles", "last", "train's"],
                                    "Neon in the hurdles... last rain's.")
     assert share == pytest.approx(4 / 6) and missed == ["puddles", "train's"]
@@ -1236,6 +1391,95 @@ def test_every_listed_voicebank_is_pinned_and_says_what_its_terms_ask():
         assert len(v.sha256) == 64 and v.licence and v.url.startswith("https://")
 
 
+import contextlib  # noqa: E402
+
+
+@contextlib.contextmanager
+def _no_raise():
+    yield
+
+
+def test_a_lyric_carries_its_pronunciation_and_is_sung_the_same_without_a_dictionary(
+        tmp_path, monkeypatch):
+    """How a word is said is decided when the line is written and stored in
+    the op. Looked up again at every render, the same saved piece failed on a
+    machine with no dictionary ('sat-el-lites' guessed as four syllables)."""
+    monkeypatch.setattr(lyr, "DICT_DIR", tmp_path)
+    (tmp_path / lyr.DICT_NAME).write_text(
+        "satellites S AE1 T AH0 L AY2 T S\nshine SH AY1 N\n")
+    p = _sung("sat-el-lites shine", lang="en")
+    op = p.find_op("l")[1]
+    assert op.params["said"] == {"satellites": "s ae t ah l ay t s", "shine": "sh ay n"}
+    here = [(n.sung, n.word) for n in sorted(render(p).notes, key=lambda n: n.start)]
+    saved = p.dumps()
+
+    monkeypatch.setattr(lyr, "DICT_DIR", tmp_path / "nowhere")
+    with pytest.raises(ValueError, match="pronounced as 4"):     # what a bare lyric does
+        lyr.parse("sat-el-lites shine", "en")
+    (tmp_path / "saved.ms.json").write_text(saved)
+    q = Piece.load(tmp_path / "saved.ms.json")
+    r = render(q)
+    assert [(n.sung, n.word) for n in sorted(r.notes, key=lambda n: n.start)] == here
+    assert r.warnings == []
+    # Moving the line does not re-pronounce it; changing the words does, and
+    # keeps what it was told about a word this machine cannot look up.
+    q.update_op("l", **{"from": "1"})
+    assert q.find_op("l")[1].params["said"] == op.params["said"]
+    q.update_op("l", text="shine shine sat-el-lites -")
+    assert q.find_op("l")[1].params["said"] == op.params["said"]
+    # A word with two pronunciations is flagged when the line is checked, the
+    # choice is one entry of `said`, and it survives a change of the words.
+    monkeypatch.setattr(lyr, "DICT_DIR", tmp_path)
+    (tmp_path / lyr.DICT_NAME).write_text(
+        "lives L IH1 V Z\nlives(2) L AY1 V Z\nnine N AY1 N\nthe DH AH0\nthe(2) DH IY0\n")
+    _, notes = lyr.parse("nine lives the", "en")
+    assert len(notes) == 1 and "'lives' can be said 2 ways" in notes[0] and "l ay v z" in notes[0]
+    cat = _sung("nine lives", "0 2", lang="en", said={"lives": "l ay v z"})
+    assert cat.find_op("l")[1].params["said"] == {"nine": "n ay n", "lives": "l ay v z"}
+    assert render(cat).warnings == []
+    cat.update_op("l", text="lives nine")
+    assert cat.find_op("l")[1].params["said"]["lives"] == "l ay v z"
+    cat.update_op("l", said=None)
+    assert cat.find_op("l")[1].params["said"]["lives"] == "l ih v z"
+    monkeypatch.setattr(lyr, "DICT_DIR", tmp_path / "nowhere")
+    # One word said differently is an edit of the op, like any other.
+    q.update_op("l", said={"shine": "sh iy n", "satellites": "s ae t ah l ay t s"})
+    assert render(q).notes and "sh iy n" in {n.sung for n in render(q).notes}
+
+
+def test_what_the_render_could_not_sing_comes_back_with_the_edit(tmp_path):
+    s = _studio(tmp_path)
+    s.add_voice("p", "vox", "singer")
+    s.add_op("p", "vox", "phrase", id="m", steps="0 2", at="1", unit="1/4")
+    res = s.add_op("p", "vox", "lyrics", id="l", text="sa ku ra")
+    assert len(res.warnings) == 1 and "not sung" in res.warnings[0]
+    assert "not sung" in str(res) and res.to_json()["warnings"] == res.warnings
+    assert s.update_op("p", "l", text="sa ku").warnings == []
+
+
+def test_rendering_without_numpy_says_what_it_left_out(monkeypatch):
+    p = _line("0:1/1 | 0:1/1")
+    monkeypatch.setattr(audio, "_np", None)
+    import warnings as w
+    with w.catch_warnings():
+        w.simplefilter("error")
+        audio.synthesize(p, reverb=False, models=False)      # nothing lost: silent
+    p.add_op("v", "gain", id="g", db=-40)
+    with pytest.warns(UserWarning, match="gain ops are ignored"):
+        audio.synthesize(p, reverb=False, models=False)
+    with pytest.raises(RuntimeError, match="needs numpy"):
+        audio.synthesize(p, reverb=False, models=False, strict=True)
+
+
+def test_a_custom_soundfont_must_be_a_soundfont(tmp_path, monkeypatch):
+    from musicstudio import soundfonts
+    monkeypatch.setattr(soundfonts, "_fetch", lambda url, sha, progress=None: b"<html>no</html>")
+    with pytest.raises(ValueError, match="not a SoundFont"):
+        soundfonts.install(url="https://example.invalid/a.sf2", sha256="0" * 64,
+                           dest=tmp_path, quiet=True)
+    assert not list(tmp_path.iterdir())
+
+
 def _bank_zip(members: dict[str, bytes]) -> bytes:
     import io
     import zipfile
@@ -1251,16 +1495,28 @@ def test_a_voicebank_is_only_fetched_once_its_terms_are_accepted(tmp_path, monke
     monkeypatch.setattr(neural, "SINGER_DIR", tmp_path)
     fetched = []
 
-    def fake(url, sha256, progress=None):
+    def fake(url, sha256, folder, progress=None):
         fetched.append(url)
         if "vocoders" in url:
-            return _bank_zip({"vocoder.yaml": b"model: v.onnx\n", "v.onnx": b"x"})
-        return _bank_zip({"Qixuan_v2.7.0_DiffSinger_OpenUtau/dsconfig.yaml": b"acoustic: a.onnx\n",
-                          "Qixuan_v2.7.0_DiffSinger_OpenUtau/a.onnx": b"x"})
-    monkeypatch.setattr(soundfonts, "_fetch", fake)
+            data = _bank_zip({"vocoder.yaml": b"model: v.onnx\n", "v.onnx": b"x"})
+        else:
+            data = _bank_zip(
+                {"Qixuan_v2.7.0_DiffSinger_OpenUtau/dsconfig.yaml": b"acoustic: a.onnx\n",
+                 "Qixuan_v2.7.0_DiffSinger_OpenUtau/a.onnx": b"x"})
+        folder.mkdir(parents=True, exist_ok=True)
+        path = folder / f"dl{len(fetched)}.part"
+        path.write_bytes(data)
+        return path
 
-    with pytest.raises(PermissionError, match="terms of use"):
+    def never(*a, **k):                                 # a test must not download
+        raise AssertionError("tried to fetch into memory")
+    monkeypatch.setattr(soundfonts, "_fetch_file", fake)
+    monkeypatch.setattr(soundfonts, "_fetch", never)
+
+    with pytest.raises(PermissionError, match="terms of use") as refusal:
         neural.install("qixuan")
+    # The vocoder arrives with the bank under its own licence; say so up front.
+    assert "vocoder" in str(refusal.value) and "CC BY-NC-SA" in str(refusal.value)
     assert fetched == [] and not neural.is_installed("qixuan") and neural.installed() == []
     with pytest.raises(ValueError, match="ms singer add"):
         neural.install("somebody-else", accept=True)
@@ -1273,6 +1529,7 @@ def test_a_voicebank_is_only_fetched_once_its_terms_are_accepted(tmp_path, monke
     assert (tmp_path / "vocoders" / neural.CATALOGUE["qixuan"].vocoder / "vocoder.yaml").is_file()
     neural.install("qixuan", accept=True)              # already there: nothing more fetched
     assert len(fetched) == 2
+    assert not list(tmp_path.rglob("*.part"))          # the archives are not kept
 
 
 def test_adding_your_own_voicebank_and_refusing_a_hostile_archive(tmp_path, monkeypatch):
@@ -1293,6 +1550,14 @@ def test_adding_your_own_voicebank_and_refusing_a_hostile_archive(tmp_path, monk
     notabank.write_bytes(_bank_zip({"readme.txt": b"x"}))
     with pytest.raises(ValueError, match="not a DiffSinger voicebank"):
         neural.add("n", notabank)
+    # Replacing an install with something that is not a voicebank leaves the
+    # install alone: the new folder is checked before the old one is removed.
+    with pytest.raises(ValueError, match="not a DiffSinger voicebank"):
+        neural.add("mine", notabank, force=True)
+    assert neural.is_installed("mine")
+    monkeypatch.setattr(neural, "UNPACK_LIMIT", 4)
+    with pytest.raises(ValueError, match="unpacks to more than"):
+        neural.add("big", good)
     with pytest.raises(ValueError):
         neural.singer_dir("../up")
 
@@ -1304,9 +1569,14 @@ def test_a_singer_without_its_voicebank_falls_back_and_says_so(tmp_path, monkeyp
     p = _sung("ra mi so ra")
     plain, _ = audio.synthesize(p, reverb=False)
     p.get_voice("vox").bank = "qixuan"
+    used = {}
     with pytest.warns(UserWarning, match="neural singer 'qixuan' is not installed"):
-        sung, _ = audio.synthesize(p, reverb=False)
+        sung, _ = audio.synthesize(p, reverb=False, engines=used)
     assert np.array_equal(sung, plain)
+    # The fallback is visible to a caller, and a caller can refuse it.
+    assert used == {"vox": "formant"}
+    with pytest.raises(RuntimeError, match="cannot be run here"):
+        audio.synthesize(p, reverb=False, strict=True)
 
 
 def test_a_syllable_s_consonants_come_before_its_note_and_its_vowel_on_it():
@@ -1357,7 +1627,11 @@ def test_an_installed_neural_singer_sings_the_score_the_same_way_twice(tmp_path,
     for k in range(2):
         monkeypatch.setattr(neural, "CACHE_DIR", tmp_path / f"cache{k}")
         neural._trims.clear()
-        takes.append(audio.synthesize(p, reverb=False)[0])
+        used = {}
+        # strict: a neural engine that fails must fail this test, not hand the
+        # line to the formant singer, whose audio passes every check below.
+        takes.append(audio.synthesize(p, reverb=False, strict=True, engines=used)[0])
+        assert used == {"vox": "neural:qixuan"}
     assert np.array_equal(takes[0], takes[1]) and np.abs(takes[0]).max() > 0.03
     beat = 60 / 96
     assert _peak_multiple(takes[0], np, 4 * beat + 0.4, 4 * beat + 1.0, 523.25) < 0.04

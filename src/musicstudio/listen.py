@@ -426,11 +426,27 @@ def _weak_notes(piece: Piece, r: Render, parts, to_sec) -> tuple[list[WeakNote],
     """
     weak: list[WeakNote] = []
     measured = 0
+    # A note written under a stop or a `cut` is silent on purpose: it is
+    # neither a fault to report nor a fair sample of how loud the voice plays.
+    silenced: dict[str, list[tuple[int, int]]] = {}
+    for st in (piece.meta.get("master") or {}).get("stops") or []:
+        for v in piece.voices:
+            if v.name not in (st.get("keep") or ()):
+                silenced.setdefault(v.name, []).append(
+                    (piece.tick_of(st["from"]), piece.tick_of(st["until"])))
+    for v in piece.voices:
+        for op in v.ops:
+            if op.kind == "cut" and op.enabled:
+                silenced.setdefault(v.name, []).append(
+                    (piece.tick_of(op.params["from"]), piece.tick_of(op.params["until"])))
     for name, stem in parts.items():
         mono = stem.mean(axis=1)
         rows = []
         for n in r.notes:
             if n.voice != name or n.percussive:
+                continue
+            if any(min(n.end, hi) - max(n.start, lo) >= 0.5 * (n.end - n.start)
+                   for lo, hi in silenced.get(name, ())):
                 continue
             start = int(to_sec(n.start) * SR)
             seconds = to_sec(n.end) - to_sec(n.start)

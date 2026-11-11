@@ -40,9 +40,14 @@ own release pages.
 
 All three need the **DiffSinger community vocoder** (PC-NSF-HiFiGAN 2025.02, by
 the OpenVPI Team), which turns the model's spectrogram into sound. Its weights
-are under [CC BY-NC-SA 4.0](https://openvpi.github.io/vocoders/); read that page
-for how its authors apply the licence. `ms singer install` fetches it alongside
-a voicebank that does not bundle one.
+are under [CC BY-NC-SA 4.0](https://openvpi.github.io/vocoders/). That licence
+covers the weights themselves: pass them on only with the licence, a credit to
+OpenVPI (or the DiffSinger Community) and a link to that page, and not as part
+of something sold. Its authors state on the same page that "synthesizing or
+producing commercial work with this vocoder is not constrained by the license",
+so what limits a *song* is the voicebank's terms above, not the vocoder's.
+`ms singer install` fetches it alongside a voicebank that does not bundle one,
+and names it, with its licence, before you accept.
 
 ## Other voicebanks
 

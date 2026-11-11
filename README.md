@@ -306,9 +306,16 @@ Under it: `sub_bass` (nearly a sine, slides between slurred notes),
 `reese_bass` (detuned saws under a filter), `electric_bass` and `upright_bass`.
 And on any voice, ops that shape sound rather than notes: `filter` (a lowpass
 or highpass sweep across a span — the build and the drop), `drive`, `compress`
-(denser, not louder), `crush` and `gain` (the fader, for after the others have
-changed the level). These are audio-only: the built-in render applies them, a
-MIDI file and a full SoundFont render cannot.
+(denser, not louder), `crush`, `eq` (a bell cut or boost: room for a voice),
+`duck` (sidechain: this voice dips whenever another one plays, the pump of a
+pad against a kick), `cut` (silence across a span) and `gain` (the fader, for
+after the others have changed the level). These are audio-only: the built-in
+render applies them, a MIDI file and a full SoundFont render cannot.
+
+A piece can also have **stops** (`set_master(stops=[{"from": "32:3", "until":
+"33", "keep": ["vox"]}])`): the whole band and the room's reverb tail cut dead
+while the kept voices carry on, dry. And its own **room**
+(`set_master(room={"decay": 0.7, "wet": 0.06})`) in place of the style's.
 
 A modelled kit is clean; a break is not. `add_voice(..., engine="soundfont")`
 plays that one voice from the installed SoundFont *inside* the built-in render:
@@ -387,8 +394,16 @@ the voicebank decides consonant lengths, the pitch curve between and within the
 notes, and the timbre (`neural.py`). Renders are seeded and reproducible, and a
 rendered phrase is cached, so only what you changed is sung again. On the fast
 song this was built against (172 bpm, `examples/build_last_train.py`) a speech
-recogniser followed 85-89% of the words, and unprepared lines at moderate tempo
+recogniser followed 85-91% of the words, and unprepared lines at moderate tempo
 came back word for word.
+
+The singer breathes before a line where the one before left room, each note is
+brought back to its written pitch if the model drifted off it, and a `tone` op
+leans on how the voice is held (`breath`, `firm`, `crisp`, `gender`). A lyric
+stores how each of its words is pronounced, so a saved piece sings the same on
+any machine; a word with two pronunciations ("lives") is flagged when you write
+it, and `said={"lives": "l ay v z"}` on the lyrics op chooses.
+`examples/build_press_start.py` is a three-minute song that uses all of it.
 
 ### A recorded voice
 

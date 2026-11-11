@@ -106,6 +106,38 @@ def _fetch(url: str, sha256: str, progress=None) -> bytes:
     return b"".join(chunks)
 
 
+def _fetch_file(url: str, sha256: str, folder: Path, progress=None) -> Path:
+    """Download straight to a file in ``folder`` and return its path, for
+    archives too large to hold in memory twice over. The same rule as
+    ``_fetch``: a file that is not exactly what was pinned is deleted, and
+    nothing is returned."""
+    req = urllib.request.Request(url, headers={"User-Agent": "musicstudio"})
+    digest = hashlib.sha256()
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / f".download-{os.getpid()}-{sha256[:12]}.part"
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp, open(path, "wb") as out:
+            total = int(resp.headers.get("Content-Length") or 0)
+            got = 0
+            while True:
+                block = resp.read(1 << 18)
+                if not block:
+                    break
+                out.write(block)
+                digest.update(block)
+                got += len(block)
+                if progress:
+                    progress(got, total)
+        if digest.hexdigest() != sha256.lower():
+            raise ValueError(
+                f"checksum mismatch for {url}: expected {sha256}, got "
+                f"{digest.hexdigest()}. Nothing was installed.")
+    except BaseException:
+        path.unlink(missing_ok=True)
+        raise
+    return path
+
+
 def _deb_data(deb: bytes) -> tarfile.TarFile:
     """The ``data.tar`` inside a Debian package, which is an ``ar`` archive."""
     if deb[:8] != b"!<arch>\n":
@@ -187,7 +219,12 @@ def install(bank: str = DEFAULT_BANK, *, dest: str | Path | None = None,
         out = base / name
         if out.is_file() and not force:
             return out
-        _write(out, _fetch(url, sha256, show))
+        data = _fetch(url, sha256, show)
+        # The same check a listed bank gets: the hash says it is the file that
+        # was asked for, not that the file is a SoundFont.
+        if data[:4] != b"RIFF" or data[8:12] != b"sfbk":
+            raise ValueError(f"{url} is not a SoundFont (no RIFF/sfbk header)")
+        _write(out, data)
         return out
     if bank not in BANKS:
         raise KeyError(f"unknown bank {bank!r}; have {sorted(BANKS)}")

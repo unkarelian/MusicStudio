@@ -547,7 +547,10 @@ def _amp(ctx: NoteCtx, level: float) -> float:
 
 
 def _sustained_tables(name: str, m: Sustained, pitch: int, f0: float):
-    key = ("sus", name, pitch)
+    # Keyed by the frequency the table is built from, not only by the
+    # written pitch: a re-tuned note must not get, or leave behind, the table
+    # of the untuned one, or a render depends on what was rendered before it.
+    key = ("sus", name, pitch, round(f0, 4))
     if key not in _tables:
         n = _harmonics(f0)
         f = n * f0
@@ -633,7 +636,7 @@ _BANDS = (1, 2, 3, 4, 6, 8, 12, 16, 24, 40, 100000)
 
 def _plucked_tables(name: str, m: Plucked, pitch: int, f0: float, bucket: int):
     """Band tables for a decaying string: ``[(table, mean harmonic, weight)]``."""
-    key = ("plk", name, pitch, bucket)
+    key = ("plk", name, pitch, bucket, round(f0, 4))
     if key not in _tables:
         n = _harmonics(f0)
         f = n * f0

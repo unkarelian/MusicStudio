@@ -30,6 +30,8 @@ jobs:
           uv run ms -p gallery lint first_words
           uv run python examples/build_splinter.py
           uv run ms -p gallery lint splinter
+          uv run python examples/build_press_start.py
+          uv run ms -p gallery lint press_start
 
   core-without-extras:
     # The core promises no dependencies; prove it.

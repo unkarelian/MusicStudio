@@ -420,11 +420,14 @@ def render_phrase(sung: list[Sung], singer: Singer, seed: int) -> tuple[np.ndarr
 # a whole voice
 # --------------------------------------------------------------------------
 
-def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float]) -> dict[str, tuple]:
-    """``{voice: (left, right)}`` for every singer in the piece."""
+def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float],
+                skip=()) -> dict[str, tuple]:
+    """``{voice: (left, right)}`` for every singer in the piece, less the
+    voices in ``skip`` (those another engine has already sung)."""
     out: dict[str, tuple] = {}
     for v in piece.voices:
-        if v.muted or not is_singer(v.instrument) or v.engine == "soundfont":
+        if (v.muted or not is_singer(v.instrument) or v.engine == "soundfont"
+                or v.name in skip):
             continue
         mine = [n for n in notes if n.voice == v.name and not n.percussive]
         if not mine:

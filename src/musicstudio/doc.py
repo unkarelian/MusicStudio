@@ -135,6 +135,39 @@ OP_SPECS: dict[str, OpSpec] = {
               "how it sounds, and this puts it back where the mix wants it. Audio "
               "only -- in a score, use dynamics.",
               ["db"], modifier=True),
+        _spec("eq",
+              "Turn one band of this voice up or down: `gain` dB (negative cuts) "
+              "in a bell centred on `freq` Hz, `width` octaves wide. The tool for "
+              "making room: cut 3 kHz from the pads so the singer's consonants "
+              "are heard, or from a voice that turns hard at the top of its "
+              "range. Unlike compress and drive it is *meant* to change the "
+              "level of what it touches. Audio only.",
+              ["freq", "gain"], width=1.0, modifier=True,
+              **{"from": None, "until": None}),
+        _spec("tone",
+              "How a neural singer holds its voice, for the whole voice: `breath` "
+              "(dB, negative is firmer and less airy), `firm` (dB added to the "
+              "voiced part), `crisp` (consonant speed, 1 is the bank's own, 1.3 "
+              "is clipped and exact) and `gender` (-1..1, the size of the mouth "
+              "it sings with: on the bank measured, positive is brighter and "
+              "negative darker and chestier -- try both, banks differ). "
+              "A bank that has no such control ignores it, and so do the other "
+              "singers. Audio only.",
+              [], breath=0.0, firm=0.0, crisp=1.0, gender=0.0, modifier=True),
+        _spec("duck",
+              "Sidechain: pull this voice down by `depth` dB every time `source` "
+              "plays a note, and let it swell back over `release` seconds -- the "
+              "pump of a pad against a kick, and the way to keep a kick audible "
+              "under a wall of chords. `drum` picks one drum of a kit voice "
+              "('kick'). Audio only.",
+              ["source"], depth=8.0, release=0.18, drum=None, modifier=True,
+              **{"from": None, "until": None}),
+        _spec("cut",
+              "Silence this voice's sound across the span, ringing notes and "
+              "all: the hard stop a `rest` cannot give, because a rest only "
+              "stops new notes. For the whole band at once, and the room with "
+              "it, use the piece's `stops` (set_master). Audio only.",
+              ["from", "until"], modifier=True),
         _spec("crush",
               "Reduce this voice's sample rate (rate, Hz) and bit depth (bits): the "
               "grit of an old sampler. Audio only.",
@@ -147,8 +180,12 @@ OP_SPECS: dict[str, OpSpec] = {
               "te'); otherwise words are English, through the pronouncing "
               "dictionary. '[s t r ey n jh]' gives the sounds exactly. Any voice "
               "can carry lyrics (they are written to MIDI), and a `singer` "
-              "instrument sings them.",
-              ["text"], lang="auto", modifier=True, **{"from": None, "until": None}),
+              "instrument sings them. "
+              "`said` is filled in for you: the pronunciation of each dictionary "
+              "word, stored with the line so it is sung the same everywhere; "
+              "edit it to change how one word is said.",
+              ["text"], lang="auto", said=None, modifier=True,
+              **{"from": None, "until": None}),
         _spec("double",
               "Double another voice at an interval, reading whatever that voice "
               "ended up playing. `source` is the voice to follow; interval counts "
@@ -575,17 +612,45 @@ class Piece:
             raise ValueError(f"op id {op_id!r} already exists")
         params = {k: val for k, val in params.items()
                   if val is not None or k in OP_SPECS[kind].required}
-        op = Op(op_id, kind, params, note=note)
+        op = Op(op_id, kind, self._said(kind, params, params), note=note)
         self._validate_op(op)
         v.ops.insert(len(v.ops) if index is None else index, op)
         return op
 
     def update_op(self, op_id: str, **params) -> Op:
         v, op = self.find_op(op_id)
-        new = Op(op.id, op.kind, {**op.params, **params}, op.enabled, op.note)
+        new = Op(op.id, op.kind,
+                 self._said(op.kind, {**op.params, **params}, params, op.params.get("said")),
+                 op.enabled, op.note)
         self._validate_op(new)
         v.ops[v.ops.index(op)] = new
         return new
+
+    @staticmethod
+    def _said(kind: str, params: dict, given: dict, stored: dict | None = None) -> dict:
+        """A lyrics op carries how its words are pronounced. Resolved here,
+        when the words are written or changed -- never at render, where it
+        would make the piece depend on the machine's dictionary.
+
+        ``given`` is what this edit passed and ``stored`` the op's ``said``
+        before it. A word the caller names in ``said=`` is theirs: it wins over
+        the dictionary and survives later edits of the text. ``said=None``
+        forgets every choice and looks the words up afresh."""
+        if kind != "lyrics" or "text" not in params:
+            return params
+        if not ({"text", "lang", "said"} & set(given)):
+            return params                       # moved, not re-worded
+        mine = given.get("said")
+        if mine is not None and not isinstance(mine, dict):
+            return params                       # `_validate_op` says what is wrong
+        from .lyrics import pronounce
+        forget = "said" in given and mine is None
+        keep = None if forget else {**(stored or {}), **(mine or {})}
+        said = pronounce(str(params["text"]), params.get("lang") or "auto", keep)
+        out = {k: v for k, v in params.items() if k != "said"}
+        if said:
+            out["said"] = said
+        return out
 
     def move_op(self, op_id: str, bars: int = 0, beats: float = 0) -> Op:
         """Shift an op's position. The analogue of nudging a shape by a pixel."""
@@ -643,7 +708,11 @@ class Piece:
                 ticks(d)
         if op.kind == "lyrics":
             from .lyrics import parse
-            parse(str(p["text"]), p.get("lang") or "auto")   # fail here, not mid-render
+            if p.get("said") is not None and not isinstance(p["said"], dict):
+                raise ValueError("lyrics said= is a map of word -> phonemes, "
+                                 "e.g. {'tomato': 't ah m aa t ow'}")
+            # fail here, not mid-render
+            parse(str(p["text"]), p.get("lang") or "auto", p.get("said"))
 
     # -- motifs ------------------------------------------------------------
 

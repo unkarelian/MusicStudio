@@ -29,7 +29,11 @@ you are writing a cue, use the tools; do not hand-write note lists.
   the voice being written *to*, and one name cannot mean both. Both have
   regression tests.
 - **Mutations return view + lint.** The feedback loop closes by default, not by
-  the caller remembering. Preserve this in any new mutating verb.
+  the caller remembering. Preserve this in any new mutating verb that changes
+  what sounds. (The motif verbs and `set_master` return what they changed
+  instead: a motif nobody plays yet has no bars to show.) `OpResult.warnings`
+  carries what the render had to guess or drop -- a guessed pronunciation, a
+  syllable with no note -- because that is not lint and must still be seen.
 
 - **Analysis never over-claims.** `analyze.py` exists to *refuse* findings as much
   as to produce them: the null-model test and `is_degenerate` are the load-bearing
@@ -37,7 +41,12 @@ you are writing a cue, use the tools; do not hand-write note lists.
   `test_unrelated_pieces_are_not_reported_as_sharing_a_theme` and
   `test_degenerate_shapes_are_refused`. If you loosen a threshold to make a
   desired result appear, you have broken the tool, because its whole value is
-  that a positive result means something.
+  that a positive result means something. The null model tests the *whole
+  search*, not the one shape it found: two long melodies nearly always share
+  some five-note shape, so `_shared_by_chance` and `_repeats_by_chance` ask how
+  often shuffled pieces yield anything as long (per-shape testing reported a
+  shared theme in 18 of 20 unrelated pairs). The pairwise many-seed assertions
+  in that test are the ones that catch it; a p-value is never reported as zero.
 - **Imported audio is labelled as an estimate everywhere it surfaces.** The
   `confidence` figure and its warnings must survive into any view or report built
   on it. A plausible-looking transcription that means nothing is the failure mode
@@ -45,7 +54,11 @@ you are writing a cue, use the tools; do not hand-write note lists.
 
 - **Every save is a checkpoint, and the file outranks the cache.** `Studio.save`
   pushes the previous file onto `.history/<piece>/undo` before writing, so add new
-  mutating verbs through `save`/`_result`, never by writing the file directly, and
+  mutating verbs through `save`/`_result`, never by writing the file directly.
+  `_result` renders and lints *before* it saves, so an op that validates but
+  cannot be rendered never reaches the file
+  (`test_an_edit_that_cannot_be_rendered_never_reaches_the_file`), and `save`
+  writes beside the piece and renames over it. Also
   wrap them in `@_mutation` so a verb that fails half-way evicts its half-applied
   edit instead of leaving it in the cache for the next save. `get()` reloads when
   the file's mtime or size changed, because the MCP server and a build script can
@@ -117,7 +130,13 @@ same *arrangement*: same length, same seating, same note onsets and loudness
 contour (`_envelope_np` is checked sample-for-sample against `_envelope`, and
 `test_instrument_models_change_the_sound_and_not_the_music` holds the rest).
 Reverb, the limiter and the instrument models are numpy-only extras on top,
-never a different arrangement of the notes.
+never a different arrangement of the notes. The stdlib path has no per-voice
+processing and no singers; when a piece uses either it says so in a warning
+(`_lost_without_numpy`), because an ignored `gain` is a different mix.
+`synthesize(strict=True)` turns every fallback -- no numpy, a missing bank, no
+FluidSynth -- into an error, and `engines={}` is filled with who actually
+rendered each whole-voice stem. A test of an engine must use both: the formant
+singer passes every audio assertion written for the neural one.
 
 `synth.py` holds the instrument models -- what a note sounds like once it is
 decided that it sounds. Read its docstring first: each mechanism (moving
@@ -125,17 +144,31 @@ spectrum, fixed formants, onset noise, slurs, inharmonic partials) is there
 because its absence is audible, and the formant numbers are measured resonance
 regions, not taste. Two rules: a model may not move, lengthen or re-seat a note,
 and every random number is seeded from `(voice, onset, pitch)` through `crc32`.
+The wavetable caches are keyed by the frequency a table is built from, not
+only the written pitch, or a re-tuned note inherits another note's table and
+the render depends on its own history
+(`test_a_retuned_note_sounds_the_same_whatever_was_rendered_before_it`).
 `LEVEL` is calibrated so models on and off sit at the same loudness; if you
 change a model's `level`, re-check the balance of a full piece, not one note.
 
 Drums are notes like everything else: a kit voice's pitch is the General MIDI
 key of the drum, `beat` writes lanes and `chop` re-orders slices of whatever the
 voice already plays. Keep `chop` symbolic -- it must stay an edit of the op-log,
-not a bounce to audio. `filter`, `drive`, `compress`, `crush` and `gain` are
+not a bounce to audio. It has a sampler's meaning on purpose: a slice keeps the
+sound it had where it was cut and is *not* re-harmonized where it lands, so a
+moved note's `form` says "chopped" (the motif map must not call it the theme as
+written), and on a pitched voice a whole-semitone `^n` moves the note's `pitch`
+so lint, tension and MIDI see what sounds; only the fraction stays in `tune`. `filter`, `eq`, `drive`, `compress`, `crush` and `gain` are
 `render.AUDIO_ONLY`: they return the notes untouched and are applied by
 `audio._apply_fx` to that voice's own bus, so they exist in the built-in render
-and not in MIDI. `compress` and `drive` are level-matched on purpose (same
-power, same peak): adding one must not remix the piece, and `gain` is the fader.
+and not in MIDI. `compress` is level-matched on purpose (same power): adding one must not remix
+the piece. `drive` is matched at the *peak*, which on a sustained voice is the
+same thing and on a peaky one (a singer, a kit) is several dB louder -- follow
+it with `gain`, the fader, and check with `ms hear`. `duck` keys from another
+voice's notes (even a muted one), `cut` silences a bus, and the piece's `stops`
+(`set_master`) cut every bus but the kept ones *and* the room's tail; `ms hear`
+does not call a note under a stop a note that failed to sound. `tone` is read
+by the neural singer and ignored by `_apply_fx`.
 A voice with `engine="soundfont"` is rendered by `audio.sampled_stems` (one
 FluidSynth run per voice, pitch groups laid end to end and resampled) and then
 joins its bus like any other; it must fall back to the model, with a warning,
@@ -145,7 +178,11 @@ channel means one kit per piece in MIDI; the first kit voice chooses it.
 `lyrics.py` turns text into one `Syllable` (onset, nucleus, coda) per note and
 `vocal.py` sings them. Lyrics live *on the notes* (`Note.lyric`, `Note.sung`),
 put there by the `lyrics` modifier op, so they follow a note through `double`,
-`chop` and every other op. A singer is rendered a phrase at a time, not a note
+`chop` and every other op. A lyrics op also carries `said`, the pronunciation
+of each dictionary word, resolved when the text is written or changed
+(`Piece._said`) and never at render: looked up per render, a saved piece sang
+differently, or failed, on a machine with another dictionary or none. Editing
+`said` is how one word is pronounced differently. A singer is rendered a phrase at a time, not a note
 at a time, by `audio.prerendered` -- consonants borrow time from the note
 before and formants glide across the boundary, which a per-note model cannot
 do. Three things in `vocal.py` are load-bearing: the vowel starts exactly on
@@ -171,7 +208,10 @@ Recording and transcribing cost money, need `OPENROUTER_API_KEY`, and happen
 only on an explicit command, never inside a render. A voice whose bank is
 missing falls back whole to `vocal.py` with a warning, because CI has no bank.
 `Studio.check_words` is the only objective test of intelligibility the studio
-has; change the engine against it, not against a spectrogram.
+has; change the engine against it, not against a spectrogram. Its reference is
+the words on the rendered notes, not the op text, and it reports `extra` (words
+heard that were never written) beside the share understood, which is recall
+only: every word sung amid noise scores 100%.
 
 `neural.py` sings through a DiffSinger voicebank (ONNX: duration, pitch,
 variance, acoustic, vocoder) and is the only engine trained on singing. Rules,
@@ -189,7 +229,13 @@ is built and never again, so `Singer._session` builds a fresh one per run --
 caching sessions makes a phrase depend on what was rendered before it, and
 `test_an_installed_neural_singer_sings_the_score_the_same_way_twice` (which
 runs only where a bank is installed) catches exactly that. Rendered phrases are
-cached on disk; bump `ENGINE` when the same phrase would come out differently.
+cached on disk; bump `ENGINE` when the same phrase would come out differently
+(the key also holds `_fingerprint` of every file in the bank and its vocoder,
+so replacing any model or dictionary invalidates it). An archive is streamed to
+disk, size-bounded, and checked for `dsconfig.yaml` *before* it replaces an
+existing install. Before a phrase the singer takes a breath
+(the bank's own `AP` phoneme, up to `BREATH` seconds) where the line before
+left room; it borrows from the silence and moves no written note.
 Levels differ by 12 dB between banks, so `trim` measures each once against
 `LEVEL`. A missing bank, vocoder or `onnxruntime` falls back whole to
 `vocal.py` with a warning, because CI has none of them. The `--soundfont`

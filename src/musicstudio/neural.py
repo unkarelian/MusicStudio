@@ -43,7 +43,9 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
 import shutil
+import threading
 import zipfile
 import zlib
 from dataclasses import dataclass, field
@@ -62,9 +64,14 @@ CACHE_DIR = Path("~/.cache/musicstudio/neural")
 #: Diffusion steps. More is slower and, past about twenty, not audibly better.
 STEPS = 20
 PITCH_STEPS = 10
+#: How far (semitones) a note's middle may sit from the written pitch before
+#: `_land` corrects it, and how much of the rest it takes out. A singer a few
+#: cents off is a singer; one a semitone flat is on another note.
+PITCH_SLACK = 0.12
+PITCH_PULL = 1.0
 #: Bump when this module would sing the same phrase differently, so that
 #: phrases cached by an older version are not mistaken for current ones.
-ENGINE = 3
+ENGINE = 6
 HEAD = TAIL = 8                 # frames of silence the models expect around a phrase
 LEAD_MS = 500.0                 # what the duration model is told came before the phrase
 #: How loud a neural voice is at full velocity: the level of its sung vowels
@@ -73,6 +80,11 @@ LEAD_MS = 500.0                 # what the duration model is told came before th
 LEVEL = 0.235
 #: A gap inside a phrase shorter than this is sung through; longer is a rest.
 REST = 0.06
+#: The longest breath (seconds) taken before a phrase, where the line before
+#: left room for one, sung with the bank's own breath phoneme (``AP``). A
+#: singer who never breathes is the first thing a listener calls a machine.
+#: 0 turns breaths off.
+BREATH = 0.3
 
 
 # --------------------------------------------------------------------------
@@ -117,7 +129,9 @@ VOCODERS = {
         "pc-nsf-hifigan-44.1k-hop512-128bin-2025.02/"
         "pc_nsf_hifigan_44.1k_hop512_128bin_2025.02.oudep",
         "ba7d43142d41f6900c8264b5662ca7125a50feb8760bb8b9615c61a8f5e6902e",
-        "CC BY-NC-SA 4.0 (the model weights; by the OpenVPI Team)",
+        "CC BY-NC-SA 4.0 for the model weights (by the OpenVPI Team): credit "
+        "OpenVPI and keep the licence if you pass the weights on, and do not "
+        "sell them; songs made with it are not restricted by this licence",
         "https://openvpi.github.io/vocoders/"),
 }
 
@@ -244,10 +258,21 @@ def available() -> bool:
     return True
 
 
-def _unpack(archive: Path | bytes, dest: Path, inner: str = "") -> None:
-    """Extract a zip into ``dest``, refusing any member that would land outside it."""
+#: The most an archive may unpack to. The largest listed bank is about half a
+#: gigabyte; a zip that declares far more than that is not a voicebank.
+UNPACK_LIMIT = 8 << 30
+
+
+def _unpack(archive: Path | bytes, dest: Path, inner: str = "",
+            needs: tuple[str, ...] = ("dsconfig.yaml", "vocoder.yaml")) -> None:
+    """Extract a zip into ``dest``, refusing any member that would land outside
+    it. What is already at ``dest`` is replaced only once the new folder is
+    whole and has one of the files in ``needs``: a bad archive must not cost
+    the user the working install it was meant to replace."""
     import io
     z = zipfile.ZipFile(io.BytesIO(archive) if isinstance(archive, bytes) else archive)
+    if sum(info.file_size for info in z.infolist()) > UNPACK_LIMIT:
+        raise ValueError(f"archive unpacks to more than {UNPACK_LIMIT >> 30} GB; refusing")
     tmp = dest.with_name(dest.name + ".part")
     if tmp.exists():
         shutil.rmtree(tmp)
@@ -271,6 +296,10 @@ def _unpack(archive: Path | bytes, dest: Path, inner: str = "") -> None:
         inside = [d for d in tmp.iterdir() if d.is_dir()]
         if len(inside) == 1:
             source = inside[0]
+    if not any((source / n).is_file() for n in needs):
+        shutil.rmtree(tmp)
+        raise ValueError(f"not a DiffSinger voicebank: the archive has no "
+                         f"{' or '.join(needs)}")
     if dest.exists():
         shutil.rmtree(dest)
     source.rename(dest)
@@ -278,8 +307,19 @@ def _unpack(archive: Path | bytes, dest: Path, inner: str = "") -> None:
         shutil.rmtree(tmp)
 
 
+def _download(url: str, sha256: str, dest: Path, inner: str, needs: tuple[str, ...],
+              progress=None) -> None:
+    """Fetch a pinned archive to disk (never into memory: these are hundreds
+    of megabytes) and unpack it."""
+    from . import soundfonts
+    archive = soundfonts._fetch_file(url, sha256, dest.parent, progress)
+    try:
+        _unpack(archive, dest, inner, needs)
+    finally:
+        Path(archive).unlink(missing_ok=True)
+
+
 def install_vocoder(name: str, *, progress=None, force: bool = False) -> Path:
-    from .soundfonts import _fetch
     dest = SINGER_DIR.expanduser() / "vocoders" / name
     if (dest / "vocoder.yaml").is_file() and not force:
         return dest
@@ -288,7 +328,7 @@ def install_vocoder(name: str, *, progress=None, force: bool = False) -> Path:
                          f"(with vocoder.yaml) at {dest}")
     v = VOCODERS[name]
     dest.parent.mkdir(parents=True, exist_ok=True)
-    _unpack(_fetch(v.url, v.sha256, progress), dest)
+    _download(v.url, v.sha256, dest, "", ("vocoder.yaml",), progress)
     (dest / "SOURCE.txt").write_text(
         f"{v.name}\nfrom {v.url}\nsha256 {v.sha256}\nlicence: {v.licence}\n{v.homepage}\n")
     return dest
@@ -301,7 +341,6 @@ def install(name: str, *, accept: bool = False, progress=None, force: bool = Fal
     voice, and using it means agreeing to their terms (`CATALOGUE[name].asks`
     summarizes them and ``.terms`` links the real ones).
     """
-    from .soundfonts import _fetch
     key = _clean(name)
     if key not in CATALOGUE:
         raise ValueError(f"no voicebank called {name!r} is listed "
@@ -312,7 +351,13 @@ def install(name: str, *, accept: bool = False, progress=None, force: bool = Fal
         raise PermissionError(
             f"{e.title} is not part of MusicStudio and has its own terms of use:\n  "
             + "\n  ".join(f"- {a}" for a in e.asks)
-            + f"\n  full terms: {e.terms}\nInstall it with --accept-terms once you agree.")
+            + f"\n  full terms: {e.terms}"
+            # The vocoder comes with it and is a second work under a second
+            # licence; accepting must be accepting both.
+            + (f"\nIt also needs the vocoder {e.vocoder}, which is downloaded with "
+               f"it: {VOCODERS[e.vocoder].licence} ({VOCODERS[e.vocoder].homepage})."
+               if e.vocoder in VOCODERS else "")
+            + "\nInstall it with --accept-terms once you agree.")
     dest = singer_dir(key)
     if is_installed(key) and not force:
         if e.vocoder:
@@ -322,7 +367,7 @@ def install(name: str, *, accept: bool = False, progress=None, force: bool = Fal
         raise ValueError(f"{e.title} has no direct download; get it from {e.homepage} "
                          f"and run: ms singer add {key} <zip or folder>")
     dest.parent.mkdir(parents=True, exist_ok=True)
-    _unpack(_fetch(e.url, e.sha256, progress), dest, e.inner)
+    _download(e.url, e.sha256, dest, e.inner, ("dsconfig.yaml",), progress)
     (dest / "SOURCE.txt").write_text(
         f"{e.title}\nfrom {e.url}\nsha256 {e.sha256}\n{e.by}\n"
         f"terms of use: {e.terms}\n\nIn short (the linked terms are the authority):\n"
@@ -353,7 +398,7 @@ def add(name: str, source: str | Path, *, force: bool = False) -> Path:
             shutil.rmtree(dest)
         shutil.copytree(root, dest)
     elif src.is_file():
-        _unpack(src, dest)
+        _unpack(src, dest, needs=("dsconfig.yaml",))
     else:
         raise FileNotFoundError(str(src))
     if not (dest / "dsconfig.yaml").is_file():
@@ -474,8 +519,8 @@ class Singer:
         self.vocoder_path = self._find_vocoder(root)
         self._inputs: dict[Path, set[str]] = {}
         self._dicts: dict[str, dict[str, list[str]]] = {}
-        st = (self.acoustic.path("acoustic") or root / "dsconfig.yaml").stat()
-        self.stamp = f"{name}|{st.st_size}|{int(st.st_mtime)}|{self.vocoder_name}"
+        self.stamp = f"{name}|{_fingerprint(root)}|{self.vocoder_name}|" + (
+            _fingerprint(self.vocoder_path.parent) if self.vocoder_path else "")
 
     @staticmethod
     def _sub(folder: Path, key: str) -> _Model | None:
@@ -506,11 +551,14 @@ class Singer:
         only on its own inputs.
         """
         import onnxruntime as ort
-        ort.set_seed(int(seed) & 0x7FFFFFFF)
         opts = ort.SessionOptions()
         opts.log_severity_level = 3
-        return ort.InferenceSession(str(path), sess_options=opts,
-                                    providers=["CPUExecutionProvider"])
+        # The seed is process-wide and read when the session is built, so the
+        # two steps must not interleave with another thread's.
+        with _seeding:
+            ort.set_seed(int(seed) & 0x7FFFFFFF)
+            return ort.InferenceSession(str(path), sess_options=opts,
+                                        providers=["CPUExecutionProvider"])
 
     def run(self, path: Path, feeds: dict, seed: int) -> dict:
         """Run one model, feeding exactly the inputs its graph declares."""
@@ -620,7 +668,8 @@ class Singer:
         return [hit] if hit else []
 
 
-_singers: dict[str, Singer] = {}
+_singers: dict[str, tuple[str, Singer]] = {}
+_seeding = threading.Lock()
 _trims: dict[tuple[str, str], float] = {}
 
 
@@ -642,11 +691,30 @@ def trim(singer: "Singer", speaker: str = "") -> float:
     return _trims[key]
 
 
+def _fingerprint(folder: Path) -> str:
+    """Every file under a folder, by path, size and modification time. A
+    rendered phrase depends on all of a bank -- the duration, pitch and
+    variance models, the dictionaries, the speaker embeddings, the vocoder --
+    so the cache must change when any of them does, not only the acoustic
+    model. Stats only: hashing half a gigabyte per render would cost more
+    than the cache saves."""
+    h = hashlib.sha256()
+    for p in sorted(folder.rglob("*")):
+        if p.is_file() and p.name != "SOURCE.txt":
+            st = p.stat()
+            h.update(f"{p.relative_to(folder).as_posix()}|{st.st_size}|{st.st_mtime_ns}\n".encode())
+    return h.hexdigest()[:16]
+
+
 def load(name: str) -> Singer:
     key = _clean(name)
-    if key not in _singers:
-        _singers[key] = Singer(key)
-    return _singers[key]
+    # Reloaded when the files change: another process may have reinstalled the
+    # bank, and a singer kept from before would go on reading the old one.
+    mark = _fingerprint(singer_dir(key))
+    hit = _singers.get(key)
+    if hit is None or hit[0] != mark:
+        hit = _singers[key] = (mark, Singer(key))
+    return hit[1]
 
 
 # --------------------------------------------------------------------------
@@ -928,7 +996,40 @@ def _pitch_curve(singer: Singer, sung, phones, seed: int, expression: float
     if m.speakers:
         feeds["spk_embed"] = m.embed("", T)
     out = singer.run(m.path("pitch"), {k: v for k, v in feeds.items() if k in names}, seed)
-    return next(iter(out.values())).reshape(-1)[:T].astype(np.float64), fm, start
+    curve = next(iter(out.values())).reshape(-1)[:T].astype(np.float64)
+    return _land(curve, t, sung), fm, start
+
+
+def _land(curve: "np.ndarray", t: "np.ndarray", sung) -> "np.ndarray":
+    """Bring each note the model sang off-pitch back to the written note.
+
+    The pitch model sings a fast note the way a singer under-rehearsed would:
+    it glides toward it and is gone before it arrives, a semitone or more flat
+    on a sixteenth that leaps up. The note is the studio's to decide, so each
+    note's middle is measured and the part of its error beyond `PITCH_SLACK`
+    is taken out -- as one offset per note, blended into its neighbours', which
+    moves the note and leaves the model's vibrato, scoops and slides as they
+    were. A note sung within the slack is not touched at all.
+    """
+    if PITCH_PULL <= 0 or not len(curve):
+        return curve
+    at, off = [], []
+    for s in sung:
+        d = s.end - s.start
+        core = (t >= s.start + 0.3 * d) & (t < s.end - 0.1 * d)
+        if not core.any():
+            core = (t >= s.start) & (t < s.end)
+        if not core.any():
+            continue
+        err = float(np.median(curve[core])) - float(s.pitch)
+        fix = -math.copysign(max(0.0, abs(err) - PITCH_SLACK), err) * PITCH_PULL
+        # Held across the note's middle, so the whole note moves together and
+        # only the joins between notes are blended.
+        at += [s.start + 0.3 * d, s.end - 0.1 * d]
+        off += [fix, fix]
+    if not at or not any(off):
+        return curve
+    return curve + np.interp(t, at, off)
 
 
 def _variances(singer: Singer, phones, midi, start, fm_ac, seed: int, speaker: str) -> dict:
@@ -975,14 +1076,18 @@ def _variances(singer: Singer, phones, midi, start, fm_ac, seed: int, speaker: s
 
 
 def render_phrase(sung, singer: Singer, seed: int, *, speaker: str = "", lang: str = "en",
-                  expression: float = 1.0, steps: int = STEPS) -> tuple["np.ndarray", float]:
-    """Sing one phrase. Returns ``(samples at 44.1 kHz, start time in seconds)``."""
+                  expression: float = 1.0, steps: int = STEPS,
+                  breath: float = 0.0, tone: dict | None = None) -> tuple["np.ndarray", float]:
+    """Sing one phrase. Returns ``(samples at 44.1 kHz, start time in seconds)``.
+    ``breath`` is how long an intake to sing before the first sound (seconds;
+    0 for none, and none if the bank has no breath phoneme)."""
     if singer.vocoder_path is None:
         raise FileNotFoundError(
             f"the singer {singer.name!r} needs the vocoder {singer.vocoder_name!r}, "
             f"which is not installed")
     key = hashlib.sha256(json.dumps(
         [ENGINE, singer.stamp, speaker, lang, expression, steps, seed, LEAD_MS, REST,
+         round(float(breath), 3), sorted((tone or {}).items()),
          [(round(s.start - sung[0].start, 5), round(s.end - sung[0].start, 5),
            round(float(s.pitch), 4), list(s.onset), s.nucleus, list(s.coda), bool(s.hold),
            s.word) for s in sung]]).encode()).hexdigest()[:40]
@@ -994,10 +1099,18 @@ def render_phrase(sung, singer: Singer, seed: int, *, speaker: str = "", lang: s
         except Exception:                                 # a damaged entry is re-rendered
             pass
 
+    tone = tone or {}
     groups, end = group_phrase(sung, singer, lang)
     phones = time_phones(groups, end, singer, seed)
     ac = singer.acoustic
     fm = ac.frame_ms
+    if breath > 0.05 and "AP" in ac.tokens and phones:
+        # The breath ends where the first consonant begins: it borrows from the
+        # silence before the phrase and moves nothing that is written.
+        air = Phone("AP")
+        air.start, air.end = phones[0].start - breath, phones[0].start
+        air.pitch = phones[0].pitch
+        phones = [air] + phones
     symbols, durations, start = _segments(phones, fm)
     T = int(sum(durations))
     t = start + np.arange(T) * fm / 1000.0
@@ -1017,7 +1130,10 @@ def render_phrase(sung, singer: Singer, seed: int, *, speaker: str = "", lang: s
     feeds = {"tokens": np.array([[ac.tokens.get(s, ac.tokens.get("SP", 0)) for s in symbols]]),
              "languages": np.array([[ac.lang_id(s) for s in symbols]]),
              "durations": np.array([durations]), "f0": f0[None, :],
-             "gender": np.zeros((1, T), np.float32), "velocity": np.ones((1, T), np.float32)}
+             "gender": np.full((1, T), max(-1.0, min(1.0, float(tone.get("gender", 0.0)))),
+                               np.float32),
+             "velocity": np.full((1, T), max(0.5, min(2.0, float(tone.get("crisp", 1.0)))),
+                                 np.float32)}
     feeds.update(_sampling(ac, names, steps, depth))
     if ac.speakers:
         feeds["spk_embed"] = ac.embed(speaker, T)
@@ -1029,7 +1145,9 @@ def render_phrase(sung, singer: Singer, seed: int, *, speaker: str = "", lang: s
                 raise RuntimeError(f"the singer {singer.name!r} needs a {v} curve and has "
                                    f"no variance model that predicts one")
             lo, hi = (-10.0, 10.0) if v == "tension" else (-96.0, 0.0)
-            feeds[v] = np.clip(pred[v], lo, hi)[None, :]
+            # The bank predicts these curves; a `tone` op leans on them.
+            lean = float(tone.get({"breathiness": "breath", "voicing": "firm"}.get(v, ""), 0.0))
+            feeds[v] = np.clip(pred[v] + lean, lo, hi)[None, :]
     mel = next(iter(singer.run(path, {k: v for k, v in feeds.items() if k in names},
                                seed).values())).astype(np.float32)
     # An acoustic model that writes log10 mels into a vocoder that reads ln.
@@ -1043,7 +1161,8 @@ def render_phrase(sung, singer: Singer, seed: int, *, speaker: str = "", lang: s
         wav = np.interp(np.arange(int(len(wav) * SR / rate)) * rate / SR, np.arange(len(wav)), wav)
     try:
         cached.parent.mkdir(parents=True, exist_ok=True)
-        tmp = cached.with_name(cached.name + ".part.npz")
+        # Unique per process: two renders of one phrase must not share a file.
+        tmp = cached.with_name(f"{cached.stem}.{os.getpid()}.part.npz")
         np.savez_compressed(tmp, x=wav.astype(np.float32), lead=np.float64(start - sung[0].start))
         tmp.replace(cached)
     except OSError:                                       # a cache is a convenience
@@ -1055,7 +1174,8 @@ def render_phrase(sung, singer: Singer, seed: int, *, speaker: str = "", lang: s
 # joining the mix
 # --------------------------------------------------------------------------
 
-def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float]) -> dict[str, tuple]:
+def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float], *,
+                strict: bool = False) -> dict[str, tuple]:
     """``{voice: (left, right)}`` for every singer whose ``bank`` is a neural
     singer that can be run here. The others are left to the engines below."""
     import warnings
@@ -1069,6 +1189,10 @@ def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float]) -> dic
             continue
         name, speaker = parse_bank(v.bank)
         name = name.lower()
+        if strict and not (is_installed(name) and available()):
+            raise RuntimeError(f"voice {v.name!r}: the neural singer {name!r} "
+                               f"cannot be run here (not installed, or the "
+                               f"`neural` extra is missing)")
         if not is_installed(name):
             warnings.warn(f"voice {v.name!r} falls back to the synthesized singer: the "
                           f"neural singer {name!r} is not installed. See SINGERS.md, "
@@ -1085,9 +1209,21 @@ def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float]) -> dic
                 raise FileNotFoundError(f"its vocoder {singer.vocoder_name!r} is not installed")
             mono = np.zeros(total)
             level = trim(singer, speaker)
+            before = None
+            tone = {}
+            for op in v.ops:
+                if op.kind == "tone" and op.enabled:
+                    tone = {k: float(op.params[k]) for k in ("breath", "firm", "crisp", "gender")
+                            if op.params.get(k) is not None}
             for group in phrases(plan(mine, to_sec)):
                 seed = zlib.crc32(f"{v.name}|{group[0].start:.4f}|{group[0].pitch}".encode())
-                sig, t0 = render_phrase(group, singer, seed, speaker=speaker)
+                # Room to breathe: all of it before the first line, and after
+                # that only what the last line left, less its own release.
+                room = BREATH if before is None else 0.6 * (group[0].start - before)
+                before = group[-1].end
+                sig, t0 = render_phrase(group, singer, seed, speaker=speaker,
+                                        breath=min(BREATH, room) if room >= 0.15 else 0.0,
+                                        tone=tone)
                 # Loudness follows the written dynamics, a note at a time.
                 gain = np.ones(len(sig))
                 for s in group:
@@ -1104,6 +1240,8 @@ def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float]) -> dic
                 if n > 0:
                     mono[a:a + n] += sig[:n]
         except Exception as exc:
+            if strict:
+                raise
             warnings.warn(f"voice {v.name!r} falls back to the synthesized singer: "
                           f"the neural singer {name!r} could not be run ({exc}).",
                           stacklevel=2)

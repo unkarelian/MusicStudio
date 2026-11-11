@@ -52,7 +52,7 @@ ARTICULATIONS: dict[str, tuple[float, int]] = {
 
 #: Ops that shape the sound and leave the notes alone. ``audio.voice_fx`` reads
 #: them; here they are deliberately nothing.
-AUDIO_ONLY = ("filter", "drive", "compress", "crush", "gain")
+AUDIO_ONLY = ("filter", "drive", "compress", "crush", "gain", "eq", "duck", "cut", "tone")
 
 
 @dataclass
@@ -688,7 +688,8 @@ def _op_lyrics(piece: Piece, voice: Voice, op: Op, notes: list[Note], out) -> li
     lo, hi = _span(piece, op, "from", "until")
     if op.params.get("from") is None:
         lo, hi = 0, piece.total_ticks
-    syllables, warnings = parse(str(op.params["text"]), op.params.get("lang") or "auto")
+    syllables, warnings = parse(str(op.params["text"]), op.params.get("lang") or "auto",
+                                op.params.get("said"))
     for w in warnings:
         out.warnings.append(f"{voice.name}/{op.id}: {w}")
     inside = sorted((n for n in notes if lo <= n.start < hi and not n.ornament
@@ -781,7 +782,9 @@ def _op_chop(piece: Piece, voice: Voice, op: Op, notes: list[Note]) -> list[Note
         bar, _ = piece.position_of(tick)
         bar_lo = piece.tick_of(bar)
         size = piece.section_of_tick(tick).bar_ticks // per_bar
-        index = (tick - bar_lo) // size
+        if size < 1:
+            raise ValueError(f"chop cannot cut a bar into {per_bar} slices: that is "
+                             f"finer than the studio's time grid")
         src, repeat, tune, backwards, tune_to = order[slot % len(order)]
         slot += 1
         here = tick
@@ -805,9 +808,26 @@ def _op_chop(piece: Piece, voice: Voice, op: Op, notes: list[Note]) -> list[Note
                 shift = tune if tune_to is None or repeat < 2 else \
                     tune + (tune_to - tune) * k / (repeat - 1)
                 room = here + (k + 1) * piece_len - at if repeat > 1 else here + size - at
-                out.append(replace(n, start=at, dur=max(1, min(n.dur, room)),
-                                   tune=n.tune + shift, op=n.op))
-        del index
+                # A chop is a sampler's edit: the slice keeps the sound it had
+                # where it was cut from, and is not re-harmonized where it
+                # lands. So a moved note is no longer the theme "as written",
+                # and says so, or the motif map would claim a statement that
+                # nobody hears. On a pitched voice a whole-semitone shift is a
+                # different *note*, and goes into the pitch, where lint, the
+                # tension view and MIDI can see it; only the fraction is tuning.
+                pitch, bend = n.pitch, n.tune + shift
+                if not n.percussive:
+                    whole = round(bend)
+                    pitch, bend = n.pitch + whole, bend - whole
+                moved = at != n.start or pitch != n.pitch
+                form = n.form
+                if moved and n.motif and "chopped" not in form:
+                    form = f"{form}, chopped" if form else "chopped"
+                out.append(replace(n, pitch=pitch, start=at,
+                                   dur=max(1, min(n.dur, room)), tune=bend,
+                                   form=form,
+                                   degree=n.degree if pitch == n.pitch else None,
+                                   op=n.op))
     if voice.inst.polyphony == 1 and not voice.inst.percussive:
         # One note at a time: a slice moved in front of a held note cuts it off,
         # as it would on the instrument.

@@ -480,6 +480,50 @@ def test_unrelated_pieces_are_not_reported_as_sharing_a_theme():
         return out
     found = shared_motifs({"a": noise(1), "b": noise(2), "c": noise(3)})
     assert not found, [list(p.intervals) for p in found]
+    # Pairs are the hard case: two long melodies nearly always share *some*
+    # five-note shape, and a test of each shape on its own lets them all
+    # through (18 pairs in 20 reported a "shared theme" before the null model
+    # tested the whole search). Many seeds, because one lucky pair proves nothing.
+    wrong = {i: [list(p.intervals) for p in shared_motifs({"a": noise(2 * i + 1),
+                                                           "b": noise(2 * i + 2)})]
+             for i in range(12)}
+    assert not any(wrong.values()), wrong
+    # ...and a theme that really is in both is still found, with a p that is
+    # small but never the zero a finite number of shuffles cannot show.
+    theme = [0, 3, 7, 5, 3, 8, 7, 2]
+    def planted(seed):
+        ev = noise(seed)
+        for at in (40, 180):
+            for j, d in enumerate(theme):
+                ev[at + j] = Event(62 + d, ev[at + j].start, 240)
+        return ev
+    found = shared_motifs({"a": planted(1), "b": planted(2)})
+    assert found and tuple(found[0].intervals[:7]) == (3, 4, -2, -2, 5, -1, -5)
+    assert 0 < found[0].p_value <= 0.02
+
+
+def test_noise_has_no_motifs_and_an_adopted_pattern_keeps_its_intervals():
+    from musicstudio.analyze import Pattern, find_motifs
+    from musicstudio.ingest import Event
+    import random
+    def noise(seed):
+        r = random.Random(seed)
+        pitch, out, t = 60, [], 0
+        for _ in range(300):
+            pitch = max(48, min(84, pitch + r.choice([-5, -3, -2, -1, 1, 2, 3, 5])))
+            out.append(Event(pitch, t, 240))
+            t += 240
+        return out
+    # At p_max=0.05 a few in a hundred are expected; most of them is a bug.
+    hits = sum(1 for i in range(12) if find_motifs(noise(100 + i)))
+    assert hits <= 2, hits
+    p = Piece("a", "C major", style="freeform")
+    p.sections.append(Section("A", 2))
+    p.motifs["x"] = Pattern((3, 4, -2, -2), [], 0.01, ()).as_motif("x")
+    p.voices.append(Voice("v", "piano", "melody"))
+    p.add_op("v", "play", id="s", motif="x", at="1")
+    pitches = [n.pitch for n in sorted(render(p).notes, key=lambda n: n.start)]
+    assert [b - a for a, b in zip(pitches, pitches[1:])] == [3, 4, -2, -2]
 
 
 def test_an_events_op_renders_imported_notes_verbatim():

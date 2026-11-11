@@ -71,10 +71,10 @@ class Pattern:
         for i in self.intervals:
             run += i
             degs.append(run)
-        # Chromatic intervals become semitone offsets from the first note, carried
-        # as alterations so the shape survives exactly rather than being rounded
-        # into whatever the key happens to allow.
-        steps = tuple(Step(round(d / 2), d - 2 * round(d / 2), ticks(unit)) for d in degs)
+        # The motif is written in the chromatic scale, whose degrees *are*
+        # semitones, so each offset is its own degree and the shape survives
+        # exactly rather than being rounded into whatever the key allows.
+        steps = tuple(Step(d, 0, ticks(unit)) for d in degs)
         return Motif(name, steps, "scale", "chromatic", unit,
                      f"discovered pattern, p={self.p_value:.3f}")
 
@@ -157,33 +157,89 @@ def _ngram_index(ivs: list[int], lo: int, hi: int) -> dict[tuple[int, ...], list
     return out
 
 
-def _null_rate(pat: tuple[int, ...], ivs: list[int], trials: int, rng: random.Random) -> float:
-    """How often this pattern appears in shuffles of the same interval vocabulary."""
-    needle = "," + ",".join(map(str, pat)) + ","
+def _p(hits: int, trials: int) -> float:
+    """A Monte Carlo p-value. Never zero: ``trials`` shuffles that produced
+    nothing say the chance is below about 1/trials, not that it is nil."""
+    return (hits + 1) / (trials + 1)
+
+
+def _repeats_by_chance(ivs: list[int], lo: int, hi: int, floor: int, trials: int,
+                       rng: random.Random) -> list[dict[int, int]]:
+    """What the *whole search* finds in shuffles of the same intervals.
+
+    One entry per shuffle: for each length, the most often any non-degenerate
+    shape of that length repeats. The search looks at every shape in the piece
+    and keeps the ones that repeat, so the question a finding must answer is
+    not "would this shape turn up by chance" (some shape always does) but
+    "would a search like this one turn up *any* shape this long, this often".
+    """
+    out = []
     shuffled = list(ivs)
-    hits = 0
     for _ in range(trials):
         rng.shuffle(shuffled)
-        if needle in "," + ",".join(map(str, shuffled)) + ",":
-            hits += 1
-    return hits / trials
+        best: dict[int, int] = {}
+        for L in range(lo, hi + 1):
+            counts: dict[tuple[int, ...], int] = {}
+            for i in range(len(shuffled) - L + 1):
+                g = tuple(shuffled[i:i + L])
+                counts[g] = counts.get(g, 0) + 1
+            top = max(counts.values(), default=0)
+            if top < floor:
+                break                       # nothing longer can repeat either
+            best[L] = max((c for g, c in counts.items()
+                           if c >= floor and not is_degenerate(g)), default=0)
+        out.append(best)
+    return out
+
+
+def _shared_by_chance(ivs: dict[str, list[int]], lo: int, hi: int, need: int,
+                      trials: int, rng: random.Random) -> list[int]:
+    """Per shuffle of every piece: the longest non-degenerate shape that
+    ``need`` of them still have in common (0 for none)."""
+    out = []
+    pools = {k: list(v) for k, v in ivs.items()}
+    for _ in range(trials):
+        for v in pools.values():
+            rng.shuffle(v)
+        longest = 0
+        for L in range(lo, hi + 1):
+            seen: dict[tuple[int, ...], int] = {}
+            for v in pools.values():
+                for g in {tuple(v[i:i + L]) for i in range(len(v) - L + 1)}:
+                    seen[g] = seen.get(g, 0) + 1
+            common = [g for g, c in seen.items() if c >= need]
+            if not common:
+                break
+            if any(not is_degenerate(g) for g in common):
+                longest = L
+        out.append(longest)
+    return out
 
 
 def find_motifs(events: list[Event], *, source: str = "piece", min_notes: int = 4,
                 max_notes: int = 10, min_occurrences: int = 2, p_max: float = 0.05,
                 trials: int = 120, seed: int = 17, limit: int = 12) -> list[Pattern]:
-    """Repeated melodic shapes within one piece, filtered for significance."""
+    """Repeated melodic shapes within one piece, filtered for significance.
+
+    ``p`` is the share of shuffles of the piece's own intervals in which the
+    same search finds some shape at least this long repeated at least this
+    often -- a test of the discovery, not of the one shape it happened to find.
+    """
     line = melody_line(events)
     ivs = intervals_of(line)
     if len(ivs) < min_notes:
         return []
     rng = random.Random(seed)
-    index = _ngram_index(ivs, min_notes - 1, max_notes - 1)
+    lo, hi = min_notes - 1, max_notes - 1
+    index = _ngram_index(ivs, lo, hi)
+    null = _repeats_by_chance(ivs, lo, hi, min_occurrences, trials, rng)
     out: list[Pattern] = []
     for pat, spots in index.items():
         if len(spots) < min_occurrences or is_degenerate(pat):
             continue
-        p = _null_rate(pat, ivs, trials, rng)
+        hits = sum(1 for best in null
+                   if any(c >= len(spots) for L, c in best.items() if L >= len(pat)))
+        p = _p(hits, trials)
         if p > p_max:
             continue
         out.append(Pattern(pat, [Occurrence(source, i, line[i].start, line[i].pitch)
@@ -209,31 +265,36 @@ def shared_motifs(sources: dict[str, list[Event]], *, min_notes: int = 4,
     """Melodic shapes common to several pieces -- the leitmotif question.
 
     Intervals are used rather than pitches, so a theme still matches when it
-    returns in another key. A pattern must clear the null model *in every piece
-    it is claimed to appear in*: sharing a shape that both pieces would produce
-    by chance is not evidence of a shared theme.
+    returns in another key. The null model is the whole comparison run on
+    shuffles of each piece's own intervals: two long melodies nearly always
+    share *some* five-note shape, so a shared shape counts only if shuffled
+    pieces rarely share anything as long. ``p`` is that rate.
     """
     need = require if require is not None else len(sources)
     rng = random.Random(seed)
     lines = {k: melody_line(v) for k, v in sources.items()}
     ivs = {k: intervals_of(v) for k, v in lines.items()}
-    index = {k: _ngram_index(v, min_notes - 1, max_notes - 1) for k, v in ivs.items()}
+    lo, hi = min_notes - 1, max_notes - 1
+    index = {k: _ngram_index(v, lo, hi) for k, v in ivs.items()}
 
     tally: dict[tuple[int, ...], list[str]] = {}
     for name, idx in index.items():
         for pat in idx:
             tally.setdefault(pat, []).append(name)
 
+    null: list[int] | None = None
     out: list[Pattern] = []
     for pat, names in tally.items():
         if len(names) < need or is_degenerate(pat):
             continue
-        ps = {n: _null_rate(pat, ivs[n], trials, rng) for n in names}
-        if max(ps.values()) > p_max:
+        if null is None:
+            null = _shared_by_chance(ivs, lo, hi, need, trials, rng)
+        p = _p(sum(1 for longest in null if longest >= len(pat)), trials)
+        if p > p_max:
             continue
         occ = [Occurrence(n, i, lines[n][i].start, lines[n][i].pitch)
                for n in names for i in index[n][pat]]
-        out.append(Pattern(pat, occ, max(ps.values()), tuple(sorted(names))))
+        out.append(Pattern(pat, occ, p, tuple(sorted(names))))
 
     out.sort(key=lambda x: (-len(x.sources), -x.length, x.p_value))
     kept: list[Pattern] = []

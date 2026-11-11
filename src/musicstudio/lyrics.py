@@ -143,7 +143,19 @@ def romaji(token: str) -> Syllable | None:
 # --------------------------------------------------------------------------
 
 _dictionary: dict[str, list[str]] | None = None
-_dictionary_from: Path | None = None
+#: ``word -> [pronunciation, ...]`` for the words the dictionary gives more
+#: than one of *with a different stressed vowel* ("lives": l ih v z, l ay v z).
+_alternates: dict[str, list[str]] = {}
+_dictionary_from: tuple | None = None
+
+
+#: Stressed-vowel pairs that are an accent, not another word ("water" with
+#: the vowel of "caught" or of "cot"). An alternative that differs only by one
+#: of these is not worth a warning.
+_SAME_TO_A_SINGER = {frozenset(p) for p in (("ao", "aa"), ("aa", "ah"), ("ih", "iy"),
+                                            ("uh", "uw"), ("ih", "ah"), ("eh", "ae"),
+                                            ("eh", "ih"), ("eh", "ey"), ("ao", "uh"),
+                                            ("ao", "ow"), ("ae", "aa"), ("ah", "uh"))}
 
 
 def dictionary_path() -> Path:
@@ -153,20 +165,51 @@ def dictionary_path() -> Path:
 def dictionary() -> dict[str, list[str]]:
     """The pronouncing dictionary, if installed: ``word -> ARPAbet, lower-case,
     stress removed``. Empty when it is not there."""
-    global _dictionary, _dictionary_from
+    global _dictionary, _dictionary_from, _alternates
     path = dictionary_path()
-    if _dictionary is not None and _dictionary_from == path:
+    try:
+        st = path.stat()
+        stamp = (path, st.st_mtime_ns, st.st_size)
+    except OSError:
+        stamp = (path, 0, 0)
+    # Stamped by the file, not only its path: a dictionary installed by another
+    # process (or after this one looked) must be seen.
+    if _dictionary is not None and _dictionary_from == stamp:
         return _dictionary
     out: dict[str, list[str]] = {}
+    stressed: dict[str, str] = {}
+    others: dict[str, list[str]] = {}
+
+    def strong(phones: list[str]) -> str:
+        return next((ph[:-1].lower() for ph in phones if ph.endswith("1")), "")
+
     if path.is_file():
         for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
             if not line or line.startswith(";;;"):
                 continue
             word, *phones = line.split("#")[0].split()
-            if "(" in word:               # alternative pronunciations: keep the first
+            plain = [re.sub(r"\d", "", ph).lower() for ph in phones]
+            if "(" in word:
+                # An alternative. The first pronunciation is the one sung, but
+                # one that puts a *different vowel under the stress* is another
+                # word to the ear ("lives" the verb and "lives" the noun), and
+                # the writer has to be told there is a choice.
+                base = word.split("(")[0].lower()
+                first = out.get(base)
+                # ...and only that vowel: "us" against "U.S." is not a choice
+                # anyone is making, and neither is the Italian "fine".
+                differs = (first is not None and len(first) == len(plain)
+                           and sum(a != b for a, b in zip(first, plain)) == 1)
+                if (differs and strong(phones) and stressed.get(base)
+                        and strong(phones) != stressed[base]
+                        and frozenset((strong(phones), stressed[base])) not in _SAME_TO_A_SINGER):
+                    others.setdefault(base, [" ".join(out[base])]).append(" ".join(plain))
                 continue
-            out[word.lower()] = [re.sub(r"\d", "", ph).lower() for ph in phones]
-    _dictionary, _dictionary_from = out, path
+            out[word.lower()] = plain
+            stressed[word.lower()] = strong(phones)
+    _alternates = {w: ways for w, v in others.items()
+                   if len(ways := list(dict.fromkeys(v))) > 1}
+    _dictionary, _dictionary_from = out, stamp
     return out
 
 
@@ -281,10 +324,16 @@ def split_syllables(phones: list[str]) -> list[list[str]]:
     return out
 
 
-def english(word: str) -> tuple[list[list[str]], bool]:
-    """A word as syllables of phonemes, and whether the dictionary knew it."""
-    key = re.sub(r"[^a-z']", "", word.lower())
-    known = dictionary().get(key)
+def _key(word: str) -> str:
+    return re.sub(r"[^a-z']", "", word.lower())
+
+
+def english(word: str, said: dict | None = None) -> tuple[list[list[str]], bool]:
+    """A word as syllables of phonemes, and whether its pronunciation is known
+    (from ``said``, the pronunciations a lyric carries with it, or else from
+    the dictionary) rather than guessed from spelling."""
+    key = _key(word)
+    known = str(said[key]).split() if said and said.get(key) else dictionary().get(key)
     phones = known if known is not None else spell_out(key)
     return split_syllables(list(phones)), known is not None
 
@@ -296,8 +345,42 @@ def english(word: str) -> tuple[list[list[str]], bool]:
 _BRACKET_RE = re.compile(r"\[([^\]]*)\]")
 
 
-def parse(text: str, lang: str = "auto") -> tuple[list[Syllable], list[str]]:
+def _words(text: str, lang: str) -> tuple[str, list[str]]:
+    """The resolved language and the plain English words of a lyric."""
+    words = _BRACKET_RE.sub(" ", text.replace("|", " ")).split()
+    parts = [p for w in words if w not in ("-", "_")
+             for p in re.sub(r"[^A-Za-z'\-]", "", w).split("-") if p]
+    if lang == "auto":
+        lang = "ja" if parts and all(romaji(p) is not None for p in parts) else "en"
+    if lang != "en":
+        return lang, []
+    return lang, [k for w in words if w not in ("-", "_")
+                  for k in [_key(re.sub(r"[^A-Za-z'\-]", "", w).replace("-", ""))] if k]
+
+
+def pronounce(text: str, lang: str = "auto", keep: dict | None = None) -> dict[str, str]:
+    """``word -> phonemes`` for every English word of a lyric the dictionary
+    knows. A lyrics op stores this beside its text, so the piece is sung the
+    same on a machine with another dictionary, or none: how a word is said is
+    decided when the line is written, not each time it is rendered. ``keep`` is
+    what the op already stored or the writer chose, and it stands: a word in
+    it is not looked up again."""
+    known = dictionary()
+    out: dict[str, str] = {}
+    for key in _words(text, lang)[1]:
+        if keep and keep.get(key):
+            out[key] = str(keep[key])
+        elif key in known:
+            out[key] = " ".join(known[key])
+    return out
+
+
+def parse(text: str, lang: str = "auto",
+          said: dict | None = None) -> tuple[list[Syllable], list[str]]:
     """Lyrics as one syllable per note, plus warnings about anything guessed.
+
+    ``said`` is the op's stored pronunciations (see ``pronounce``); a word in
+    it is read from there and the dictionary is not consulted.
 
     ``lang`` is ``'ja'`` (romaji), ``'en'`` or ``'auto'``, which reads the lyric
     as romaji if every word in it is a Japanese syllable and as English
@@ -346,7 +429,7 @@ def parse(text: str, lang: str = "auto") -> tuple[list[Syllable], list[str]]:
                 out.append(Syllable(syl.onset, syl.nucleus, syl.coda, syl.text,
                                     word=piece.lower()))
             continue
-        syls, known = english("".join(pieces))
+        syls, known = english("".join(pieces), said)
         if not known:
             guessed.append("".join(pieces))
         if len(pieces) > 1 and len(pieces) != len(syls):
@@ -365,8 +448,21 @@ def parse(text: str, lang: str = "auto") -> tuple[list[Syllable], list[str]]:
             syl = _from_phonemes(phones, piece)
             out.append(Syllable(syl.onset, syl.nucleus, syl.coda, piece,
                                 word=whole, index=i, count=len(syls)))
+    if said is None and lang == "en":
+        # Asked only when the lyric carries no pronunciations yet, which is
+        # when it is being written or checked: once the op has `said`, the
+        # choice has been made and a render has nothing to ask.
+        dictionary()
+        twice = {k: _alternates[k] for k in dict.fromkeys(_words(text, "en")[1])
+                 if k in _alternates}
+        for word, ways in twice.items():
+            warnings.append(
+                f"{word!r} can be said {len(ways)} ways ("
+                + " / ".join(ways) + f"); the first is sung. For another, pass "
+                f"said={{'{word}': '{ways[1]}'}} on the lyrics op.")
     if guessed:
-        where = ("the pronouncing dictionary is not installed (`ms lyrics install`)"
+        where = ("the pronouncing dictionary is not installed (`ms lyrics install`), "
+                 "and the lyric carries no pronunciation for them"
                  if not dictionary() else "not in the pronouncing dictionary")
         warnings.append(f"pronunciation guessed from spelling for {sorted(set(guessed))}: "
                         f"{where}. Put the sounds in brackets to be sure.")

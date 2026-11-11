@@ -17,7 +17,8 @@ from __future__ import annotations
 
 import functools
 import json
-from dataclasses import dataclass
+import os
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from .doc import HarmonyEntry, OP_SPECS, Piece, Section, Voice
@@ -39,10 +40,14 @@ class OpResult:
     view: str
     findings: list[Finding]
     message: str = ""
+    #: What the render had to guess or drop (a guessed pronunciation, a
+    #: syllable with no note). Not lint: nothing here is a judgement of the
+    #: writing, only a statement that the piece is not sung as it is written.
+    warnings: list[str] = field(default_factory=list)
 
     def to_json(self) -> dict:
         return {"ok": self.ok, "op_id": self.op_id, "message": self.message,
-                "view": self.view,
+                "view": self.view, "warnings": list(self.warnings),
                 "lint": {"summary": summary(self.findings),
                          "findings": [f.to_json() for f in self.findings]}}
 
@@ -51,6 +56,8 @@ class OpResult:
         parts = [head]
         if self.view:
             parts.append(self.view)
+        if self.warnings:
+            parts.append("\n".join(f"render warning: {w}" for w in self.warnings))
         parts.append(report(self.findings))
         return "\n\n".join(p for p in parts if p)
 
@@ -96,6 +103,12 @@ class Studio:
     # -- project -----------------------------------------------------------
 
     def path_for(self, name: str) -> Path:
+        # A piece name becomes a file name here and a directory name under
+        # .history; one with a separator in it would write outside the project.
+        if (not isinstance(name, str) or not name or name in (".", "..")
+                or any(c in name for c in '/\\\0') or name != name.strip()):
+            raise ValueError(f"{name!r} is not a piece name: a name is a file name, "
+                             f"so it cannot be empty or contain a path separator")
         return self.pieces_dir / f"{name}.ms.json"
 
     def list_pieces(self) -> list[dict]:
@@ -142,7 +155,14 @@ class Studio:
                 self._push(piece.name, "undo", old)
                 self._clear(piece.name, "redo")
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text)
+        # Written beside the piece and renamed over it: a crash mid-write
+        # leaves the old file whole instead of a truncated one.
+        part = path.with_name(f".{path.name}.{os.getpid()}.part")
+        try:
+            part.write_text(text)
+            os.replace(part, path)
+        finally:
+            part.unlink(missing_ok=True)
         st = path.stat()
         self._cache[piece.name] = ((st.st_mtime_ns, st.st_size), piece)
         return path
@@ -326,15 +346,14 @@ class Studio:
     def check_words(self, name: str, voice: str | None = None) -> dict:
         """Render a singer alone and ask a speech recogniser what it said.
 
-        Returns the transcript, the share of the lyric's words it got, and the
-        words it missed. Costs a little per call and needs
+        Returns the transcript, the share of the sung words it got, the words
+        it missed, and the words it heard that the lyric does not say. Costs a little per call and needs
         ``$OPENROUTER_API_KEY``; never run implicitly.
         """
         import copy
         import tempfile
         from . import voicebank as vb
         from .audio import save_wav
-        from .lyrics import parse
         p = self.get(name)
         singers = [v for v in p.voices
                    if any(op.kind == "lyrics" for op in v.ops) and (voice in (None, v.name))]
@@ -342,31 +361,75 @@ class Studio:
             raise ValueError(f"{name!r} has no voice with lyrics"
                              + (f" called {voice!r}" if voice else ""))
         target = singers[0]
-        written = []
-        for op in target.ops:
-            if op.kind == "lyrics" and op.enabled:
-                for syl in parse(str(op.params["text"]), op.params.get("lang") or "auto")[0]:
-                    if syl.word and syl.index == 0:
-                        written.append(syl.word)
+        # The reference is what the render actually sings, read off the notes:
+        # a syllable with no note, a chopped line or a replaced lyric must not
+        # be counted as "written" when nobody could have heard it.
+        r = render(p)
+        first = {n.start: n.word.split("#")[0] for n in r.by_voice(target.name)
+                 if n.word and n.word.split("#")[1].startswith("0/")}
+        written = [first[t] for t in sorted(first)]
+        if not written:
+            raise ValueError(f"voice {target.name!r} sings no words (only held "
+                             f"vowels or bracketed sounds), so there is nothing "
+                             f"to check")
         solo = copy.deepcopy(p)
         for v in solo.voices:
             v.muted = v.name != target.name
         with tempfile.TemporaryDirectory() as tmp:
             heard = vb.transcribe_long(save_wav(solo, Path(tmp) / "solo.wav"))
         share, missed = vb.words_heard(written, heard)
+        extra = vb.words_added(written, heard)
         return {"voice": target.name, "heard": heard, "understood": round(share, 2),
-                "words": len(written), "missed": missed}
+                "words": len(written), "missed": missed,
+                # Words it heard that were never written: a high share with a
+                # long list here is a garbled voice, not a clear one.
+                "extra": extra}
 
     @_mutation
     def set_master(self, name: str, *, push: float | None = None,
-                   clip: float | None = None, level: float | None = None) -> dict:
+                   clip: float | None = None, level: float | None = None,
+                   stops: list | None = None, room: dict | None = None) -> dict:
         """How hard the finished mix is hit. ``push`` is dB into the limiter
         (3.5 by default, 9 for electronic); ``clip`` instead drives it that many
         dB past full scale and cuts the tops off, which is a sound, not a fault,
         in the styles that want it. ``level`` (dB, negative) turns the finished
-        file down without changing its sound. Pass 0 to clear any of them."""
+        file down without changing its sound. Pass 0 to clear any of them.
+
+        ``stops`` are the piece's hard stops: a list of ``{"from": "12:3",
+        "until": "13", "keep": ["vox"]}``. Across each the whole band is cut
+        to silence -- ringing notes and the room's tail too -- and the voices
+        in ``keep`` carry on, dry. Pass ``[]`` to clear them.
+
+        ``room`` replaces the style's reverb for this piece: ``{"decay":
+        seconds, "wet": 0..1}``, either or both. ``{}`` goes back to the
+        style's."""
         p = self.get(name)
         master = dict(p.meta.get("master") or {})
+        if room is not None:
+            mine = {}
+            if room.get("decay") is not None:
+                mine["decay"] = max(0.05, min(8.0, float(room["decay"])))
+            if room.get("wet") is not None:
+                mine["wet"] = max(0.0, min(1.0, float(room["wet"])))
+            if mine:
+                master["room"] = mine
+            else:
+                master.pop("room", None)
+        if stops is not None:
+            clean = []
+            for st in stops:
+                lo, hi = p.tick_of(st["from"]), p.tick_of(st["until"])
+                if hi <= lo:
+                    raise ValueError(f"a stop must end after it starts: {st}")
+                keep = list(st.get("keep") or [])
+                for voice in keep:
+                    p.get_voice(voice)
+                clean.append({"from": str(st["from"]), "until": str(st["until"]),
+                              "keep": keep})
+            if clean:
+                master["stops"] = clean
+            else:
+                master.pop("stops", None)
         for key, val in (("push", push), ("clip", clip), ("level", level)):
             if val is None:
                 continue
@@ -474,13 +537,17 @@ class Studio:
         return max(1, bar), min(piece.total_bars, max(bar, last))
 
     def _result(self, piece: Piece, op_id, message, *, bars=None, quiet=False) -> OpResult:
-        self.save(piece)
+        # Render and lint *before* saving: an edit that cannot be rendered must
+        # not reach the file, or the file stops being the last good state and
+        # `_mutation` evicting the cache would reload the broken piece.
         r = render(piece)
         view = ""
         if not quiet:
             focus = bars if bars is not None else self._focus(piece, op_id)
             view = score(piece, r, bars=focus, legend=False)
-        return OpResult(True, op_id, view, lint(piece, r), message)
+        findings = lint(piece, r)
+        self.save(piece)
+        return OpResult(True, op_id, view, findings, message, list(r.warnings))
 
     # -- form --------------------------------------------------------------
 
@@ -748,8 +815,15 @@ class Studio:
         from .analyze import find_motifs, report_patterns
         pats = find_motifs(self._events_of(name), source=name, **kw)
         conf = self.get(name).meta.get("import", {}).get("confidence")
+        # The caveat rides in the report itself: the MCP tool and the CLI print
+        # only the report, and an estimate must say so wherever it surfaces.
+        caveat = ("" if conf is None or conf >= 0.85 else
+                  f"\n\nNOTE: {name!r} is an estimated transcription, only "
+                  f"{conf:.2f} confident. Shapes found in it may be the tracker's, "
+                  f"not the music's; confirm against MIDI before believing them.")
         return {"patterns": [p.to_json() for p in pats],
-                "report": report_patterns(pats, header=f"repeated shapes in {name!r}"),
+                "report": report_patterns(pats, header=f"repeated shapes in {name!r}")
+                          + caveat,
                 "source_confidence": conf}
 
     def compare(self, names: list[str], **kw) -> dict:
