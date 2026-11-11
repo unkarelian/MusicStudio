@@ -38,8 +38,12 @@ join from the vowel before and is preferred where the bank has it), with
 lyric in romaji maps onto that directly. English is *approximated* through the
 same syllables -- the vowel nearest each English vowel, a cluster's extra
 consonants taken from the front of a recorded syllable -- so it is sung with a
-Japanese accent, which is what such a bank sounds like in any editor. Banks
-recorded with English aliases (arpasing, VCCV) are not read yet.
+Japanese accent, which is what such a bank sounds like in any editor.
+
+English banks recorded as consonant-vowel and vowel-consonant pieces with
+X-SAMPA names (``k{``, ``{ t``, ``{ t-``) are read too, and are what an English
+lyric wants: see ``_english_events``. Banks with arpasing or VCCV aliases are
+not read yet.
 
 ``ust`` goes the other way: one voice written out as a ``.ust`` file, which
 UTAU, OpenUtau and other singing editors open, for rendering the line with a
@@ -227,6 +231,14 @@ class UtauBank:
     by_pitch: dict[int, tuple[str, str]]
     missing: int = 0        # oto lines whose recording is not there
     info: dict | None = None
+
+    @property
+    def english(self) -> bool:
+        """Recorded as English consonant-vowel and vowel-consonant pieces with
+        X-SAMPA names (``k{``, ``{ t``, ``{ t-``), not as Japanese syllables."""
+        have = sum(1 for a in ("k{", "sI", "tA", "dV", "bE", "I t", "{ t-", "V n-")
+                   if a in self.entries)
+        return have >= 4
 
     def suffixes(self, pitch: float) -> list[tuple[str, str]]:
         got = self.by_pitch.get(int(round(pitch)))
@@ -440,6 +452,13 @@ class _Event:
     gain: float
     #: Only the part before the vowel: a consonant on its own.
     bare: bool = False
+    #: The whole recording at the speed it was made, *ending* at ``on``: a
+    #: vowel closing into a consonant.
+    whole: bool = False
+    #: The recording whose vowel sets this one's level. A consonant has no
+    #: level of its own to be matched to: levelled alone, an "s" comes out as
+    #: loud as a vowel.
+    like: Entry | None = None
     lead: float = 0.0       # filled in by the layout: seconds before ``on``
     ovl: float = 0.0
 
@@ -470,6 +489,128 @@ def _syllable_keys(s) -> tuple[list[str], tuple[str, str] | None, list, list[str
     if (c, vowel) not in _KANA:
         c = ""
     return onset, (c, vowel), tails, coda
+
+
+# -- English banks ------------------------------------------------------------
+#
+# A bank of this kind sings a syllable as a consonant-vowel piece on the beat
+# (``st`` then ``tA`` for "sta-"), and joins it to what follows with a piece
+# that starts in the vowel and closes into the next consonant (``A r``), or
+# into the last one of a word (``r t-``). The names are X-SAMPA.
+
+_X_VOWEL = {"aa": ["A"], "ae": ["{"], "ah": ["V", "@"], "ao": ["O"], "aw": ["aU"],
+            "ay": ["aI"], "eh": ["E", "e"], "er": ["3"], "ey": ["eI"], "ih": ["I"],
+            "iy": ["i"], "ow": ["oU"], "oy": ["OI"], "uh": ["U"], "uw": ["u"],
+            "a": ["A", "a"], "i": ["i"], "u": ["u"], "e": ["e", "E"], "o": ["o", "O", "oU"]}
+_X_CONSONANT = {"hh": ["h"], "y": ["j"], "ng": ["N"], "th": ["T"], "dh": ["D"], "sh": ["S"],
+                "zh": ["Z"], "ch": ["tS"], "jh": ["dZ"], "rr": ["r"], "N": ["n"],
+                "ts": ["t", "s"], "q": []}
+_X_SYLLABIC = {"N": "n", "n": "n", "m": "m", "ng": "N", "l": "l"}
+
+
+def _x(consonants) -> list[str]:
+    return [x for c in consonants for x in _X_CONSONANT.get(c, [c])]
+
+
+def _english_events(bank: UtauBank, spans, lost: set | None) -> list[_Event]:
+    def get(*names: str) -> Entry | None:
+        for name in names:
+            if name and name in bank.entries:
+                return bank.entries[name]
+        return None
+
+    # What each note sings; a word's last consonant opens the next word when
+    # that one starts on a vowel ("wait_a", "count_on"), as it does in speech.
+    shapes = []
+    for s, end in spans:
+        onset, coda = _x(s.onset), _x(s.coda)
+        if s.hold:
+            shapes.append([[], ["A"], []])
+            continue
+        if s.nucleus in _X_SYLLABIC:
+            shapes.append([onset, ["@"], [_X_SYLLABIC[s.nucleus]] + coda])
+        else:
+            shapes.append([onset, _X_VOWEL.get(s.nucleus, ["A"]), coda])
+    joined = [j + 1 < len(spans) and spans[j + 1][0].start - spans[j][1] <= 0.12
+              for j in range(len(spans))]
+    for j, sh in enumerate(shapes):
+        if joined[j] and sh[2] and not shapes[j + 1][0]:
+            shapes[j + 1][0] = [sh[2].pop()]
+
+    events: list[_Event] = []
+    prev = "-"                       # "-" silence, "c" a consonant, else a vowel
+    for j, (s, end) in enumerate(spans):
+        if j and not joined[j - 1]:
+            prev = "-"
+        gain = (max(1, min(127, s.velocity)) / 127.0) ** 1.2
+        onset, vowels, coda = shapes[j]
+        first = len(events)
+        last = onset[-1] if onset else ""
+        vowel = next((v for v in vowels if get(last + v, f"- {last}{v}")), vowels[0])
+        open_ = prev not in ("-", "c")
+        main = None
+        if not onset:
+            main = get(f"{prev} {vowel}" if open_ else "", f"- {vowel}" if prev == "-" else "",
+                       vowel, f"- {vowel}")
+        elif onset == ["h"] and open_ and get(f"{prev} h{vowel}"):
+            main = get(f"{prev} h{vowel}")
+        else:
+            if open_:
+                # The vowel before closes into this syllable's first consonant.
+                e = get(f"{prev} {onset[0]}")
+                if e is not None:
+                    events.append(_Event(e, s.start, s.start, gain, whole=True))
+            extra = onset[:-1]
+            if last == "j" and vowel == "u" and extra and get(extra[-1] + "ju"):
+                last, vowel, extra = extra[-1], "ju", extra[:-1]
+            if extra:
+                unit = "".join(extra) + (last if not vowel.startswith("ju") else "")
+                e = get(f"- {unit}" if prev == "-" else unit, unit, f"- {unit}")
+                found = [e] if e is not None else \
+                    [x for x in (get(c, f"- {c}") for c in extra) if x is not None]
+                for e in found:
+                    events.append(_Event(e, s.start, s.start, gain, bare=True))
+            name = last + vowel
+            main = get(f"- {name}" if prev == "-" and not extra else "", name, f"- {name}")
+            vowel = "u" if vowel == "ju" else vowel
+            if main is None:
+                main = get(vowel, f"- {vowel}")
+                if lost is not None:
+                    lost.add(name)
+        if main is None:
+            if lost is not None:
+                lost.add(vowel)
+            prev = "-"
+            continue
+        for ev in events[first:]:
+            ev.like = main
+        events.append(_Event(main, s.start, end + 0.05, gain))
+        prev = vowel
+        if not coda:
+            continue
+        # What closes the syllable. At the end of a phrase its consonant comes
+        # at the end of the note; before another syllable it ends where that
+        # one begins.
+        k1, rest = coda[0], "".join(coda[1:])
+        after = end if joined[j] else end + 0.12
+        if not rest:
+            # Into another syllable the short joining form; the released one
+            # (three times as long) where the phrase stops.
+            closing = [get(f"{vowel} {k1}", f"{vowel} {k1}-") if joined[j]
+                       else get(f"{vowel} {k1}-", f"{vowel} {k1}")]
+        else:
+            a, b = get(f"{vowel} {k1}"), get(f"{k1} {rest}-", f"{k1} {rest}")
+            closing = [a, b] if a is not None and b is not None else \
+                [get(f"{vowel} {rest}-", f"{vowel} {k1}-", f"{vowel} {coda[-1]}-")]
+        closing = [e for e in closing if e is not None]
+        if not closing and lost is not None:
+            lost.add(f"{vowel} {k1}{rest}-")
+        for k, e in enumerate(closing):
+            events.append(_Event(e, end if k + 1 < len(closing) else after, after + 0.1,
+                                 gain, whole=True, like=main))
+        if closing:
+            prev = "c"
+    return events
 
 
 def _sound_of(key: tuple[str, str]) -> str:
@@ -582,9 +723,9 @@ def render_phrase(sung, bank: UtauBank, singer, seed: int,
         else:
             spans.append([s, s.end])
 
-    events: list[_Event] = []
+    events: list[_Event] = _english_events(bank, spans, lost) if bank.english else []
     before = "-"
-    for j, (s, end) in enumerate(spans):
+    for j, (s, end) in enumerate([] if bank.english else spans):
         if j and s.start - spans[j - 1][1] > 0.12:
             before = "-"
         gain = (max(1, min(127, s.velocity)) / 127.0) ** 1.2
@@ -642,27 +783,66 @@ def render_phrase(sung, bank: UtauBank, singer, seed: int,
     # -- layout: each sound gives way as the next begins ------------------------------
     # Lead-ins are sung ahead of the beat at the speed they were recorded; when
     # there is no room the lead-in is hurried, never the beat moved.
+    # Everything sung between two beats -- what closes one syllable and what
+    # opens the next -- is taken out of the first note, and may take at most
+    # ``1 - KEEP`` of it: a note that is all consonants has no pitch and no
+    # level. Past that the consonants are hurried, and then cut.
+    KEEP = 0.45
     written = [ev.on for ev in events]
-    starts: list[float] = []
-    for i in range(len(events) - 1, -1, -1):
-        ev = events[i]
-        if ev.bare and i + 1 < len(events) and starts[0] <= ev.on + 1e-6:
-            ev.on = starts[0]              # a lone consonant ends where the next sound begins
-        earlier = [events[j].on for j in range(i) if written[j] < written[i] - 1e-3]
-        room = max(0.012, (ev.on - earlier[-1]) * 0.6) if earlier else ev.on - t0
-        lead = max(0.0, min(ev.entry.pre, room))
-        ev.lead = lead
-        scale = lead / ev.entry.pre if ev.entry.pre > 1e-6 else 1.0
-        ev.ovl = max(0.004, min(ev.entry.overlap * scale, lead if lead > 0.004 else 0.004))
-        starts.insert(0, ev.on - lead)
-    # Sounds are sung one after another: none begins before the one before it.
-    for i in range(1, len(events)):
-        if starts[i] < starts[i - 1] + 0.008:
-            starts[i] = starts[i - 1] + 0.008
-            events[i].lead = max(0.0, events[i].on - starts[i])
+    free = [ev.bare or ev.whole for ev in events]
+
+    def natural(ev: _Event) -> float:
+        if ev.whole:
+            _, a, _, _, b, _ = _unit(ev.entry)
+            return (b - a) / SR
+        return max(0.0, ev.entry.pre)
+
+    full = [natural(ev) for ev in events]
+    want = list(full)
+
+    def place() -> list[float]:
+        at = [0.0] * len(events)
+        for i in range(len(events) - 1, -1, -1):
+            on = written[i]
+            if free[i] and i + 1 < len(events) and at[i + 1] <= on + 1e-6:
+                on = at[i + 1]         # a consonant ends where the next sound begins
+            events[i].on = on
+            at[i] = on - want[i]
+        return at
+
+    if events:
+        want[0] = min(want[0], max(0.0, written[0] - t0))
+        starts = place()
+        mains = [i for i in range(len(events)) if not free[i]]
+        for k, a in enumerate(mains):
+            last = mains[k + 1] if k + 1 < len(mains) else len(events) - 1
+            if last <= a:
+                continue
+            c = a + 1                      # the run of sounds that follows this vowel
+            while c < last and starts[c + 1] <= written[c] + 1e-6:
+                c += 1
+            until, first = events[c].on, starts[a + 1]
+            floor = written[a] + KEEP * (until - written[a])
+            if first < floor and until - first > 1e-6:
+                squeeze = max(0.0, (until - floor) / (until - first))
+                for i in range(a + 1, c + 1):
+                    want[i] *= squeeze
+        starts = place()
+        for i, ev in enumerate(events):
+            ev.lead = want[i]
+            scale = want[i] / full[i] if full[i] > 1e-6 else 1.0
+            ev.ovl = max(0.008 if ev.whole else 0.004,
+                         min(ev.entry.overlap * scale, want[i] / 2.0 if ev.whole else want[i]))
+        # Sounds are sung one after another: none begins before the one before it.
+        for i in range(1, len(events)):
+            if starts[i] < starts[i - 1] + 0.008:
+                starts[i] = starts[i - 1] + 0.008
+                events[i].lead = max(0.0, events[i].on - starts[i])
 
     for i, ev in enumerate(events):
         unit, start, pre, fixed, end, level = _unit(ev.entry)
+        if ev.like is not None:
+            level = _unit(ev.like)[5]
         begin = starts[i]
         if i + 1 < len(events) and starts[i + 1] <= ev.limit:
             stop = starts[i + 1] + events[i + 1].ovl
@@ -670,8 +850,21 @@ def render_phrase(sung, bank: UtauBank, singer, seed: int,
         else:
             stop, fade = ev.limit, 0.05
         lead_n = int(round(ev.lead * SR))
-        path = [np.linspace(start, pre, lead_n, endpoint=False)] if lead_n > 0 else []
-        if not ev.bare:
+        # A lead-in is hurried to at most twice its speed; past that its
+        # beginning, the part furthest from the vowel, is left out.
+        path = ([np.linspace(max(start, pre - 2 * lead_n), pre, lead_n, endpoint=False)]
+                if lead_n > 0 else [])
+        if ev.whole:
+            # Enough room: the end of the recording, with as much of its vowel
+            # as fits. Not enough: from just before the consonant, and what
+            # does not fit is cut from its release -- never the closure.
+            lap = int(ev.ovl * SR)
+            if lead_n >= (end - pre) + lap:
+                a = max(start, end - lead_n)
+            else:
+                a = max(start, pre - lap)
+            path = [np.arange(a, min(end, a + lead_n), dtype=np.float64)]
+        elif not ev.bare:
             room = int(round((stop - ev.on) * SR))
             hard = min(fixed - pre, max(0, room))
             if hard > 0:

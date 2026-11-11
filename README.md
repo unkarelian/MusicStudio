@@ -505,8 +505,14 @@ lyric in romaji maps straight onto the bank: on the one bank this was checked
 against (Kasane Teto's free UTAU library, 1,244 recordings) a speech recogniser
 wrote down 19 of 20 syllables of an unprepared line. English is sung through
 the same Japanese syllables, so it has a Japanese accent and is only partly
-understood (about half the words of a test line). Banks with English aliases
-(arpasing, VCCV) are not read yet.
+understood (about half the words of a test line).
+
+It also reads English banks recorded as consonant-vowel and vowel-consonant
+pieces with X-SAMPA names (`k{`, `{ t`, `{ t-` -- Teto's English library is
+one), which is what to use for an English lyric: a test line came back word for
+word, and across the whole of a fast song (170 bpm, `press_start_teto.ms`) the
+recogniser followed 72% of 313 words, the choruses nearly verbatim and the
+quick verses less. Banks with arpasing or VCCV aliases are not read yet.
 
 For a voice the studio cannot run at all -- a paid Synthesizer V or Vocaloid
 voice lives inside its own editor -- `ms ust <piece> <voice>` writes the line

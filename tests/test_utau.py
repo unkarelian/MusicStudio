@@ -245,3 +245,76 @@ def test_the_utau_commands_show_a_bank_and_where_its_terms_are(home, capsys):
     assert "2 recordings" in out and "readme.txt" in out and 'bank="utau:mine"' in out
     assert main(["utau", "show", "mine"]) == 0
     assert main(["utau", "remove", "mine"]) == 0
+
+
+# --------------------------------------------------------------------------
+# English banks (consonant-vowel and vowel-consonant pieces, X-SAMPA names)
+# --------------------------------------------------------------------------
+
+def _names(bank_aliases, text_syllables, gaps=()):
+    """The aliases an English bank is asked for, in order, for sung syllables
+    given as ``(onset, nucleus, coda)``, a quarter of a second each."""
+    from pathlib import Path
+    from musicstudio.vocal import Sung
+    entries = {a: utau.Entry(a, Path(a), 0.0, 0.1, -300.0, 0.05, 0.02) for a in bank_aliases}
+    bank = utau.UtauBank("x", Path("."), entries, {})
+    spans, t = [], 0.0
+    for i, (on, nuc, coda) in enumerate(text_syllables):
+        t += 1.0 if i in gaps else 0.0
+        spans.append([Sung(t, t + 0.25, 60, 100, tuple(on), nuc, tuple(coda)), t + 0.25])
+        t += 0.25
+    lost: set = set()
+    events = utau._english_events(bank, spans, lost)
+    return [(e.entry.alias, "whole" if e.whole else "bare" if e.bare else "main")
+            for e in events], lost
+
+
+ENGLISH = ["k{", "sI", "tA", "dV", "bE", "I t", "{ t-", "V n-",        # what marks the kind
+           "- st", "st", "- tA", "A r", "r t-", "r t", "- aI", "aI", "aI m", "m@", "@", "- @",
+           "@ w", "weI", "eI k-", "eI k", "- weI", "tu", "u", "- tu", "t", "mi", "i", "i h",
+           "V", "- V", "pV", "V p", "- pV"]
+
+
+def test_an_english_bank_is_recognised_and_a_japanese_one_is_not():
+    from pathlib import Path
+    e = {a: utau.Entry(a, Path(a), 0, 0, 0, 0, 0) for a in ENGLISH}
+    assert utau.UtauBank("x", Path("."), e, {}).english
+    assert not utau.UtauBank("x", Path("."), {"か": e["k{"], "a か": e["k{"]}, {}).english
+
+
+def test_an_english_syllable_is_a_cluster_a_vowel_and_what_closes_it():
+    # "start": the cluster, the consonant-vowel piece on the beat, the vowel
+    # closing into r, and r into the released t that ends the phrase.
+    got, lost = _names(ENGLISH, [(["s", "t"], "aa", ["r", "t"])])
+    assert got == [("- st", "bare"), ("tA", "main"), ("A r", "whole"), ("r t-", "whole")]
+    assert not lost
+    # "I'm a-wake": a word's last consonant opens the next when that starts
+    # on a vowel, and a vowel closes into the consonant that follows it.
+    got, _ = _names(ENGLISH, [([], "ay", ["m"]), ([], "ah", []), (["w"], "ey", ["k"])])
+    assert got == [("- aI", "main"), ("aI m", "whole"), ("m@", "main"), ("@ w", "whole"),
+                   ("weI", "main"), ("eI k-", "whole")]
+    # After a silence the phrase starts again from nothing.
+    got, _ = _names(ENGLISH, [(["t"], "uw", []), (["m"], "iy", [])], gaps={1})
+    assert got == [("- tu", "main"), ("mi", "main")]
+    # What the bank lacks is named, and the vowel is still sung.
+    got, lost = _names(ENGLISH, [(["z"], "iy", [])])
+    assert got == [("i", "main")] and lost == {"zi"}
+
+
+def test_consonants_never_take_most_of_a_short_note(home):
+    """At speed, what closes one syllable and opens the next is squeezed so
+    the vowel keeps nearly half the note: every note still sounds."""
+    utau.add("test", _bank(home / "bank"))
+    s = Studio(home / "fast")
+    s.create("u", key="C major", tempo=200, sections=[("A", 2)])
+    s.set_harmony("u", [["1", "I"]])
+    s.add_voice("u", "vox", "singer", role="melody", bank="utau:test", octave=4)
+    s.add_op("u", "vox", "phrase", at="1", steps=" ".join(["0:1/8"] * 12))
+    s.add_op("u", "vox", "lyrics", text="shi tsu shi tsu su shi tsu su shi tsu su shi")
+    got, sr, beat = _sing(s, strict=True)
+    x = got["vox"][0]
+    levels = []
+    for k in range(12):
+        a = int((k * 0.5 + 0.2) * beat * sr)
+        levels.append(float(np.sqrt((x[a:a + int(0.2 * beat * sr)] ** 2).mean())))
+    assert min(levels) > 0.25 * max(levels), levels

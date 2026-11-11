@@ -320,7 +320,15 @@ negative; `overlap` can be negative; `oto.ini` is Shift-JIS more often than
 not, and so are the file names inside a `.zip`, which is why `add` unpacks the
 archive itself. A held note is the same recording carried on, not a new one.
 English goes through the Japanese syllables (`_syllable_keys`) and is an
-approximation that says so. It was checked once against a real bank with a
+approximation that says so; a bank recorded in English pieces
+(`UtauBank.english`, X-SAMPA names) is sung by `_english_events` instead: a
+cluster, a consonant-vowel piece on the beat, and a piece that closes the
+vowel into the next consonant. Two things there were wrong first and measured
+by `ms hear`: a consonant piece has no level of its own (levelled alone, every
+final "s" was as loud as a vowel and the voice came out 16 dB hot -- it takes
+its syllable's, `_Event.like`), and at speed the consonants between two beats
+ate the note (they may take 55% of it, `KEEP`; past that they are hurried,
+then cut from the end furthest from the vowel). It was checked once against a real bank with a
 speech recogniser (19 of 20 syllables of a romaji line); change it against
 that kind of check, not against a spectrogram. `ust` writes a voice out for
 another editor; it is an export, like MIDI, and nothing reads one back in.
