@@ -309,7 +309,125 @@ up, exactly as a break is), and then through the same compressor, drive and
 filter as anything else. Without a SoundFont the voice falls back to its model,
 so the piece still builds anywhere.
 
-`examples/build_undertow.py` is the worked example.
+For the far end of this: `drive` takes `mode="clip"` or `"fold"` and amounts up
+to 4, `noise_wall` is an instrument that is almost all noise, `chop`'s pitch
+marks move pitched voices as well as drums (so the same order on every voice is
+a stutter of the whole mix), and `ms master <piece> --clip 12` drives the
+finished mix past full scale and cuts the tops off, on purpose.
+
+`examples/build_undertow.py` is the worked example, and
+`examples/build_splinter.py` the extreme one: 174 bpm, a generated cut on every
+bar, and a clipped master.
+
+## Singing
+
+A voice with a `singer` instrument sings words, and the voice is synthesized
+from nothing — no recordings:
+
+```python
+add_voice("vox", "singer", role="melody")
+add_op("vox", "play", motif="ask", at="3")            # seven notes
+add_op("vox", "lyrics", text="I am a line of num-bers")   # seven syllables
+```
+
+One syllable per note. Hyphenate a word across notes (`lan-terns`), `-` holds
+the previous vowel over another note, `_` leaves a note on "ah". A line that is
+all romaji is read as Japanese (`ka ze ga fu i te`); otherwise words are English
+through the CMU Pronouncing Dictionary (`ms lyrics install`, 3.6 MB, pinned by
+hash) with spelling rules as a fallback; `[s t r ey n jh]` gives the sounds
+exactly. `ms lyrics "a line of words"` shows how a line divides before you set
+it, and a mismatch between notes and syllables is a warning on the render.
+
+The voice (`vocal.py`) is a formant synthesizer: a source that buzzes at the
+pitch, shaped by resonances whose positions are the vowel, with consonants as
+the moments the tract closes or hisses. What makes it sing rather than speak on
+a pitch is timing and motion — opening consonants are sung *ahead* of the note
+so the vowel lands on the beat, formants glide between shapes, pitch slides
+into each note, and above the staff the first formant follows the pitch the way
+a soprano's does. Four voices: `singer` (bright, pitch that steps and holds),
+`singer_warm` (slides and vibrato), `singer_low`, `singer_breathy`.
+
+It sounds like what it is: clear vowels, words you can follow if you know them,
+unmistakably synthetic. `examples/build_first_words.py` is a verse and a chorus.
+
+### A neural singer
+
+For a voice that actually *sings*, give a singer a DiffSinger voicebank — models
+trained on a person singing, the open counterpart of a Synthesizer V or Vocaloid
+voice:
+
+```bash
+uv sync --extra neural
+uv run ms singer show qixuan                       # read what its terms ask
+uv run ms singer install qixuan --accept-terms     # 401 MB, once
+```
+
+```python
+add_voice("vox", "singer", role="melody", bank="qixuan")
+add_op("vox", "lyrics", text="I will wait for you by the riv-er in the morn-ing")
+```
+
+**No voicebank ships with the studio.** Each is somebody's voice under that
+person's terms, so installing one is an explicit step that shows you the terms
+first; [SINGERS.md](SINGERS.md) lists the ones this engine has been run with,
+where they come from, and what each asks (credit, and for some, non-commercial
+use only). A voice whose bank is not installed falls back to the synthesized
+singer with a warning.
+
+The studio still decides the notes, the syllables and where each vowel lands;
+the voicebank decides consonant lengths, the pitch curve between and within the
+notes, and the timbre (`neural.py`). Renders are seeded and reproducible, and a
+rendered phrase is cached, so only what you changed is sung again. On the fast
+song this was built against (172 bpm, `examples/build_last_train.py`) a speech
+recogniser followed 85-89% of the words, and unprepared lines at moderate tempo
+came back word for word.
+
+### A recorded voice
+
+For a human timbre, give a singer a **voice bank**: a recorded voice that is
+complete on its own, so that from then on you only arrange notes and words.
+
+```bash
+export OPENROUTER_API_KEY=...
+uv run ms lyrics install                         # the pronouncing dictionary
+uv run ms voicebank build sarah --words 2000     # once: about a dollar, 4 minutes
+```
+
+```python
+add_voice("vox", "singer", role="melody", bank="sarah")
+add_op("vox", "lyrics", text="I will wait for you by the riv-er in the morn-ing")
+```
+
+Building records two things with a text-to-speech voice (ElevenLabs v4 through
+OpenRouter) and keeps them in `~/.cache/musicstudio/voicebank` — never in a
+piece or a repository:
+
+- **a vocabulary** — the commonest English words, each recorded whole. A word
+  in it is sung from its own recording, with the joins inside it exactly as
+  they were spoken;
+- **a unit corpus** — 271 one-syllable words chosen so that every join between
+  a consonant and a vowel they use is covered. Each is cut in two at the middle
+  of its vowel ("cat" gives `k-ae` and `ae-t`), and any word that was *not*
+  recorded is assembled from those halves. So there is nothing the bank cannot
+  sing, and nothing more is ever fetched.
+
+What you hear is the recording. Voiced sound is re-pitched by PSOLA — cut at
+each closing of the vocal folds into two-period grains, which are laid down
+again at the spacing of the sung note, so the pitch is the score's and the
+vowel is the speaker's. Unvoiced sound is played in fixed grains, so a consonant
+can be shortened to fit a fast note without changing its tone. The vowel of
+every syllable still lands on the beat, a held note stretches the middle of the
+vowel and leaves its opening and closing at spoken speed, and every syllable is
+sung at the note's loudness rather than at speech's.
+
+`ms voicebank check <piece>` renders the singer alone and has a speech
+recogniser write down what it hears, scored against the lyric. It is the
+studio's ear for words, and it is how this engine was built: the first version
+assembled *every* word from units and scored 37% on a fast song; singing
+recorded words whole, stretching whole vowels and never resampling consonants
+took the same song to 85%. Without a bank the voice falls back to the
+synthesized singer and says so. It sounds like speech set to pitch, because that
+is what it is; a neural singer (above) is the better voice where one may be used.
 
 ## Use it
 
@@ -455,6 +573,13 @@ uv sync --extra analysis    # numpy; audio import also needs ffmpeg on PATH
 ```
 
 MIDI import, motif discovery and cross-piece comparison need neither.
+
+Neural singers are a second extra, and the only part of the studio that runs
+someone else's model:
+
+```bash
+uv sync --extra neural      # numpy, onnxruntime, pyyaml; the voicebank is separate
+```
 
 ## Development
 

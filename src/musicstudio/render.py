@@ -86,6 +86,12 @@ class Note:
     #: Semitones a drum stroke is pitched away from itself: a break played
     #: faster comes out higher. Only the audio render can honour it.
     tune: float = 0.0
+    #: The syllable sung on this note, as written, and as phonemes
+    #: (``lyrics.Syllable.to_json``; ``-`` holds the previous vowel).
+    lyric: str = ""
+    sung: str = ""
+    #: ``word#index/count`` -- which syllable of which word, for a voice bank.
+    word: str = ""
 
     @property
     def end(self) -> int:
@@ -167,6 +173,8 @@ def _apply(piece, voice, op, notes, cache, out, stack) -> list[Note]:
         return notes + _op_groove(piece, voice, op)
     if k == "beat":
         return notes + _op_beat(piece, voice, op)
+    if k == "lyrics":
+        return _op_lyrics(piece, voice, op, notes, out)
     if k == "chop":
         return _op_chop(piece, voice, op, notes)
     if k in AUDIO_ONLY:
@@ -667,6 +675,44 @@ def _op_groove(piece: Piece, voice: Voice, op: Op) -> list[Note]:
         tick += grid
         i += 1
     return notes
+
+
+def _op_lyrics(piece: Piece, voice: Voice, op: Op, notes: list[Note], out) -> list[Note]:
+    """Give the notes in a span one syllable each, in order.
+
+    The words are a property of the notes, not a separate track: move a note
+    and its syllable moves with it, and a note added in the middle of the line
+    pushes the later syllables along, which is what a singer would do.
+    """
+    from .lyrics import parse
+    lo, hi = _span(piece, op, "from", "until")
+    if op.params.get("from") is None:
+        lo, hi = 0, piece.total_ticks
+    syllables, warnings = parse(str(op.params["text"]), op.params.get("lang") or "auto")
+    for w in warnings:
+        out.warnings.append(f"{voice.name}/{op.id}: {w}")
+    inside = sorted((n for n in notes if lo <= n.start < hi and not n.ornament
+                     and not n.percussive), key=lambda n: (n.start, n.pitch))
+    # One syllable per onset: a chord sings one word.
+    onsets = sorted({n.start for n in inside})
+    if len(syllables) > len(onsets):
+        out.warnings.append(
+            f"{voice.name}/{op.id}: {len(syllables)} syllables for {len(onsets)} "
+            f"notes; the last {len(syllables) - len(onsets)} are not sung "
+            f"(from {syllables[len(onsets)].text!r})")
+    elif len(syllables) < len(onsets):
+        out.warnings.append(
+            f"{voice.name}/{op.id}: {len(onsets)} notes for {len(syllables)} "
+            f"syllables; the last {len(onsets) - len(syllables)} notes are sung "
+            f"on 'ah'. Use '-' to hold a syllable over more notes.")
+    words = {t: s for t, s in zip(onsets, syllables)}
+    def tag(s) -> str:
+        return f"{s.word}#{s.index}/{s.count}" if s.word else ""
+
+    return [replace(n, lyric=words[n.start].text, sung=words[n.start].to_json(),
+                    word=tag(words[n.start]))
+            if n.start in words and lo <= n.start < hi and not n.ornament else n
+            for n in notes]
 
 
 def _op_beat(piece: Piece, voice: Voice, op: Op) -> list[Note]:

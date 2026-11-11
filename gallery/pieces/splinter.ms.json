@@ -1,0 +1,3531 @@
+{
+  "schema": 1,
+  "name": "splinter",
+  "key": "F minor",
+  "tempo": 174,
+  "meter": "4/4",
+  "style": "electronic",
+  "loop": false,
+  "meta": {
+    "master": {
+      "clip": 4.0,
+      "level": -9.0
+    }
+  },
+  "sections": [
+    {
+      "name": "slam",
+      "bars": 2,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    },
+    {
+      "name": "A",
+      "bars": 16,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    },
+    {
+      "name": "B",
+      "bars": 16,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    },
+    {
+      "name": "void",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "C",
+      "bars": 32,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    },
+    {
+      "name": "melt",
+      "bars": 16,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": "",
+      "tempo_end": 208
+    },
+    {
+      "name": "end",
+      "bars": 2,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "2",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "4",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "6",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "8",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "10",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "12",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "14",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "16",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "17",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "18",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "19",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "20",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "21",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "22",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "23",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "24",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "25",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "26",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "27",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "28",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "29",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "30",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "31",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "32",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "33",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "34",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "35",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "36",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "37",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "38",
+      "chord": "iv",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "39",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "40",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "41",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "42",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "43",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "44",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "45",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "46",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "47",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "48",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "49",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "50",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "51",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "52",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "53",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "54",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "55",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "56",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "57",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "58",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "59",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "60",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "61",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "62",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "63",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "64",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "65",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "66",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "67",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "68",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "69",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "70",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "71",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "72",
+      "chord": "VI",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "73",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "74",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "75",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "76",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "77",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "78",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "79",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "80",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "81",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "82",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "83",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "84",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "85",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "86",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "87",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "88",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "89",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "90",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "91",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "92",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "riff",
+      "anchor": "scale",
+      "unit": "1/16",
+      "source": "0 0 r 0 2 r 4 4 r r 6 4 r r 3 r 0 0 r 0 2 r 4 4 r r 3 2 r 0:1/8.",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 6
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 3
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 3
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/8.",
+          "deg": 0
+        }
+      ],
+      "note": "two bars in 3+3+2. The first climbs to the seventh and is left hanging on the fourth; the second starts the same way and comes down to the tonic and stays on it. The first version of this was one bar that stopped mid-figure and repeated -- a question asked sixteen times"
+    },
+    {
+      "name": "riff_up",
+      "anchor": "scale",
+      "unit": "1/16",
+      "source": "2 2 r 2 4 r 6 6 r r 8 6 r r 5 r 2 2 r 2 4 r 6 6 r r 5 4 r 2:1/8.",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 6
+        },
+        {
+          "dur": "1/16",
+          "deg": 6
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 8
+        },
+        {
+          "dur": "1/16",
+          "deg": 6
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 5
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 6
+        },
+        {
+          "dur": "1/16",
+          "deg": 6
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 5
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/8.",
+          "deg": 2
+        }
+      ],
+      "note": "the same riff a third higher, for the second half of C",
+      "derived_from": "riff",
+      "lineage": [
+        "transpose:2"
+      ]
+    },
+    {
+      "name": "wail",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "7:1/2. b8:1/4 7:1/2 4:1/2 5:1/2 4:1/4 5:1/4 7:1/1",
+      "steps": [
+        {
+          "dur": "1/2.",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/2",
+          "deg": 7
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/1",
+          "deg": 7
+        }
+      ],
+      "note": "the only slow thing in the piece: the tonic, the flat second over it, and a fall through the flat sixth"
+    },
+    {
+      "name": "wail_cut",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "7:1/4. b8",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 8,
+          "alt": -1
+        }
+      ],
+      "note": "its first two notes at double speed, for the melt",
+      "derived_from": "wail",
+      "lineage": [
+        "fragment:0,2",
+        "diminish:2"
+      ]
+    },
+    {
+      "name": "pound",
+      "anchor": "chord",
+      "unit": "1/8",
+      "source": "r 0 r 0 r 0 r 0",
+      "steps": [
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        }
+      ],
+      "note": "the bass: the root on every off-beat, in the gaps the kick leaves -- so the low end alternates kick, sub, kick, sub instead of being one continuous rumble"
+    },
+    {
+      "name": "lurch",
+      "anchor": "chord",
+      "unit": "1/8",
+      "source": "0:1/4. 0 0:1/4 0:1/4",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        }
+      ],
+      "note": "the same root, half-time and limping, for the void",
+      "derived_from": "pound",
+      "lineage": [
+        "rhythmize:4"
+      ]
+    }
+  ],
+  "voices": [
+    {
+      "name": "lead",
+      "instrument": "supersaw",
+      "role": "melody",
+      "octave": 4,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "a_wail",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 2,
+            "every": "4/1",
+            "dynamic": null,
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "wail",
+            "at": "11"
+          }
+        },
+        {
+          "id": "v_wail",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": [
+              "augment:2"
+            ],
+            "times": 1,
+            "every": null,
+            "dynamic": "mf",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "wail",
+            "at": "35"
+          }
+        },
+        {
+          "id": "c_wail",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": 5,
+            "transform": null,
+            "times": 4,
+            "every": "4/1",
+            "dynamic": null,
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "wail",
+            "at": "59"
+          }
+        },
+        {
+          "id": "m_cut",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 16,
+            "every": "1/1",
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "wail_cut",
+            "at": "75"
+          }
+        },
+        {
+          "id": "glitch26_lead",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "26",
+            "until": "27",
+            "order": "0 0 0*2 0*2 4 4 4*2 4*4 8 8*2 8*2 8*4 12*4^0>12 12*4^12>0 . ."
+          }
+        },
+        {
+          "id": "glitch34_lead",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "34",
+            "until": "35",
+            "order": "0*2 0*2 0*4 0*4 0*8 0*8 . . 8*2 8*2 8*4 8*4 8*8^0>12 8*8^12>24 . ."
+          }
+        },
+        {
+          "id": "glitch50_lead",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "50",
+            "until": "51",
+            "order": "0 0*2 . 0*4 4 4*2 . 4*4 0^5 0*2^5 . 0*4^5 0^12 0*2^12 0*4^12 ."
+          }
+        },
+        {
+          "id": "glitch58_lead",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "58",
+            "until": "59",
+            "order": "0*4 . 0*4 . 0*8 . . . 8*4^0>-12 8*4^-12>-24 . . 0*8^0>12 0*8^12>24 . ."
+          }
+        },
+        {
+          "id": "glitch66_lead",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "66",
+            "until": "67",
+            "order": "0 . . 0 . . 0*2 . 0 . . 0*4 . . 0*8^0>19 ."
+          }
+        },
+        {
+          "id": "glitch74_lead",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "74",
+            "until": "75",
+            "order": "0*2 0*2 0*2 0*2 0*4 0*4 0*4 0*4 0*8 0*8 0*8 0*8 . . . ."
+          }
+        },
+        {
+          "id": "melt76_lead",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "76",
+            "until": "77",
+            "order": "0 8 0*2 4*2^7 4 4 8 4 8 4*4^0>4 4*4^4>7 11 8 8 . 8r"
+          }
+        },
+        {
+          "id": "melt78_lead",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "78",
+            "until": "79",
+            "order": "0 8*4^0>0 8*4^0>19 . 4 5 2 2*4 8 4 0*2^8 11 8 0*2^5 0 8r"
+          }
+        },
+        {
+          "id": "melt80_lead",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "80",
+            "until": "81",
+            "order": "0 8*4^0>0 8*4^0>19 11 4 0*2 8 8r 8 8 2 8r 8 . 14 0"
+          }
+        },
+        {
+          "id": "melt82_lead",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "82",
+            "until": "83",
+            "order": "0 1 2 4 4 2*2 4r 7 8 0 8*4^0>8 4r 8 2*2^7 0*2^7 4r"
+          }
+        },
+        {
+          "id": "melt84_lead",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "84",
+            "until": "85",
+            "order": "0 . . 8 4 4*4^0>0 4*4^0>19 7 8 0*2^8 4*2^5 . 8 4 2*2 2"
+          }
+        },
+        {
+          "id": "melt86_lead",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "86",
+            "until": "87",
+            "order": "0 . 8 3 4 4r . 7 8 0 2*2 11 8 4*4^0>6 4*4^6>8 2*2"
+          }
+        },
+        {
+          "id": "melt88_lead",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "88",
+            "until": "89",
+            "order": "0 4*4^8>6 4*4^6>0 3 4 8*2^5 14 15 8 4r 0 11 8 . 8r 0*4^8"
+          }
+        },
+        {
+          "id": "melt90_lead",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "90",
+            "until": "91",
+            "order": "0 8r 4r 2*2^7 4 2 4*4^0>7 7 8 . 8*4^0>7 8r 8 2 4r 0"
+          }
+        },
+        {
+          "id": "v_hole_lead",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "39",
+            "until": "40"
+          }
+        },
+        {
+          "id": "v_lead_out",
+          "kind": "rest",
+          "enabled": true,
+          "note": "the wail is cut off by the roll before it can resolve",
+          "params": {
+            "from": "41",
+            "until": "43"
+          }
+        },
+        {
+          "id": "fx_lead",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 1.4,
+            "mode": "clip"
+          }
+        },
+        {
+          "id": "fx_lead_grit",
+          "kind": "crush",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "rate": 9000,
+            "bits": 7
+          }
+        },
+        {
+          "id": "fx_lead_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -9
+          }
+        }
+      ]
+    },
+    {
+      "name": "shred",
+      "instrument": "supersaw",
+      "role": "ornament",
+      "octave": 4,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "b_riff",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 4,
+            "every": "4/1",
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "riff",
+            "at": "19"
+          }
+        },
+        {
+          "id": "c_riff",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 4,
+            "every": "4/1",
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "riff",
+            "at": "43"
+          }
+        },
+        {
+          "id": "c_riff_up",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 4,
+            "every": "4/1",
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "riff_up",
+            "at": "59"
+          }
+        },
+        {
+          "id": "m_riff",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 4,
+            "every": "4/1",
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "riff",
+            "at": "75"
+          }
+        },
+        {
+          "id": "glitch26_shred",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "26",
+            "until": "27",
+            "order": "0 0 0*2 0*2 4 4 4*2 4*4 8 8*2 8*2 8*4 12*4^0>12 12*4^12>0 . ."
+          }
+        },
+        {
+          "id": "glitch34_shred",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "34",
+            "until": "35",
+            "order": "0*2 0*2 0*4 0*4 0*8 0*8 . . 8*2 8*2 8*4 8*4 8*8^0>12 8*8^12>24 . ."
+          }
+        },
+        {
+          "id": "glitch50_shred",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "50",
+            "until": "51",
+            "order": "0 0*2 . 0*4 4 4*2 . 4*4 0^5 0*2^5 . 0*4^5 0^12 0*2^12 0*4^12 ."
+          }
+        },
+        {
+          "id": "glitch58_shred",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "58",
+            "until": "59",
+            "order": "0*4 . 0*4 . 0*8 . . . 8*4^0>-12 8*4^-12>-24 . . 0*8^0>12 0*8^12>24 . ."
+          }
+        },
+        {
+          "id": "glitch66_shred",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "66",
+            "until": "67",
+            "order": "0 . . 0 . . 0*2 . 0 . . 0*4 . . 0*8^0>19 ."
+          }
+        },
+        {
+          "id": "glitch74_shred",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "74",
+            "until": "75",
+            "order": "0*2 0*2 0*2 0*2 0*4 0*4 0*4 0*4 0*8 0*8 0*8 0*8 . . . ."
+          }
+        },
+        {
+          "id": "fx_shred",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 1.4,
+            "mode": "clip"
+          }
+        },
+        {
+          "id": "fx_shred_grit",
+          "kind": "crush",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "rate": 9000,
+            "bits": 7
+          }
+        },
+        {
+          "id": "fx_shred_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -9
+          }
+        }
+      ]
+    },
+    {
+      "name": "pad",
+      "instrument": "tremolo_strings",
+      "role": "pad",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "v_pad",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "mp",
+            "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "35",
+            "bars": 8
+          }
+        },
+        {
+          "id": "c_pad",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "mf",
+            "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "43",
+            "bars": 48
+          }
+        },
+        {
+          "id": "v_hole_pad",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "39",
+            "until": "40"
+          }
+        },
+        {
+          "id": "fx_pad",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.8,
+            "mode": "soft"
+          }
+        },
+        {
+          "id": "fx_pad_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -6
+          }
+        }
+      ]
+    },
+    {
+      "name": "wall",
+      "instrument": "noise_wall",
+      "role": "pad",
+      "octave": 4,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "s_riser",
+          "kind": "drone",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "degree": 4,
+            "octave": null,
+            "dynamic": null,
+            "retrigger": null,
+            "at": "1",
+            "bars": 2
+          }
+        },
+        {
+          "id": "a_wall",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 2,
+            "dynamic": null,
+            "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "3",
+            "bars": 32
+          }
+        },
+        {
+          "id": "c_wall",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 2,
+            "dynamic": null,
+            "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "43",
+            "bars": 48
+          }
+        },
+        {
+          "id": "v_wall",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 2,
+            "dynamic": "mp",
+            "spread": false,
+            "lead": false,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "39",
+            "bars": 4
+          }
+        },
+        {
+          "id": "a_gate",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 8,
+            "from": "3",
+            "until": "35",
+            "order": ". 0 . 0 . 0 . 0"
+          }
+        },
+        {
+          "id": "c_gate",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 8,
+            "from": "43",
+            "until": "91",
+            "order": ". 0 . 0 . 0 . 0*2"
+          }
+        },
+        {
+          "id": "glitch26_wall",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "26",
+            "until": "27",
+            "order": "0 0 0*2 0*2 4 4 4*2 4*4 8 8*2 8*2 8*4 12*4^0>12 12*4^12>0 . ."
+          }
+        },
+        {
+          "id": "glitch34_wall",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "34",
+            "until": "35",
+            "order": "0*2 0*2 0*4 0*4 0*8 0*8 . . 8*2 8*2 8*4 8*4 8*8^0>12 8*8^12>24 . ."
+          }
+        },
+        {
+          "id": "glitch50_wall",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "50",
+            "until": "51",
+            "order": "0 0*2 . 0*4 4 4*2 . 4*4 0^5 0*2^5 . 0*4^5 0^12 0*2^12 0*4^12 ."
+          }
+        },
+        {
+          "id": "glitch58_wall",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "58",
+            "until": "59",
+            "order": "0*4 . 0*4 . 0*8 . . . 8*4^0>-12 8*4^-12>-24 . . 0*8^0>12 0*8^12>24 . ."
+          }
+        },
+        {
+          "id": "glitch66_wall",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "66",
+            "until": "67",
+            "order": "0 . . 0 . . 0*2 . 0 . . 0*4 . . 0*8^0>19 ."
+          }
+        },
+        {
+          "id": "glitch74_wall",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "74",
+            "until": "75",
+            "order": "0*2 0*2 0*2 0*2 0*4 0*4 0*4 0*4 0*8 0*8 0*8 0*8 . . . ."
+          }
+        },
+        {
+          "id": "fx_riser",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 6000,
+            "mode": "highpass",
+            "resonance": 0.4,
+            "from": "1",
+            "until": "3",
+            "start": 200
+          }
+        },
+        {
+          "id": "fx_wall_void",
+          "kind": "filter",
+          "enabled": true,
+          "note": "the riser out of the void",
+          "params": {
+            "end": 8000,
+            "mode": "highpass",
+            "resonance": 0.5,
+            "from": "39",
+            "until": "43",
+            "start": 150
+          }
+        },
+        {
+          "id": "fx_wall_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -8
+          }
+        }
+      ]
+    },
+    {
+      "name": "sub",
+      "instrument": "sub_bass",
+      "role": "bass",
+      "octave": 1,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "a_sub",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 16,
+            "every": "1/1",
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "pound",
+            "at": "3"
+          }
+        },
+        {
+          "id": "b_sub",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 16,
+            "every": "1/1",
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "pound",
+            "at": "19"
+          }
+        },
+        {
+          "id": "c_sub",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 32,
+            "every": "1/1",
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "pound",
+            "at": "43"
+          }
+        },
+        {
+          "id": "m_sub",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 16,
+            "every": "1/1",
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "pound",
+            "at": "75"
+          }
+        },
+        {
+          "id": "v_sub",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 6,
+            "every": "1/1",
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": null,
+            "motif": "lurch",
+            "at": "35"
+          }
+        },
+        {
+          "id": "glitch26_sub",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "26",
+            "until": "27",
+            "order": "0 0 0*2 0*2 4 4 4*2 4*4 8 8*2 8*2 8*4 12*4^0>12 12*4^12>0 . ."
+          }
+        },
+        {
+          "id": "glitch34_sub",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "34",
+            "until": "35",
+            "order": "0*2 0*2 0*4 0*4 0*8 0*8 . . 8*2 8*2 8*4 8*4 8*8^0>12 8*8^12>24 . ."
+          }
+        },
+        {
+          "id": "glitch50_sub",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "50",
+            "until": "51",
+            "order": "0 0*2 . 0*4 4 4*2 . 4*4 0^5 0*2^5 . 0*4^5 0^12 0*2^12 0*4^12 ."
+          }
+        },
+        {
+          "id": "glitch58_sub",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "58",
+            "until": "59",
+            "order": "0*4 . 0*4 . 0*8 . . . 8*4^0>-12 8*4^-12>-24 . . 0*8^0>12 0*8^12>24 . ."
+          }
+        },
+        {
+          "id": "glitch66_sub",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "66",
+            "until": "67",
+            "order": "0 . . 0 . . 0*2 . 0 . . 0*4 . . 0*8^0>19 ."
+          }
+        },
+        {
+          "id": "glitch74_sub",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "74",
+            "until": "75",
+            "order": "0*2 0*2 0*2 0*2 0*4 0*4 0*4 0*4 0*8 0*8 0*8 0*8 . . . ."
+          }
+        },
+        {
+          "id": "v_hole_sub",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "39",
+            "until": "40"
+          }
+        },
+        {
+          "id": "e_sub",
+          "kind": "drone",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "degree": 0,
+            "octave": null,
+            "dynamic": null,
+            "retrigger": null,
+            "at": "91",
+            "bars": 2
+          }
+        },
+        {
+          "id": "fx_sub",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.6,
+            "mode": "soft"
+          }
+        },
+        {
+          "id": "fx_sub_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -2
+          }
+        }
+      ]
+    },
+    {
+      "name": "reese",
+      "instrument": "reese_bass",
+      "role": "bass",
+      "octave": 2,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "reese_all",
+          "kind": "double",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "interval": 0,
+            "octaves": 1,
+            "dynamic": null,
+            "delay": null,
+            "from": null,
+            "until": null,
+            "source": "sub"
+          }
+        },
+        {
+          "id": "glitch26_reese",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "26",
+            "until": "27",
+            "order": "0 0 0*2 0*2 4 4 4*2 4*4 8 8*2 8*2 8*4 12*4^0>12 12*4^12>0 . ."
+          }
+        },
+        {
+          "id": "glitch34_reese",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "34",
+            "until": "35",
+            "order": "0*2 0*2 0*4 0*4 0*8 0*8 . . 8*2 8*2 8*4 8*4 8*8^0>12 8*8^12>24 . ."
+          }
+        },
+        {
+          "id": "glitch50_reese",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "50",
+            "until": "51",
+            "order": "0 0*2 . 0*4 4 4*2 . 4*4 0^5 0*2^5 . 0*4^5 0^12 0*2^12 0*4^12 ."
+          }
+        },
+        {
+          "id": "glitch58_reese",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "58",
+            "until": "59",
+            "order": "0*4 . 0*4 . 0*8 . . . 8*4^0>-12 8*4^-12>-24 . . 0*8^0>12 0*8^12>24 . ."
+          }
+        },
+        {
+          "id": "glitch66_reese",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "66",
+            "until": "67",
+            "order": "0 . . 0 . . 0*2 . 0 . . 0*4 . . 0*8^0>19 ."
+          }
+        },
+        {
+          "id": "glitch74_reese",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "74",
+            "until": "75",
+            "order": "0*2 0*2 0*2 0*2 0*4 0*4 0*4 0*4 0*8 0*8 0*8 0*8 . . . ."
+          }
+        },
+        {
+          "id": "melt76_reese",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "76",
+            "until": "77",
+            "order": "0 8 0*2 4*2^7 4 4 8 4 8 4*4^0>4 4*4^4>7 11 8 8 . 8r"
+          }
+        },
+        {
+          "id": "melt78_reese",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "78",
+            "until": "79",
+            "order": "0 8*4^0>0 8*4^0>19 . 4 5 2 2*4 8 4 0*2^8 11 8 0*2^5 0 8r"
+          }
+        },
+        {
+          "id": "melt80_reese",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "80",
+            "until": "81",
+            "order": "0 8*4^0>0 8*4^0>19 11 4 0*2 8 8r 8 8 2 8r 8 . 14 0"
+          }
+        },
+        {
+          "id": "melt82_reese",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "82",
+            "until": "83",
+            "order": "0 1 2 4 4 2*2 4r 7 8 0 8*4^0>8 4r 8 2*2^7 0*2^7 4r"
+          }
+        },
+        {
+          "id": "melt84_reese",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "84",
+            "until": "85",
+            "order": "0 . . 8 4 4*4^0>0 4*4^0>19 7 8 0*2^8 4*2^5 . 8 4 2*2 2"
+          }
+        },
+        {
+          "id": "melt86_reese",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "86",
+            "until": "87",
+            "order": "0 . 8 3 4 4r . 7 8 0 2*2 11 8 4*4^0>6 4*4^6>8 2*2"
+          }
+        },
+        {
+          "id": "melt88_reese",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "88",
+            "until": "89",
+            "order": "0 4*4^8>6 4*4^6>0 3 4 8*2^5 14 15 8 4r 0 11 8 . 8r 0*4^8"
+          }
+        },
+        {
+          "id": "melt90_reese",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "90",
+            "until": "91",
+            "order": "0 8r 4r 2*2^7 4 2 4*4^0>7 7 8 . 8*4^0>7 8r 8 2 4r 0"
+          }
+        },
+        {
+          "id": "v_hole_reese",
+          "kind": "rest",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "39",
+            "until": "40"
+          }
+        },
+        {
+          "id": "fx_reese_a",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 3500,
+            "mode": "lowpass",
+            "resonance": 0.5,
+            "from": "3",
+            "until": "11",
+            "start": 250
+          }
+        },
+        {
+          "id": "fx_reese_c",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 5000,
+            "mode": "lowpass",
+            "resonance": 0.6,
+            "from": "43",
+            "until": "51",
+            "start": 300
+          }
+        },
+        {
+          "id": "fx_growl",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 1.0,
+            "mode": "clip"
+          }
+        },
+        {
+          "id": "fx_reese_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -6
+          }
+        }
+      ]
+    },
+    {
+      "name": "drums",
+      "instrument": "kit_room",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "s_roll",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 4,
+            "at": "1",
+            "bars": 2,
+            "lanes": {
+              "snare": "x.x.x.x.xxxxxxxx|xxxxxxxxxxxxxxxx",
+              "kick": "x...x...x...x..."
+            }
+          }
+        },
+        {
+          "id": "s_climb",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 4,
+            "from": "2",
+            "until": "3",
+            "order": "0*4^0>3 1*4^3>7 2*8^7>12 3*8^12>19"
+          }
+        },
+        {
+          "id": "a_break",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 4,
+            "at": "3",
+            "bars": 16,
+            "lanes": {
+              "kick": "x.x.......xx....|x.x.......xx....|x.x.......x.....|..xx......x.....",
+              "snare": "....x..o.o..x..o|....x..o.o..x..o|....x..o.o....x.|.o..x..o.o....x.",
+              "hat": "o.o.o.o.o.o.o.o.",
+              "open": "..............o.",
+              "crash": "x..............................................................................................................................."
+            }
+          }
+        },
+        {
+          "id": "b_break",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 4,
+            "at": "19",
+            "bars": 16,
+            "lanes": {
+              "kick": "x.x.......xx....|x.x.......xx....|x.x.......x.....|..xx......x.....",
+              "snare": "....x..o.o..x..o|....x..o.o..x..o|....x..o.o....x.|.o..x..o.o....x.",
+              "hat": "o.o.o.o.o.o.o.o.",
+              "open": "..............o.",
+              "crash": "x..............................................................................................................................."
+            }
+          }
+        },
+        {
+          "id": "c_break",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 4,
+            "at": "43",
+            "bars": 32,
+            "lanes": {
+              "kick": "x.x.......xx....|x.x.......xx....|x.x.......x.....|..xx......x.....",
+              "snare": "....x..o.o..x..o|....x..o.o..x..o|....x..o.o....x.|.o..x..o.o....x.",
+              "hat": "o.o.o.o.o.o.o.o.",
+              "open": "..............o.",
+              "crash": "x..............................................................................................................................."
+            }
+          }
+        },
+        {
+          "id": "m_break",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 4,
+            "at": "75",
+            "bars": 16,
+            "lanes": {
+              "kick": "x.x.......xx....|x.x.......xx....|x.x.......x.....|..xx......x.....",
+              "snare": "....x..o.o..x..o|....x..o.o..x..o|....x..o.o....x.|.o..x..o.o....x.",
+              "hat": "o.o.o.o.o.o.o.o.",
+              "open": "..............o.",
+              "crash": "x..............................................................................................................................."
+            }
+          }
+        },
+        {
+          "id": "cut4",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "4",
+            "until": "5",
+            "order": "0 1 12*2 3 4 5 6 7 8 9 10 11 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut5",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "5",
+            "until": "6",
+            "order": "0 1 2 10*2^-5 4 2 6 7 8 9 10*2 11 12 13 14 12*2^-5"
+          }
+        },
+        {
+          "id": "cut6",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "6",
+            "until": "7",
+            "order": "8 1 4r 3 12*4^0>10 12*4^10>19 6 7 8 9 10 11 4*2^-5 13 4r 15"
+          }
+        },
+        {
+          "id": "cut8",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "8",
+            "until": "9",
+            "order": "0 12*4^-12>-6 12*4^-6>0 3 4 5 6 7 8 9 4*2 11 12 13 14 14"
+          }
+        },
+        {
+          "id": "cut9",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "9",
+            "until": "10",
+            "order": "0 12r 2 3 4 5 2*2^12 7 8 4*2^7 10 11 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut10",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "10",
+            "until": "11",
+            "order": "4r 0 2 3 4 2 6 7 12*4^-12>-6 12*4^-6>0 12*2^5 10*4^-5 12 13 14 2*2^12"
+          }
+        },
+        {
+          "id": "cut12",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "12",
+            "until": "13",
+            "order": "0 1 2 3 4 5 6 7 8 9 4r 11 12 13 2*4 15"
+          }
+        },
+        {
+          "id": "cut13",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "13",
+            "until": "14",
+            "order": "0 1 2 3 4 5 6 4 8 . 12*2^-5 3 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut14",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "14",
+            "until": "15",
+            "order": "0 2*2^-5 12r 3 4 12*2 6 7 0*2 4*2^-5 0 11 12 13 6 15"
+          }
+        },
+        {
+          "id": "cut16",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "16",
+            "until": "17",
+            "order": "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 0*2^5"
+          }
+        },
+        {
+          "id": "cut17",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "17",
+            "until": "18",
+            "order": "0 1 2 3 4 5 6 7 8 8 4*4^-12>0 11 12 13 10*2 15"
+          }
+        },
+        {
+          "id": "cut18",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "18",
+            "until": "19",
+            "order": "0 1 0 0 4 5 6 4*2 8 2 12r 10 12 . . 15"
+          }
+        },
+        {
+          "id": "cut20",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "20",
+            "until": "21",
+            "order": "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut21",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "21",
+            "until": "22",
+            "order": "0 1 2 3 4 5 6 7 8 9 2 11 12 13 14 14"
+          }
+        },
+        {
+          "id": "cut22",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "22",
+            "until": "23",
+            "order": "12*4^-12>-6 12*4^-6>0 2 0*2^5 4*4^0>4 4*4^4>7 6 12*2^-5 4r 9 10 2*2^7 0 2 14 7"
+          }
+        },
+        {
+          "id": "cut24",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "24",
+            "until": "25",
+            "order": "0 1 2 2 4 5 6 7 8 10 10 11 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut25",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "25",
+            "until": "26",
+            "order": "0 1 2 11 4 . 6 7 8 12*4^-12>-6 12*4^-6>0 11 12 13 14 4*4^-5"
+          }
+        },
+        {
+          "id": "cut26",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "26",
+            "until": "27",
+            "order": "12 1 2 4*4^0>4 4*4^4>8 4*4^8>12 . . 2 1 4*2 4*2^12 0 4*4^0>6 4*4^6>13 4*4^13>19"
+          }
+        },
+        {
+          "id": "cut28",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "28",
+            "until": "29",
+            "order": "0 1 2 4*2^5 4 5 6 7 8 9 10 11 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut29",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "29",
+            "until": "30",
+            "order": "0 4*4^0>6 4*4^6>12 3 4 5 6 12*2^-5 8 9 10 11 12 13 10*4 12"
+          }
+        },
+        {
+          "id": "cut30",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "30",
+            "until": "31",
+            "order": "0 1 2 0*4^5 4*4 13 12*2 7 10*2^-5 4*4^0>4 4*4^4>7 4*4^0>4 4*4^4>8 4*4^8>12 14 4"
+          }
+        },
+        {
+          "id": "cut32",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "32",
+            "until": "33",
+            "order": "0 1 2 3 4 4 6 7 8 9 10 11 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut33",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "33",
+            "until": "34",
+            "order": "0 9 2 3 4 5 6 4*2^-5 8 9 0 11 12 13 4r 12"
+          }
+        },
+        {
+          "id": "cut34",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "34",
+            "until": "35",
+            "order": "12*2^12 12r 2 12*4^0>4 12*4^4>8 12*4^8>12 10*2 4*4^0>4 4*4^4>7 4r 4 11 10*2^5 10*4 14 4r"
+          }
+        },
+        {
+          "id": "cut44",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "44",
+            "until": "45",
+            "order": "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut45",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "45",
+            "until": "46",
+            "order": "0 12*2^-5 2 2 4 5 10*2^5 0*2^12 8 9 10 11 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut46",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "46",
+            "until": "47",
+            "order": "1 1 2 10*4^12 2*2^7 13 4*4^12>6 4*4^6>0 8 0*2 12*4^0>6 12*4^6>13 12*4^13>19 12 15 2*4^5"
+          }
+        },
+        {
+          "id": "cut48",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "48",
+            "until": "49",
+            "order": "0 1 2 3 4 5 12*4^0>19 2 8 9 10 11 12 13 14 12r"
+          }
+        },
+        {
+          "id": "cut49",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "49",
+            "until": "50",
+            "order": "0 12*4^-12>-6 12*4^-6>0 . 4 5 6 7 8 12 10 . 12 . 15 12r"
+          }
+        },
+        {
+          "id": "cut50",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "50",
+            "until": "51",
+            "order": "10 12*4^0>4 12*4^4>8 12*4^8>12 12*4^0>6 12*4^6>12 12*4^-12>-8 12*4^-8>-4 12*4^-4>0 10 . 11 2*4 10*2 4*4 ."
+          }
+        },
+        {
+          "id": "cut52",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "52",
+            "until": "53",
+            "order": "0 4r 2 3 4 10*2 6 10*4^5 8 9 0*2^12 11 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut53",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "53",
+            "until": "54",
+            "order": "0 1 2 10*2^7 4 10*2^7 6 7 8 0 10 11 12 0 4 15"
+          }
+        },
+        {
+          "id": "cut54",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "54",
+            "until": "55",
+            "order": ". 1 12r 3 4*4^-12>-8 4*4^-8>-4 4*4^-4>0 . 2 0*2^-5 4*4^0>4 4*4^4>8 4*4^8>12 12r 4r 12r"
+          }
+        },
+        {
+          "id": "cut56",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "56",
+            "until": "57",
+            "order": "0 1 2 . 4 5 6 7 8 12*2^5 10 11 12 12*2^7 14 15"
+          }
+        },
+        {
+          "id": "cut57",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "57",
+            "until": "58",
+            "order": "0 10 2 3 4 5 14 7 8 9 12 . 12 13 4 4r"
+          }
+        },
+        {
+          "id": "cut58",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "58",
+            "until": "59",
+            "order": "12r 2*2^-5 4*2^5 2 0 12r 10*4^7 10*2 8 4*4^-12>-8 4*4^-8>-4 4*4^-4>0 12 13 . 12r"
+          }
+        },
+        {
+          "id": "cut60",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "60",
+            "until": "61",
+            "order": "0 1 2 3 4 5 6 7 8 12*2^5 10 11 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut61",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "61",
+            "until": "62",
+            "order": "0 4*4^0>10 4*4^10>19 12*2 4 5 4*4^0>19 7 8 9 10 11 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut62",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "62",
+            "until": "63",
+            "order": ". 1 2 4*4^0>6 4*4^6>13 4*4^13>19 6 7 . 8 10 12*4^12>8 12*4^8>4 12*4^4>0 12r 15"
+          }
+        },
+        {
+          "id": "cut64",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "64",
+            "until": "65",
+            "order": "0 1 2 3 4 5 6 7 8 9 12*4^0>12 11 12 13 0*4^5 12*4^12"
+          }
+        },
+        {
+          "id": "cut65",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "65",
+            "until": "66",
+            "order": "0 12*2^7 2 3 4 12*4^-12>-6 12*4^-6>0 7 8 9 10 11 12 13 14 4r"
+          }
+        },
+        {
+          "id": "cut66",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "66",
+            "until": "67",
+            "order": "0 12*4^0>4 12*4^4>7 10 4r 4 10*2^7 7 0 10*4^12 10*2 . 12r 10 4r 15"
+          }
+        },
+        {
+          "id": "cut68",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "68",
+            "until": "69",
+            "order": "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut69",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "69",
+            "until": "70",
+            "order": "0 4*4^5 4*4^0>19 . 4 2 6 10 8 9 4r 11 12 10 0*2^7 15"
+          }
+        },
+        {
+          "id": "cut70",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "70",
+            "until": "71",
+            "order": "4*4^0>4 4*4^4>7 4*4^-12>-8 4*4^-8>-4 4*4^-4>0 2*4 12*2^5 7 10*4^5 12*4^-12>-8 12*4^-8>-4 12*4^-4>0 12 13 4r 12r"
+          }
+        },
+        {
+          "id": "cut72",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "72",
+            "until": "73",
+            "order": "0 1 2 3 4 5 6 7 8 9 10 4*2 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut73",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "73",
+            "until": "74",
+            "order": "0 1 2 0 4 12 4r 7 8 9 10 10 12 13 4*2 15"
+          }
+        },
+        {
+          "id": "cut74",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "74",
+            "until": "75",
+            "order": "0 4*2 3 2*2 4 12r 2 2 2*2^5 4r 0*2^5 4*4^0>2 4*4^2>5 4*4^5>7 4r 12r"
+          }
+        },
+        {
+          "id": "cut76",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "76",
+            "until": "77",
+            "order": "0 1 2 12*4^-5 4 5 6 7 8 9 10 11 12 12 14 2*4"
+          }
+        },
+        {
+          "id": "cut77",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "77",
+            "until": "78",
+            "order": "0 4 12 2 4 13 6 7 8 2*2 10 11 12 4*2 4r ."
+          }
+        },
+        {
+          "id": "cut78",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "78",
+            "until": "79",
+            "order": "12*4^0>10 12*4^10>19 4*4^0>6 4*4^6>13 4*4^13>19 2 12*2^7 10 . 10*2^7 10 10 12*4^-12>-8 12*4^-8>-4 12*4^-4>0 4*2"
+          }
+        },
+        {
+          "id": "cut80",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "80",
+            "until": "81",
+            "order": "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut81",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "81",
+            "until": "82",
+            "order": "0 1 0 3 4 . 2 0*2^7 8 0 2 4*4 12 13 12r 2*2^12"
+          }
+        },
+        {
+          "id": "cut82",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "82",
+            "until": "83",
+            "order": "1 4*4^12>6 4*4^6>0 . 4 4*4^0>2 4*4^2>5 4*4^5>7 4*4^0>4 4*4^4>8 4*4^8>12 4*4^12>6 4*4^6>0 0 12*4 12*4"
+          }
+        },
+        {
+          "id": "cut84",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "84",
+            "until": "85",
+            "order": "0 1 2 3 4 10 2 7 8 9 10 11 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut85",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "85",
+            "until": "86",
+            "order": "0 1 4*4^12>0 0 4 5 12*2^7 . 8 9 10 11 12 13 14 7"
+          }
+        },
+        {
+          "id": "cut86",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "86",
+            "until": "87",
+            "order": "0 12r 4r 10*4 2*4^7 4 4*2^-5 12r 0 12r 10*2^-5 4*2^7 12*2 10*2^5 0*2 ."
+          }
+        },
+        {
+          "id": "cut88",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "88",
+            "until": "89",
+            "order": "0 1 2 . 4 5 6 7 8 9 10 . 12 13 14 15"
+          }
+        },
+        {
+          "id": "cut89",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "89",
+            "until": "90",
+            "order": "0 12r 2 3 4 12r 6 7 8 9 4*4^0>12 11 12 4*4^0>10 4*4^10>19 15"
+          }
+        },
+        {
+          "id": "cut90",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 16,
+            "from": "90",
+            "until": "91",
+            "order": ". 10 12*4^0>6 12*4^6>13 12*4^13>19 . 2*2^12 2 9 4*4^0>4 4*4^4>7 4r 0*2 4*4^12>6 4*4^6>0 15"
+          }
+        },
+        {
+          "id": "v_hits",
+          "kind": "beat",
+          "enabled": true,
+          "note": "the same kit an octave of speed lower: half-time, huge",
+          "params": {
+            "res": "1/16",
+            "dynamic": "f",
+            "tune": -5,
+            "at": "35",
+            "bars": 4,
+            "lanes": {
+              "kick": "x...............|..........x.....",
+              "snare": "........x......."
+            }
+          }
+        },
+        {
+          "id": "v_roll",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 4,
+            "at": "41",
+            "bars": 2,
+            "lanes": {
+              "snare": "x...x...x.x.x.x.|xxxxxxxxxxxxxxxx",
+              "kick": "x.......x.x.x.x."
+            }
+          }
+        },
+        {
+          "id": "v_roll_swell",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "mp",
+            "end": "ff",
+            "from": "41",
+            "until": "43"
+          }
+        },
+        {
+          "id": "v_climb",
+          "kind": "chop",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "slices": 4,
+            "from": "42",
+            "until": "43",
+            "order": "0*4^-5>0 1*4^0>5 2*8^5>12 3*16^12>24"
+          }
+        },
+        {
+          "id": "e_hit",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 4,
+            "at": "91",
+            "bars": 1,
+            "lanes": {
+              "kick": "X...............",
+              "crash": "X...............",
+              "snare": "X..............."
+            }
+          }
+        },
+        {
+          "id": "fx_top",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 9000,
+            "mode": "lowpass",
+            "resonance": 0.0,
+            "from": null,
+            "until": null,
+            "start": 9000
+          }
+        },
+        {
+          "id": "fx_slab",
+          "kind": "compress",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "ratio": 4,
+            "threshold": -18,
+            "makeup": 0.0
+          }
+        },
+        {
+          "id": "fx_drums",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.45,
+            "mode": "soft"
+          }
+        },
+        {
+          "id": "fx_drums_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -3
+          }
+        }
+      ],
+      "engine": "soundfont"
+    },
+    {
+      "name": "stomp",
+      "instrument": "kit_808",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "a_stomp",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "at": "3",
+            "bars": 16,
+            "lanes": {
+              "kick": "X...X...X...X..."
+            }
+          }
+        },
+        {
+          "id": "b_stomp",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "at": "19",
+            "bars": 16,
+            "lanes": {
+              "kick": "X...X...X...X..."
+            }
+          }
+        },
+        {
+          "id": "c_stomp",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "at": "43",
+            "bars": 32,
+            "lanes": {
+              "kick": "X...X...X...X..."
+            }
+          }
+        },
+        {
+          "id": "m_stomp",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "at": "75",
+            "bars": 16,
+            "lanes": {
+              "kick": "X...X...X...X..."
+            }
+          }
+        },
+        {
+          "id": "kick_roll46",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the kick rolls and dives at the end of the phrase",
+          "params": {
+            "slices": 16,
+            "from": "46",
+            "until": "47",
+            "order": "0 _ _ _ 0 _ _ _ 0 _ 0*2 _ 0*4^0>-7 0*4^-7>-12 0*8^-12>0 0*8^0>12"
+          }
+        },
+        {
+          "id": "kick_roll50",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the kick rolls and dives at the end of the phrase",
+          "params": {
+            "slices": 16,
+            "from": "50",
+            "until": "51",
+            "order": "0 _ _ _ 0 _ _ _ 0 _ 0*2 _ 0*4^0>-7 0*4^-7>-12 0*8^-12>0 0*8^0>12"
+          }
+        },
+        {
+          "id": "kick_roll54",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the kick rolls and dives at the end of the phrase",
+          "params": {
+            "slices": 16,
+            "from": "54",
+            "until": "55",
+            "order": "0 _ _ _ 0 _ _ _ 0 _ 0*2 _ 0*4^0>-7 0*4^-7>-12 0*8^-12>0 0*8^0>12"
+          }
+        },
+        {
+          "id": "kick_roll58",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the kick rolls and dives at the end of the phrase",
+          "params": {
+            "slices": 16,
+            "from": "58",
+            "until": "59",
+            "order": "0 _ _ _ 0 _ _ _ 0 _ 0*2 _ 0*4^0>-7 0*4^-7>-12 0*8^-12>0 0*8^0>12"
+          }
+        },
+        {
+          "id": "kick_roll62",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the kick rolls and dives at the end of the phrase",
+          "params": {
+            "slices": 16,
+            "from": "62",
+            "until": "63",
+            "order": "0 _ _ _ 0 _ _ _ 0 _ 0*2 _ 0*4^0>-7 0*4^-7>-12 0*8^-12>0 0*8^0>12"
+          }
+        },
+        {
+          "id": "kick_roll66",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the kick rolls and dives at the end of the phrase",
+          "params": {
+            "slices": 16,
+            "from": "66",
+            "until": "67",
+            "order": "0 _ _ _ 0 _ _ _ 0 _ 0*2 _ 0*4^0>-7 0*4^-7>-12 0*8^-12>0 0*8^0>12"
+          }
+        },
+        {
+          "id": "kick_roll70",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the kick rolls and dives at the end of the phrase",
+          "params": {
+            "slices": 16,
+            "from": "70",
+            "until": "71",
+            "order": "0 _ _ _ 0 _ _ _ 0 _ 0*2 _ 0*4^0>-7 0*4^-7>-12 0*8^-12>0 0*8^0>12"
+          }
+        },
+        {
+          "id": "kick_roll74",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the kick rolls and dives at the end of the phrase",
+          "params": {
+            "slices": 16,
+            "from": "74",
+            "until": "75",
+            "order": "0 _ _ _ 0 _ _ _ 0 _ 0*2 _ 0*4^0>-7 0*4^-7>-12 0*8^-12>0 0*8^0>12"
+          }
+        },
+        {
+          "id": "kick_roll76",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the kick rolls and dives at the end of the phrase",
+          "params": {
+            "slices": 16,
+            "from": "76",
+            "until": "77",
+            "order": "0 _ _ _ 0 _ _ _ 0 _ 0*2 _ 0*4^0>-7 0*4^-7>-12 0*8^-12>0 0*8^0>12"
+          }
+        },
+        {
+          "id": "kick_roll78",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the kick rolls and dives at the end of the phrase",
+          "params": {
+            "slices": 16,
+            "from": "78",
+            "until": "79",
+            "order": "0 _ _ _ 0 _ _ _ 0 _ 0*2 _ 0*4^0>-7 0*4^-7>-12 0*8^-12>0 0*8^0>12"
+          }
+        },
+        {
+          "id": "kick_roll80",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the kick rolls and dives at the end of the phrase",
+          "params": {
+            "slices": 16,
+            "from": "80",
+            "until": "81",
+            "order": "0 _ _ _ 0 _ _ _ 0 _ 0*2 _ 0*4^0>-7 0*4^-7>-12 0*8^-12>0 0*8^0>12"
+          }
+        },
+        {
+          "id": "kick_roll82",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the kick rolls and dives at the end of the phrase",
+          "params": {
+            "slices": 16,
+            "from": "82",
+            "until": "83",
+            "order": "0 _ _ _ 0 _ _ _ 0 _ 0*2 _ 0*4^0>-7 0*4^-7>-12 0*8^-12>0 0*8^0>12"
+          }
+        },
+        {
+          "id": "kick_roll84",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the kick rolls and dives at the end of the phrase",
+          "params": {
+            "slices": 16,
+            "from": "84",
+            "until": "85",
+            "order": "0 _ _ _ 0 _ _ _ 0 _ 0*2 _ 0*4^0>-7 0*4^-7>-12 0*8^-12>0 0*8^0>12"
+          }
+        },
+        {
+          "id": "kick_roll86",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the kick rolls and dives at the end of the phrase",
+          "params": {
+            "slices": 16,
+            "from": "86",
+            "until": "87",
+            "order": "0 _ _ _ 0 _ _ _ 0 _ 0*2 _ 0*4^0>-7 0*4^-7>-12 0*8^-12>0 0*8^0>12"
+          }
+        },
+        {
+          "id": "kick_roll88",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the kick rolls and dives at the end of the phrase",
+          "params": {
+            "slices": 16,
+            "from": "88",
+            "until": "89",
+            "order": "0 _ _ _ 0 _ _ _ 0 _ 0*2 _ 0*4^0>-7 0*4^-7>-12 0*8^-12>0 0*8^0>12"
+          }
+        },
+        {
+          "id": "kick_roll90",
+          "kind": "chop",
+          "enabled": true,
+          "note": "the kick rolls and dives at the end of the phrase",
+          "params": {
+            "slices": 16,
+            "from": "90",
+            "until": "91",
+            "order": "0 _ _ _ 0 _ _ _ 0 _ 0*2 _ 0*4^0>-7 0*4^-7>-12 0*8^-12>0 0*8^0>12"
+          }
+        },
+        {
+          "id": "fx_stomp",
+          "kind": "drive",
+          "enabled": true,
+          "note": "a drum-machine kick clipped until it is a square wave with a thud",
+          "params": {
+            "amount": 2.5,
+            "mode": "clip"
+          }
+        },
+        {
+          "id": "fx_stomp_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "clipping made it 15 dB hotter than everything else put together; this puts it just under the break, where it is the pulse",
+          "params": {
+            "db": -21
+          }
+        }
+      ]
+    }
+  ]
+}

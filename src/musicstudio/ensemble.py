@@ -115,6 +115,18 @@ INSTRUMENTS: dict[str, Instrument] = {i.name: i for i in [
     _i("guitar", "plucked", "E2", "E6", "E2", "E5", 24, polyphony=6, timbre="pluck"),
     _i("choir", "voice", "F2", "A5", "C3", "F5", 52, polyphony=8, timbre="pad",
        notes=("Wordless 'ah'. Slow moving lines only; it cannot articulate fast rhythm.",)),
+    # Solo voices that sing words. Without lyrics they vocalise on "ah".
+    _i("singer", "voice", "G3", "E6", "C4", "G5", 53, polyphony=1, timbre="pad",
+       notes=("A bright, light voice, synthesized. Give it words with the `lyrics` "
+              "op: one syllable per note. Vowels are what carry -- write long "
+              "notes on them and let consonants be quick.",)),
+    _i("singer_warm", "voice", "G3", "E6", "C4", "G5", 53, polyphony=1, timbre="pad",
+       notes=("The same voice sung like a person: it slides between notes and "
+              "has vibrato. `singer` steps and holds, like a synthesized one.",)),
+    _i("singer_low", "voice", "E2", "A4", "A2", "E4", 52, polyphony=1, timbre="pad",
+       notes=("The same throat, larger: a low voice.",)),
+    _i("singer_breathy", "voice", "G3", "E6", "A3", "E5", 53, polyphony=1, timbre="pad",
+       notes=("More air than tone. For close, quiet lines.",)),
     # -- tuned percussion -------------------------------------------------
     _i("glockenspiel", "perc", "F5", "C8", "C6", "C8", 9, polyphony=4, timbre="bell"),
     _i("vibraphone", "perc", "F3", "F6", "F3", "F6", 11, polyphony=4, timbre="bell"),
@@ -127,6 +139,9 @@ INSTRUMENTS: dict[str, Instrument] = {i.name: i for i in [
     _i("supersaw", "synth", "C1", "C7", "C2", "C6", 81, polyphony=4, timbre="saw",
        notes=("Seven saws spread a quarter-tone wide: thick, harsh and wide. The "
               "opposite of a chip lead -- it sounds like a wall, not a whistle.",)),
+    _i("noise_wall", "synth", "C1", "C7", "C2", "C6", 122, polyphony=2, timbre="saw",
+       notes=("Almost pure noise. Hold it under everything, sweep a filter across "
+              "it for a riser, or gate it with `chop`.",)),
     _i("synth_bass", "synth", "C0", "C4", "C1", "C3", 38, polyphony=1, timbre="saw"),
     _i("sub_bass", "synth", "C0", "C3", "D1", "G2", 39, polyphony=1, timbre="tri",
        notes=("Nearly a sine: felt more than heard, and inaudible on small speakers. "

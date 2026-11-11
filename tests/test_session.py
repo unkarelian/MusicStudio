@@ -815,3 +815,549 @@ def test_time_scale_stretches_the_midi_file_without_touching_a_note():
 def struct_division(data: bytes) -> int:
     import struct
     return struct.unpack(">H", data[12:14])[0]
+
+
+def test_a_chopped_pitch_moves_a_pitched_voice_too():
+    np = pytest.importorskip("numpy")
+    from musicstudio import synth
+    base = synth.NoteCtx("supersaw", "v", 57, 0.0, 0.3, 90, None, False, ("v", 0, 57))
+    up = synth.NoteCtx("supersaw", "v", 57, 0.0, 0.3, 90, None, False, ("v", 0, 57), 12.0)
+    assert up.freq == pytest.approx(base.freq * 2)
+    q = _line("0:1/1 | 0:1/1")
+    q.add_op("v", "chop", id="c", **{"from": "1", "until": "2"}, slices=4, order="0*4^0>12 . . .")
+    assert sorted(n.tune for n in render(q).notes if n.start < 480) == [0.0, 4.0, 8.0, 12.0]
+
+
+def test_drive_modes_get_harsher_and_a_noise_wall_is_noise():
+    np = pytest.importorskip("numpy")
+    from musicstudio import synth
+
+    def flatness(x):
+        spec = np.abs(np.fft.rfft(np.asarray(x) * np.hanning(len(x)))) ** 2
+        f = np.fft.rfftfreq(len(x), 1 / audio.SR)
+        band = spec[(f > 200) & (f < 8000)] + 1e-18
+        return float(np.exp(np.log(band).mean()) / band.mean())
+
+    def driven(mode, amount):
+        p = _line("0:1/1 | 0:1/1")
+        p.voices[0].instrument = "sub_bass"
+        p.update_op("f", octave=2)
+        if mode:
+            p.add_op("v", "drive", id="d", amount=amount, mode=mode)
+        return audio.synthesize(p, reverb=False)[0]
+
+    def highs(x):
+        spec = np.abs(np.fft.rfft(x)) ** 2
+        f = np.fft.rfftfreq(len(x), 1 / audio.SR)
+        return spec[f > 1000].sum() / spec.sum()
+
+    clean, soft, clip, fold = (driven(None, 0), driven("soft", 1.0), driven("clip", 2.0),
+                               driven("fold", 2.0))
+    assert highs(clean) < highs(soft) < highs(clip) < highs(fold)
+    with pytest.raises(ValueError, match="drive mode"):
+        driven("fuzz", 1.0)
+    wall = synth.NoteCtx("noise_wall", "v", 60, 0.0, 1.0, 90, None, False, ("v", 0, 60))
+    tone = synth.NoteCtx("supersaw", "v", 60, 0.0, 1.0, 90, None, False, ("v", 0, 60))
+    render1 = lambda c: sum(sig for sig, _ in synth.render_note(c, 10 ** 7))
+    assert flatness(render1(wall)) > 10 * flatness(render1(tone))
+
+
+def test_the_master_can_be_told_to_clip(tmp_path):
+    np = pytest.importorskip("numpy")
+    s = Studio(tmp_path)
+    s.create("m", key="A minor", tempo=160, style="electronic", form="binary")
+    s.add_voice("m", "drums", "kit", role="percussion")
+    s.add_op("m", "drums", "beat", id="b", at="1", bars=4, lanes=AMEN, dynamic="ff")
+
+    def crest(path):
+        with wave.open(str(path)) as w:
+            x = np.frombuffer(w.readframes(w.getnframes()), dtype="<i2") / 32768.0
+        return float(np.abs(x).max() / np.sqrt((x ** 2).mean()))
+
+    polite = crest(s.export_wav("m", str(tmp_path / "a.wav")))
+    assert s.set_master("m", clip=12)["master"] == {"clip": 12.0}
+    assert s.get("m").meta["master"] == {"clip": 12.0}           # saved with the piece
+    assert crest(s.export_wav("m", str(tmp_path / "b.wav"))) < polite * 0.6
+    assert s.set_master("m", clip=0)["master"] == {}
+
+
+# --------------------------------------------------------------------------
+# lyrics and the singing voice
+# --------------------------------------------------------------------------
+
+from musicstudio import lyrics as lyr  # noqa: E402
+
+
+def test_romaji_is_read_syllable_by_syllable():
+    syl, warn = lyr.parse("ka ze ga fu i te ru")
+    assert [s.to_json() for s in syl] == ["k a", "z e", "g a", "f u", "i", "t e", "rr u"]
+    assert warn == []
+    assert [s.to_json() for s in lyr.parse("kyo u wa ki tte n shi")[0]] == \
+        ["k y o", "u", "w a", "k i", "q t e", "N", "sh i"]
+    assert lyr.romaji("the") is None and lyr.romaji("la") is None
+    with pytest.raises(ValueError, match="romaji"):
+        lyr.parse("ka the", lang="ja")
+
+
+def test_brackets_holds_and_plain_ah():
+    syl, _ = lyr.parse("[s t r ey n jh] - _ la", lang="en")
+    assert syl[0].onset == ("s", "t", "r") and syl[0].nucleus == "ey" and syl[0].coda == ("n", "jh")
+    assert syl[1].hold and syl[2].nucleus == "aa" and not syl[2].onset
+    assert lyr.Syllable.from_json(syl[0].to_json()) == lyr.Syllable(
+        ("s", "t", "r"), "ey", ("n", "jh"), syl[0].to_json())
+    with pytest.raises(ValueError, match="unknown phoneme"):
+        lyr.parse("[x y z]")
+    with pytest.raises(ValueError, match="nothing to hold"):
+        lyr.parse("[s t]")
+
+
+def test_english_without_a_dictionary_guesses_and_says_so(tmp_path, monkeypatch):
+    monkeypatch.setattr(lyr, "DICT_DIR", tmp_path)
+    syl, warn = lyr.parse("fire and stone")
+    assert [s.to_json() for s in syl] == ["f ay r", "ae n d", "s t ow n"]
+    assert len(warn) == 1 and "ms lyrics install" in warn[0]
+
+
+def test_english_with_a_dictionary_splits_words_at_syllables(tmp_path, monkeypatch):
+    monkeypatch.setattr(lyr, "DICT_DIR", tmp_path)
+    (tmp_path / lyr.DICT_NAME).write_text(
+        "lanterns L AE1 N T ER0 N Z\nstrange S T R EY1 N JH\nwater W AO1 T ER0\n"
+        "water(2) W AA1 T ER0\nthe DH AH0\n")
+    syl, warn = lyr.parse("lan-terns strange wa-ter the")
+    assert [s.to_json() for s in syl] == ["l ae n", "t er n z", "s t r ey n jh",
+                                          "w ao", "t er", "dh ah"]
+    assert warn == []
+    # nt cannot start a syllable, so it is split; str can, so it is not.
+    assert lyr.split_syllables("ih n s t r ah k t".split()) == [["ih", "n"], ["s", "t", "r", "ah", "k", "t"]]
+    with pytest.raises(ValueError, match="hyphenate"):
+        lyr.parse("lanterns")
+    with pytest.raises(ValueError, match="pronounced as 2"):
+        lyr.parse("lan-ter-ns")
+    assert "guessed" in lyr.parse("zzyzx")[1][0]
+
+
+def _sung(text: str, steps: str = "0 2 4 2", inst: str = "singer", **op) -> Piece:
+    p = Piece("vox", "C major", tempo=96, style="chamber")
+    p.sections.append(Section("A", 2))
+    p.voices.append(Voice("vox", inst, "melody", octave=4, pan=0.0))
+    p.add_op("vox", "phrase", id="m", steps=steps, at="1", unit="1/4", octave=4)
+    p.add_op("vox", "lyrics", id="l", text=text, **op)
+    return p
+
+
+def test_lyrics_ride_on_the_notes_and_reach_the_midi_file():
+    p = _sung("sa ku ra -")
+    r = render(p)
+    assert [(n.lyric, n.sung) for n in sorted(r.notes, key=lambda n: n.start)] == \
+        [("sa", "s a"), ("ku", "k u"), ("ra", "rr a"), ("-", "-")]
+    assert r.warnings == []
+    from musicstudio.midi import to_bytes
+    data = to_bytes(p)
+    assert b"\xff\x05\x02sa" in data and b"\xff\x05\x02ku" in data
+    assert b"\xff\x05\x01-" not in data                    # a hold is not a word
+    # Too many or too few syllables is said, not hidden.
+    assert "not sung" in render(_sung("a i u e o ka")).warnings[0]
+    assert "'ah'" in render(_sung("a i")).warnings[0]
+    with pytest.raises(ValueError, match="romaji"):
+        _sung("ka the", lang="ja")
+
+
+def _spectrum(x, np, lo, hi, a, b):
+    seg = np.asarray(x)[int(a * audio.SR):int(b * audio.SR)]
+    spec = np.abs(np.fft.rfft(seg * np.hanning(len(seg)))) ** 2
+    f = np.fft.rfftfreq(len(seg), 1 / audio.SR)
+    return float(spec[(f >= lo) & (f < hi)].sum())
+
+
+def test_the_voice_makes_different_vowels_and_they_are_the_right_ones():
+    np = pytest.importorskip("numpy")
+    beat = 60 / 96
+    x, _ = audio.synthesize(_sung("a i u -", "0:1/2 0:1/2 | 0:1/2 0:1/2"), reverb=False)
+
+    def share(a, lo, hi):
+        t0 = a * 2 * beat + 0.25
+        return _spectrum(x, np, lo, hi, t0, t0 + 0.6) / _spectrum(x, np, 150, 8000, t0, t0 + 0.6)
+
+    # "ah": energy around 800-1500 Hz. "ee": a high second formant near 3 kHz
+    # and nothing in between. "oo": neither.
+    assert share(0, 700, 1700) > 3 * share(1, 700, 1700)
+    assert share(1, 2500, 4200) > 5 * share(0, 2500, 4200)
+    assert share(1, 2500, 4200) > 5 * share(2, 2500, 4200)
+    assert np.abs(x).max() > 0.05
+
+
+def test_consonants_come_before_the_beat_and_the_vowel_lands_on_it():
+    np = pytest.importorskip("numpy")
+    beat = 60 / 96
+    plain, _ = audio.synthesize(_sung("a a a a"), reverb=False)
+    hissed, _ = audio.synthesize(_sung("a sa a a"), reverb=False)
+    # The "s" is noise above 5 kHz in the 100 ms *before* the second note...
+    before = (beat - 0.11, beat - 0.005)
+    assert _spectrum(hissed, np, 5000, 12000, *before) > 50 * _spectrum(plain, np, 5000, 12000, *before)
+    # ...and by the time the note is under way it is a vowel again.
+    during = (beat + 0.15, beat + 0.45)
+    assert _spectrum(hissed, np, 5000, 12000, *during) < \
+        0.05 * _spectrum(hissed, np, 5000, 12000, *before)
+    assert _spectrum(hissed, np, 200, 3000, *during) == pytest.approx(
+        _spectrum(plain, np, 200, 3000, *during), rel=0.3)
+
+
+def test_the_voice_is_the_same_every_time_and_other_instruments_still_sing_ah(
+        tmp_path, monkeypatch):
+    np = pytest.importorskip("numpy")
+    monkeypatch.setattr(lyr, "DICT_DIR", tmp_path)        # spelling rules, on any machine
+    p = _sung("[l ae n] [t er n z] on stone - -", "0 2 4 5 | 4 2", lang="en")
+    once, _ = audio.synthesize(p, reverb=False)
+    again, _ = audio.synthesize(p, reverb=False)
+    assert np.array_equal(once, again) and np.isfinite(once).all()
+    for inst in ("singer_warm", "singer_low", "singer_breathy"):
+        q = _sung("a i u e", inst=inst, steps="0 2 4 2")
+        if inst == "singer_low":
+            q.voices[0].octave = 3
+            q.update_op("m", octave=3)
+        x, _ = audio.synthesize(q, reverb=False)
+        assert np.abs(x).max() > 0.03, inst
+    # A violin given lyrics carries them (for MIDI) and is still a violin.
+    v = _sung("a i u e", inst="violin")
+    assert render(v).notes[0].lyric == "a"
+    assert np.abs(audio.synthesize(v, reverb=False)[0]).max() > 0.03
+
+
+# --------------------------------------------------------------------------
+# voice banks: a recorded voice that sings any lyric
+# --------------------------------------------------------------------------
+
+FAKE_CORPUS = """# a tiny recording list for tests
+ra r aa -
+mi m iy -
+so s ow -
+sun s ah n
+moon m uw n
+"""
+
+
+def _fake_bank(tmp_path, monkeypatch, whole=()):
+    """A 'recorded' voice made with the synthesized one, so no network and no
+    paid service is involved: each word is spoken on a flat pitch and saved
+    where a real recording would be."""
+    np = pytest.importorskip("numpy")
+    from musicstudio import vocal, voicebank as vb
+    corpus = tmp_path / "corpus.txt"
+    corpus.write_text(FAKE_CORPUS)
+    monkeypatch.setattr(vb, "CORPUS", corpus)
+    monkeypatch.setattr(vb, "CACHE_DIR", tmp_path / "bank")
+    monkeypatch.setattr(lyr, "DICT_DIR", tmp_path / "nodict")
+    vb._banks.clear()
+    vb._words.clear()
+
+    def record(word, syllables):
+        at, sung = 0.2, []
+        for onset, nucleus, coda in syllables:
+            sung.append(vocal.Sung(at, at + 0.26, 55.0, 90, onset, nucleus, coda))
+            at += 0.28
+        sig, _ = vocal.render_phrase(sung, vocal.SINGERS["singer_warm"], 7)
+        path = vb.sample_path(word, "test")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with wave.open(str(path), "wb") as w:
+            w.setnchannels(1); w.setsampwidth(2); w.setframerate(vb.SR)
+            w.writeframes((np.clip(sig * 3, -1, 1) * 32000).astype("<i2").tobytes())
+
+    for word, (onset, vowel, coda) in vb.corpus().items():
+        record(word, [((onset,) if onset else (), vowel, (coda,) if coda else ())])
+    for word, syllables in whole:
+        record(word, syllables)
+    return vb
+
+
+def test_lyrics_tag_each_note_with_its_word_and_syllable(tmp_path, monkeypatch):
+    monkeypatch.setattr(lyr, "DICT_DIR", tmp_path)
+    (tmp_path / lyr.DICT_NAME).write_text("lanterns L AE1 N T ER0 N Z\nshine SH AY1 N\n")
+    p = _sung("lan-terns shine -", lang="en")
+    assert [n.word for n in sorted(render(p).notes, key=lambda n: n.start)] == \
+        ["lanterns#0/2", "lanterns#1/2", "shine#0/1", ""]
+
+
+def test_the_recording_list_covers_what_it_says_and_a_bank_reports_itself(tmp_path, monkeypatch):
+    pytest.importorskip("numpy")
+    from musicstudio import voicebank as vb
+    real = vb.corpus()
+    assert len(real) > 250
+    assert all(v in lyr.VOWELS and len(v) == 2 for _, v, _ in real.values())
+    onsets = {o for o, _, _ in real.values()}
+    assert {"", "b", "ch", "dh", "hh", "jh", "sh", "th", "y", "z"} <= onsets
+    vb = _fake_bank(tmp_path, monkeypatch)
+    st = vb.status("test")
+    assert st["complete"] and st["recorded"] == st["words"] == 5 and st["vocabulary"] == 5
+    assert vb.status("nobody")["recorded"] == 0 and vb.load("nobody") is None
+    bank = vb.load("test")
+    assert ("r", "aa") in bank.cv and ("ah", "n") in bank.vc
+    # A join that was never recorded falls back to the nearest vowel.
+    unit, exact = bank.opening("r", "ah")
+    assert unit is not None and not exact
+    assert bank.opening("s", "ah")[1] and bank.closing("uw", "n")[1]
+
+
+def test_a_word_is_cut_into_its_syllables_inside_the_part_that_sounds():
+    np = pytest.importorskip("numpy")
+    from musicstudio import voicebank as vb
+    hill, silence = np.hanning(30), np.zeros(40)
+
+    def word(rms):
+        rms = rms + 0.001
+        return {"rms": rms, "energy": np.where(rms > 0.05, rms, 0.0)}
+
+    # Two clear hills, then a long breath: the cut goes between the hills.
+    d = word(np.concatenate([np.zeros(5), hill, hill * 0.6, silence]))
+    (a0, a1), (b0, b1) = vb.split_word(d, 2)
+    assert a0 == 0 and b1 == len(d["rms"]) and 30 <= a1 == b0 <= 40
+    # One hill for two syllables (speech ran them together): split the hill,
+    # not the silence after it.
+    d = word(np.concatenate([np.zeros(5), np.hanning(60), silence]))
+    assert 25 <= vb.split_word(d, 2)[0][1] <= 45
+    assert vb.split_word(d, 1) == [(0, len(d["rms"]))]
+
+
+def _peak_multiple(x, np, t0, t1, hz):
+    seg = np.asarray(x)[int(t0 * audio.SR):int(t1 * audio.SR)]
+    spec = np.abs(np.fft.rfft(seg * np.hanning(len(seg))))
+    f = np.fft.rfftfreq(len(seg), 1 / audio.SR)
+    peak = f[np.argmax(spec)]
+    return abs(peak / hz - round(peak / hz))
+
+
+def test_a_voice_bank_sings_the_written_pitch_from_the_recording(tmp_path, monkeypatch):
+    np = pytest.importorskip("numpy")
+    vb = _fake_bank(tmp_path, monkeypatch)
+    p = _sung("ra mi so ra", "0:1/2 4:1/2 | 7:1/2 4:1/2")
+    plain, _ = audio.synthesize(p, reverb=False)
+    p.get_voice("vox").bank = "test"
+    assert Piece.from_json(p.to_json()).get_voice("vox").bank == "test"
+    banked, _ = audio.synthesize(p, reverb=False)
+    again, _ = audio.synthesize(p, reverb=False)
+    assert np.array_equal(banked, again) and np.isfinite(banked).all()
+    assert len(banked) == len(plain) and not np.allclose(banked, plain)
+    assert np.abs(banked).max() > 0.03
+    # The pitch is the score's, not the recording's (which was spoken at G3):
+    # the third note is C5, and its strongest partial is a multiple of 523 Hz.
+    beat = 60 / 96
+    assert _peak_multiple(banked, np, 4 * beat + 0.3, 4 * beat + 1.0, 523.25) < 0.04
+
+    # No bank recorded: the voice falls back to the synthesized one, and says so.
+    p.get_voice("vox").bank = "nobody"
+    with pytest.warns(UserWarning, match="ms voicebank build nobody"):
+        fallback, _ = audio.synthesize(p, reverb=False)
+    assert np.array_equal(fallback, plain)
+
+
+def test_a_word_recorded_whole_is_sung_from_its_own_recording(tmp_path, monkeypatch):
+    """`sunmoon` is in the bank as one two-syllable recording. Sung with that
+    word tag, it comes from that recording; the same sounds given in brackets
+    (no word) are assembled from the unit corpus instead."""
+    np = pytest.importorskip("numpy")
+    vb = _fake_bank(tmp_path, monkeypatch,
+                    whole=[("sunmoon", [(("s",), "ah", ("n",)), (("m",), "uw", ("n",))])])
+    (tmp_path / "nodict").mkdir()
+    (tmp_path / "nodict" / lyr.DICT_NAME).write_text("sunmoon S AH1 N M UW1 N\n")
+    lyr._dictionary = None
+    units = vb.word_units("sunmoon", [("s", "n"), ("m", "n")], "test")
+    assert units is not None and len(units) == 2
+    first, second = units
+    assert first.start < first.vowel < first.v_end <= first.end <= second.start + 2048
+    assert second.vowel < second.v_end <= second.end
+    assert vb.word_units("nothere", [("s", "n")], "test") is None
+
+    whole = _sung("sun-moon", "0:1/2 4:1/2", lang="en")
+    whole.get_voice("vox").bank = "test"
+    parts = _sung("[s ah n] [m uw n]", "0:1/2 4:1/2", lang="en")
+    parts.get_voice("vox").bank = "test"
+    a, _ = audio.synthesize(whole, reverb=False)
+    b, _ = audio.synthesize(parts, reverb=False)
+    assert np.abs(a).max() > 0.03 and np.abs(b).max() > 0.03 and not np.allclose(a, b)
+    beat = 60 / 96
+    for x in (a, b):                         # either way, the second note is G4
+        assert _peak_multiple(x, np, 2 * beat + 0.3, 2 * beat + 0.9, 392.0) < 0.05
+    lyr._dictionary = None
+
+
+def test_a_consonant_played_faster_keeps_its_tone():
+    """Unvoiced sound is laid down in fixed grains, never resampled: an "s"
+    sped up three times lasts a third as long and hisses at the same pitch."""
+    np = pytest.importorskip("numpy")
+    from musicstudio import voicebank as vb
+    rng = np.random.default_rng(3)
+    n = vb.SR
+    t = np.arange(n) / vb.SR
+    hiss = rng.standard_normal(n)
+    spec = np.fft.rfft(hiss)
+    f = np.fft.rfftfreq(n, 1 / vb.SR)
+    hiss = np.fft.irfft(spec * np.exp(-0.5 * ((f - 6000) / 600) ** 2), n)
+    u = vb.Unit(x=hiss / np.abs(hiss).max(), marks=np.zeros(0, dtype=np.int64),
+                voiced=np.zeros(n), period=np.full(n, 200.0), start=0, end=n)
+    def centroid(x):
+        s_ = np.abs(np.fft.rfft(x)) ** 2
+        return float((s_ * np.fft.rfftfreq(len(x), 1 / vb.SR)).sum() / s_.sum())
+    slow = vb.psola(u, np.linspace(2000, n - 2000, n - 4000), np.full(n, 220.0))
+    fast = vb.psola(u, np.linspace(2000, n - 2000, (n - 4000) // 3), np.full(n, 220.0))
+    assert len(fast) * 3 == pytest.approx(len(slow), rel=0.01)
+    assert centroid(fast) == pytest.approx(centroid(slow), rel=0.05)
+    assert centroid(fast) == pytest.approx(6000, rel=0.1)
+    del t
+
+
+def test_how_much_of_a_lyric_was_understood():
+    pytest.importorskip("numpy")
+    from musicstudio import voicebank as vb
+    share, missed = vb.words_heard(["neon", "in", "the", "puddles", "last", "train's"],
+                                   "Neon in the hurdles... last rain's.")
+    assert share == pytest.approx(4 / 6) and missed == ["puddles", "train's"]
+    assert vb.words_heard(["hold", "on"], "") == (0.0, ["hold", "on"])
+    # Recording and transcribing need a key and are never attempted without one.
+    import os
+    if not os.environ.get(vb.KEY_ENV):
+        with pytest.raises(RuntimeError, match=vb.KEY_ENV):
+            vb.fetch("hello", "nobody")
+
+
+# --------------------------------------------------------------------------
+# neural singers: a trained voicebank, never part of the studio
+# --------------------------------------------------------------------------
+
+def test_every_listed_voicebank_is_pinned_and_says_what_its_terms_ask():
+    from musicstudio import neural
+    assert "qixuan" in neural.CATALOGUE
+    for name, e in neural.CATALOGUE.items():
+        assert e.name == name and e.terms.startswith("https://") and e.homepage
+        assert e.asks and all(len(a) > 20 for a in e.asks)
+        if e.url:                                    # a download is pinned or absent
+            assert e.url.startswith("https://") and len(e.sha256) == 64
+            int(e.sha256, 16)
+        assert not e.vocoder or e.vocoder in neural.VOCODERS
+    for v in neural.VOCODERS.values():
+        assert len(v.sha256) == 64 and v.licence and v.url.startswith("https://")
+
+
+def _bank_zip(members: dict[str, bytes]) -> bytes:
+    import io
+    import zipfile
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        for name, data in members.items():
+            z.writestr(name, data)
+    return buf.getvalue()
+
+
+def test_a_voicebank_is_only_fetched_once_its_terms_are_accepted(tmp_path, monkeypatch):
+    from musicstudio import neural, soundfonts
+    monkeypatch.setattr(neural, "SINGER_DIR", tmp_path)
+    fetched = []
+
+    def fake(url, sha256, progress=None):
+        fetched.append(url)
+        if "vocoders" in url:
+            return _bank_zip({"vocoder.yaml": b"model: v.onnx\n", "v.onnx": b"x"})
+        return _bank_zip({"Qixuan_v2.7.0_DiffSinger_OpenUtau/dsconfig.yaml": b"acoustic: a.onnx\n",
+                          "Qixuan_v2.7.0_DiffSinger_OpenUtau/a.onnx": b"x"})
+    monkeypatch.setattr(soundfonts, "_fetch", fake)
+
+    with pytest.raises(PermissionError, match="terms of use"):
+        neural.install("qixuan")
+    assert fetched == [] and not neural.is_installed("qixuan") and neural.installed() == []
+    with pytest.raises(ValueError, match="ms singer add"):
+        neural.install("somebody-else", accept=True)
+
+    where = neural.install("qixuan", accept=True)
+    assert len(fetched) == 2 and neural.is_installed("qixuan")
+    assert neural.installed() == ["qixuan"]            # the vocoder folder is not a singer
+    note = (where / "SOURCE.txt").read_text()
+    assert "terms of use: https://" in note and "DiffSinger" in note
+    assert (tmp_path / "vocoders" / neural.CATALOGUE["qixuan"].vocoder / "vocoder.yaml").is_file()
+    neural.install("qixuan", accept=True)              # already there: nothing more fetched
+    assert len(fetched) == 2
+
+
+def test_adding_your_own_voicebank_and_refusing_a_hostile_archive(tmp_path, monkeypatch):
+    from musicstudio import neural
+    monkeypatch.setattr(neural, "SINGER_DIR", tmp_path / "singers")
+    good = tmp_path / "mine.zip"
+    good.write_bytes(_bank_zip({"Mine v1/dsconfig.yaml": b"acoustic: a.onnx\n"}))
+    assert neural.add("Mine", good) == tmp_path / "singers" / "mine"
+    assert neural.is_installed("mine") and neural.knows("mine:soft") and not neural.knows("sarah")
+    with pytest.raises(FileExistsError):
+        neural.add("mine", good)
+    bad = tmp_path / "bad.zip"
+    bad.write_bytes(_bank_zip({"../../escaped.txt": b"x", "dsconfig.yaml": b""}))
+    with pytest.raises(ValueError, match="escapes"):
+        neural.add("bad", bad)
+    assert not (tmp_path / "escaped.txt").exists() and not neural.is_installed("bad")
+    notabank = tmp_path / "n.zip"
+    notabank.write_bytes(_bank_zip({"readme.txt": b"x"}))
+    with pytest.raises(ValueError, match="not a DiffSinger voicebank"):
+        neural.add("n", notabank)
+    with pytest.raises(ValueError):
+        neural.singer_dir("../up")
+
+
+def test_a_singer_without_its_voicebank_falls_back_and_says_so(tmp_path, monkeypatch):
+    np = pytest.importorskip("numpy")
+    from musicstudio import neural
+    monkeypatch.setattr(neural, "SINGER_DIR", tmp_path)
+    p = _sung("ra mi so ra")
+    plain, _ = audio.synthesize(p, reverb=False)
+    p.get_voice("vox").bank = "qixuan"
+    with pytest.warns(UserWarning, match="neural singer 'qixuan' is not installed"):
+        sung, _ = audio.synthesize(p, reverb=False)
+    assert np.array_equal(sung, plain)
+
+
+def test_a_syllable_s_consonants_come_before_its_note_and_its_vowel_on_it():
+    """What the models are told: a group runs from one vowel to the next, so
+    the consonants that open a syllable close the group before it."""
+    pytest.importorskip("numpy")
+    from types import SimpleNamespace
+    from musicstudio import neural
+    from musicstudio.vocal import Sung
+    stub = SimpleNamespace(name="stub", dur=None,
+                           symbols=lambda p, lang="en": [] if p == "q" else [f"en/{p}"])
+    sung = [Sung(1.0, 1.5, 60, 100, ("s", "t"), "aa", ("r",)),
+            Sung(1.5, 2.0, 62, 100, (), "aa", (), hold=True),       # a melisma
+            Sung(2.0, 2.5, 64, 100, ("l",), "ay", ("t",)),
+            Sung(2.7, 3.2, 65, 100, ("q",), "ow", ())]              # after a short rest
+    sung[0].coda, sung[1].coda = (), ("r",)                         # as `vocal.plan` leaves them
+    groups, end = neural.group_phrase(sung, stub)
+    assert end == 3.2
+    assert [[p.symbol.split("/")[-1] for p in g.phones] for g in groups] == \
+        [["SP", "s", "t"], ["aa", "r", "l"], ["ay", "t"], ["SP"], ["ow"]]
+    assert [g.start for g in groups] == [0.5, 1.0, 2.0, 2.5, 2.7]
+    phones = neural.time_phones(groups, end, stub, 1)
+    assert [p.symbol.split("/")[-1] for p in phones] == \
+        ["s", "t", "aa", "r", "l", "ay", "t", "SP", "ow"]
+    s_, t_, aa, r_, l_, ay, t2, rest, ow = phones
+    assert aa.start == pytest.approx(1.0) and ay.start == pytest.approx(2.0)
+    assert ow.start == pytest.approx(2.7) and ow.end == pytest.approx(3.2)
+    assert s_.start < t_.start < t_.end == pytest.approx(1.0)
+    assert l_.end == pytest.approx(2.0) and r_.end == pytest.approx(l_.start)
+    assert t2.end == pytest.approx(2.5) == pytest.approx(rest.start)
+    assert all(b.start == pytest.approx(a.end) for a, b in zip(phones, phones[1:]))
+    # Frame counts follow the clock: rounding one boundary never moves the next.
+    frames = neural._frames([10.0] * 100, 11.61)
+    assert sum(frames) == round(1000 / 11.61 + 0.5) and set(frames) <= {0, 1}
+
+
+def test_an_installed_neural_singer_sings_the_score_the_same_way_twice(tmp_path, monkeypatch):
+    """Runs only where a voicebank is installed (never in CI): the pitch is the
+    score's, and a fresh render -- no cache -- is sample-identical to the last."""
+    np = pytest.importorskip("numpy")
+    from musicstudio import neural
+    if not (neural.available() and neural.is_installed("qixuan")):
+        pytest.skip("no neural singer installed here")
+    monkeypatch.setattr(lyr, "DICT_DIR", tmp_path / "nodict")
+    p = _sung("[l aa] [l aa] [l aa] [l aa]", "0:1/2 4:1/2 | 7:1/2 4:1/2", lang="en")
+    p.get_voice("vox").bank = "qixuan"
+    takes = []
+    for k in range(2):
+        monkeypatch.setattr(neural, "CACHE_DIR", tmp_path / f"cache{k}")
+        neural._trims.clear()
+        takes.append(audio.synthesize(p, reverb=False)[0])
+    assert np.array_equal(takes[0], takes[1]) and np.abs(takes[0]).max() > 0.03
+    beat = 60 / 96
+    assert _peak_multiple(takes[0], np, 4 * beat + 0.4, 4 * beat + 1.0, 523.25) < 0.04

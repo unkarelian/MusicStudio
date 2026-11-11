@@ -22,6 +22,12 @@ jobs:
           uv run ms -p gallery lint lanterns
           uv run python examples/build_undertow.py
           uv run ms -p gallery lint undertow
+          uv run python examples/build_last_train.py
+          uv run ms -p gallery lint last_train
+          uv run python examples/build_first_words.py
+          uv run ms -p gallery lint first_words
+          uv run python examples/build_splinter.py
+          uv run ms -p gallery lint splinter
 
   core-without-extras:
     # The core promises no dependencies; prove it.

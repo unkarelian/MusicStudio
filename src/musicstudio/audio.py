@@ -309,7 +309,7 @@ def synthesize(piece: Piece, rend: Render | None = None, *, tail: float = 1.5,
         left, right, send = _synth_numpy(
             r.notes, voices, pans, to_sec, total, gain, use_models,
             1.0 if stereo else 0.0, voice_fx(piece, to_sec),
-            sampled_stems(piece, r.notes, to_sec, total) if use_models else None)
+            prerendered(piece, r.notes, to_sec, total, pans) if use_models else None)
     else:
         left, right = _synth_python(r.notes, voices, pans, to_sec, total, gain)
     if use_reverb:
@@ -327,7 +327,7 @@ def _note_plan(n, voice: Voice, to_sec, total: int, gain: float):
     if length <= 0 or start < 0:
         return None
     amp = gain * (n.velocity / 127.0) ** 1.4 * (0.5 if inst.percussive else 1.0)
-    freq = 440.0 * 2 ** ((n.pitch - 69) / 12.0)
+    freq = 440.0 * 2 ** ((n.pitch - 69 + (0.0 if inst.percussive else n.tune)) / 12.0)
     return start, length, amp, freq, spec, inst.timbre
 
 
@@ -439,14 +439,27 @@ def _apply_fx(left, right, chain):
             left = _sweep_filter(left, lo, hi, start, end, mode, res)
             right = _sweep_filter(right, lo, hi, start, end, mode, res)
         elif kind == "drive":
-            amount = max(0.0, min(1.0, float(params.get("amount") or 0.0)))
+            amount = max(0.0, min(4.0, float(params.get("amount") or 0.0)))
+            mode = params.get("mode") or "soft"
+            if mode not in ("soft", "clip", "fold"):
+                raise ValueError(f"drive mode must be soft, clip or fold, got {mode!r}")
             peak = float(max(np.abs(left).max(initial=0.0), np.abs(right).max(initial=0.0)))
             if amount and peak > 0:
                 g = 1.0 + amount * 9.0
-                # Level-matched at the peak, so drive adds harmonics and density
-                # rather than simply turning the voice up.
-                left = peak * np.tanh(g * left / peak) / math.tanh(g)
-                right = peak * np.tanh(g * right / peak) / math.tanh(g)
+
+                def shape(x):
+                    # Level-matched at the peak, so drive adds harmonics and
+                    # density rather than simply turning the voice up.
+                    if mode == "soft":
+                        return peak * np.tanh(g * x / peak) / math.tanh(g)
+                    if mode == "clip":                 # flat tops: square and brutal
+                        return peak * np.clip(g * x / peak, -1.0, 1.0)
+                    # fold: what goes over the top comes back down, again and
+                    # again -- the harshest of the three, and nearly noise.
+                    y = g * x / peak
+                    return peak * (np.abs((y - 1.0) % 4.0 - 2.0) - 1.0)
+
+                left, right = shape(left), shape(right)
         elif kind == "compress":
             ratio = max(1.0, float(params.get("ratio") or 4.0))
             thr_db = float(params.get("threshold") if params.get("threshold") is not None
@@ -641,7 +654,7 @@ def _reverb(left, right, decay: float, wet: float, send=None):
 MASTER_PUSH = {"electronic": 9.0}
 
 
-def _master(left, right, ceiling: float = 0.95, push: float = 3.5):
+def _master(left, right, ceiling: float = 0.95, push: float = 3.5, clip: float = 0.0):
     """Hold the loudest moments under the ceiling without turning the rest down.
 
     Scaling a whole piece by its single highest peak lets one drum stroke make
@@ -652,6 +665,12 @@ def _master(left, right, ceiling: float = 0.95, push: float = 3.5):
     """
     np = _np
     peak = float(max(np.abs(left).max(initial=0.0), np.abs(right).max(initial=0.0)))
+    if clip > 0 and peak > 0:
+        # Deliberate destruction: the mix is driven `clip` dB past full scale
+        # and the tops are cut off flat. No limiter is involved, on purpose.
+        scale = ceiling / peak * 10 ** (clip / 20.0)
+        return (np.clip(left * scale, -ceiling, ceiling),
+                np.clip(right * scale, -ceiling, ceiling))
     if peak <= ceiling:
         return left, right
     scale = min(1.0, ceiling / peak * 10 ** (push / 20.0))   # the rest is the limiter's
@@ -687,8 +706,15 @@ def save_wav(piece: Piece, path: str | Path, rend: Render | None = None, *,
     left, right = synthesize(piece, rend, stereo=stereo, reverb=reverb, models=models)
     channels = 2 if stereo else 1
     if _np is not None:
+        how = piece.meta.get("master") or {}
         l_arr, r_arr = _master(_np.asarray(left), _np.asarray(right),
-                               push=MASTER_PUSH.get(piece.style, 3.5))
+                               push=float(how.get("push", MASTER_PUSH.get(piece.style, 3.5))),
+                               clip=float(how.get("clip", 0.0)))
+        if how.get("level"):
+            # The output fader, after everything: a mix can be crushed for its
+            # sound and still be handed over at a civil volume.
+            trim = 10 ** (min(0.0, float(how["level"])) / 20.0)
+            l_arr, r_arr = l_arr * trim, r_arr * trim
         peak = float(max(_np.abs(l_arr).max(initial=0.0), _np.abs(r_arr).max(initial=0.0)))
         scale = 32767.0 * (0.95 / peak if peak > 0.95 else 1.0)
         frames = (_np.stack([l_arr, r_arr], 1) if stereo else l_arr[:, None])
@@ -774,6 +800,22 @@ def soundfont_available() -> bool:
     except FileNotFoundError:
         return False
     return True
+
+
+def prerendered(piece: Piece, notes, to_sec, total: int, pans) -> dict[str, tuple]:
+    """Voices that are rendered whole rather than note by note: sampled ones
+    from the SoundFont, and singers, whose syllables run into each other."""
+    from .vocal import voice_stems
+    out = dict(voice_stems(piece, notes, to_sec, total, pans))
+    if any(v.bank for v in piece.voices):
+        # A bank is either a neural singer (a trained voicebank) or a recorded
+        # voice; a name the neural engine knows is never tried as the other.
+        from .neural import voice_stems as neural
+        from .voicebank import voice_stems as banked
+        out.update(banked(piece, notes, to_sec, total, pans))
+        out.update(neural(piece, notes, to_sec, total, pans))
+    out.update(sampled_stems(piece, notes, to_sec, total))
+    return out
 
 
 def sampled_stems(piece: Piece, notes, to_sec, total: int) -> dict[str, tuple]:

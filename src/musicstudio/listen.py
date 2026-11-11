@@ -86,7 +86,7 @@ def stems(piece: Piece, rend: Render | None = None, *, source: str = "models",
         voices = {v.name: v for v in piece.voices}
         pans = audio.pan_positions(piece)
         fx = audio.voice_fx(piece, to_sec)
-        sampled = audio.sampled_stems(piece, r.notes, to_sec, total)
+        sampled = audio.prerendered(piece, r.notes, to_sec, total, pans)
         for name, notes in by_voice.items():
             left, right, _ = audio._synth_numpy(
                 notes, voices, pans, to_sec, total, 0.72, True, 1.0,

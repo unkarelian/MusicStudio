@@ -172,6 +172,9 @@ class Sustained:
     detune: float = 0.0             # cents, section spread
     spread: float = 0.0             # stereo width of the section
     tremolo: float = 0.0            # bowed tremolo depth
+    #: How much of the pitched tone there is. 0 leaves only the noise, which is
+    #: then an instrument in its own right: a wall, a riser, static.
+    tone: float = 1.0
     level: float = 1.0
     send: float = 1.0
 
@@ -404,6 +407,12 @@ MODELS: dict[str, Sustained | Plucked | Bell | Drum] = {
                           attack=0.012, release=0.14, bloom=0.02, settle=1.0,
                           drift=4.0, glide=0.04, unison=7, detune=26.0, spread=0.5,
                           level=0.9, send=0.5),
+    # Noise with a pitch only faintly in it: the wall a breakcore track is built
+    # against. The band follows the note, so a higher note is a brighter wall.
+    "noise_wall": Sustained(dark=1.0, bright=0.8, lowpass=6000, attack=0.02,
+                            release=0.2, settle=1.0, drift=0.0, glide=0.0,
+                            noise=3.0, chiff=0.0, noise_band=(150.0, 14000.0),
+                            tone=0.15, level=0.5, send=0.4),
     # -- basses ------------------------------------------------------------
     # A sub is a sine with just enough second harmonic to be found on small
     # speakers; it slides between slurred notes, which is half its character.
@@ -471,7 +480,9 @@ class NoteCtx:
 
     @property
     def freq(self) -> float:
-        return 440.0 * 2 ** ((self.pitch - 69) / 12.0)
+        # `tune` moves a pitched note as well as a drum: a chopped slice sent
+        # up five semitones is five semitones up, whatever is playing it.
+        return 440.0 * 2 ** ((self.pitch - 69 + self.tune) / 12.0)
 
 
 def slur_links(notes, to_sec) -> dict[int, tuple[int | None, bool]]:
@@ -607,7 +618,7 @@ def _sustained(ctx: NoteCtx, m: Sustained, limit: int) -> list[tuple[np.ndarray,
             trem = np.sin(2 * np.pi * rng.uniform(10.5, 13.0) * t + rng.uniform(0, 2 * np.pi))
             amp *= 1.0 - m.tremolo * (0.5 + 0.5 * trem)
         amp *= 1.0 + 0.04 * _wander(t, rng, (2.3, 5.1, 7.7))
-        sig *= amp
+        sig *= amp * m.tone
         if m.noise or m.chiff:
             hiss = _noise_slice(_noise(ctx.instrument, *m.noise_band), n, rng)
             onset = 0.0 if legato_in else m.chiff

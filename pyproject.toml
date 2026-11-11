@@ -19,6 +19,13 @@ mcp = [
 analysis = [
     "numpy>=2.5.2",
 ]
+# Neural singers (DiffSinger voicebanks). No voicebank ships with the studio:
+# see SINGERS.md for where to get one and what its licence asks of you.
+neural = [
+    "numpy>=2.5.2",
+    "onnxruntime>=1.20",
+    "pyyaml>=6.0",
+]
 
 [build-system]
 requires = ["hatchling"]

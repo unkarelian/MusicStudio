@@ -142,6 +142,60 @@ joins its bus like any other; it must fall back to the model, with a warning,
 when FluidSynth or a bank is missing, because CI has neither. One drum
 channel means one kit per piece in MIDI; the first kit voice chooses it.
 
+`lyrics.py` turns text into one `Syllable` (onset, nucleus, coda) per note and
+`vocal.py` sings them. Lyrics live *on the notes* (`Note.lyric`, `Note.sung`),
+put there by the `lyrics` modifier op, so they follow a note through `double`,
+`chop` and every other op. A singer is rendered a phrase at a time, not a note
+at a time, by `audio.prerendered` -- consonants borrow time from the note
+before and formants glide across the boundary, which a per-note model cannot
+do. Three things in `vocal.py` are load-bearing: the vowel starts exactly on
+the note (`test_consonants_come_before_the_beat...`), the formant table is
+measured values and not taste, and the root-and-tilt on the tract response is
+what gives the voice any energy above 2 kHz. Tests that use English words must
+point `lyrics.DICT_DIR` at a temp directory, or they depend on whether the
+dictionary happens to be installed.
+
+`voicebank.py` is a recorded voice that sings any lyric: whole-word recordings
+where it has them, halves of the 271-word unit corpus (`data/voice_corpus.txt`)
+where it does not, re-pitched by PSOLA. Things learned the hard way, each with
+a test or a measurement behind it: sing a recorded word *whole* (assembling
+everything from units scored 37% with a speech recogniser, whole words 85%);
+stretch the whole vowel (`_stretch`), never freeze its middle or sweep back and
+forth across it ("na-na-na"); never resample a consonant to shorten it
+(`psola` lays unvoiced sound in fixed grains --
+`test_a_consonant_played_faster_keeps_its_tone`); find the vowel/consonant
+join by *brightness*, because nasals are as loud as vowels; level every
+syllable to the note. The recordings live in the user's cache and never in a
+piece or the repo (they come from a paid service under the user's account).
+Recording and transcribing cost money, need `OPENROUTER_API_KEY`, and happen
+only on an explicit command, never inside a render. A voice whose bank is
+missing falls back whole to `vocal.py` with a warning, because CI has no bank.
+`Studio.check_words` is the only objective test of intelligibility the studio
+has; change the engine against it, not against a spectrogram.
+
+`neural.py` sings through a DiffSinger voicebank (ONNX: duration, pitch,
+variance, acoustic, vocoder) and is the only engine trained on singing. Rules,
+each learned or decided on purpose: **no voicebank is bundled, committed or
+fetched by a render** -- each is a person's voice under that person's terms, so
+`install` refuses without `accept=True`, every download is pinned by SHA-256
+through `soundfonts._fetch`, and `SINGERS.md` carries the link and a summary of
+the terms for every entry in `CATALOGUE`. Do not add an entry whose terms you
+have not read, and say in `asks` what they require (credit, non-commercial,
+content limits). The studio keeps deciding the notes, the phonemes and where
+each vowel starts (`group_phrase`: a syllable's opening consonants close the
+group *before* it, which is what puts the vowel on the beat); the bank decides
+the rest. Seeding: ONNX Runtime seeds a graph's random nodes when the session
+is built and never again, so `Singer._session` builds a fresh one per run --
+caching sessions makes a phrase depend on what was rendered before it, and
+`test_an_installed_neural_singer_sings_the_score_the_same_way_twice` (which
+runs only where a bank is installed) catches exactly that. Rendered phrases are
+cached on disk; bump `ENGINE` when the same phrase would come out differently.
+Levels differ by 12 dB between banks, so `trim` measures each once against
+`LEVEL`. A missing bank, vocoder or `onnxruntime` falls back whole to
+`vocal.py` with a warning, because CI has none of them. The `--soundfont`
+whole-piece render does not sing at all (a singer becomes a General MIDI
+patch): judge a sung piece through the built-in render.
+
 `tension.py` and `listen.py` are the two views built for an agent that cannot
 listen. `tension` is a *model* (chord function, key distance, key profiles,
 interval expectation) and `listen` is a *measurement* of rendered stems; each

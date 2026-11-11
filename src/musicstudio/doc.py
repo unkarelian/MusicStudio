@@ -118,8 +118,10 @@ OP_SPECS: dict[str, OpSpec] = {
               ["start"], end=None, mode="lowpass", resonance=0.0, modifier=True,
               **{"from": None, "until": None}),
         _spec("drive",
-              "Saturate this voice: amount 0-1, from warmth to distortion. Audio "
-              "only.", [], amount=0.4, modifier=True),
+              "Distort this voice. amount 0-1 runs from warmth to heavy distortion "
+              "and up to 4 is destruction; mode 'soft' saturates, 'clip' cuts the "
+              "tops off flat, 'fold' folds them back and is nearly noise. Audio "
+              "only.", [], amount=0.4, mode="soft", modifier=True),
         _spec("compress",
               "Squash this voice's dynamics: everything above `threshold` (dB below "
               "its own peak) is reduced by `ratio`, and the result is brought back "
@@ -137,6 +139,16 @@ OP_SPECS: dict[str, OpSpec] = {
               "Reduce this voice's sample rate (rate, Hz) and bit depth (bits): the "
               "grit of an old sampler. Audio only.",
               [], rate=11025, bits=10, modifier=True),
+        _spec("lyrics",
+              "Words for a voice: one syllable per note, in order, across the span. "
+              "Hyphenate words over several notes ('lan-terns'); '-' alone holds "
+              "the previous vowel over another note; '_' leaves a note on 'ah'. "
+              "Romaji is read as Japanese when the whole line is ('ka ze ga fu i "
+              "te'); otherwise words are English, through the pronouncing "
+              "dictionary. '[s t r ey n jh]' gives the sounds exactly. Any voice "
+              "can carry lyrics (they are written to MIDI), and a `singer` "
+              "instrument sings them.",
+              ["text"], lang="auto", modifier=True, **{"from": None, "until": None}),
         _spec("double",
               "Double another voice at an interval, reading whatever that voice "
               "ended up playing. `source` is the voice to follow; interval counts "
@@ -318,6 +330,10 @@ class Voice:
     #: the rest. ``None`` uses the instrument model. A sampled kit under the
     #: studio's own processing is how a break is made to sound like a break.
     engine: str | None = None
+    #: A voice bank for a singer: the name of a recorded voice (``"sarah"``, or
+    #: ``"sarah@model"``) whose timbre replaces the synthesized one. The
+    #: recordings live in the user's cache, never in the piece.
+    bank: str | None = None
 
     def __post_init__(self) -> None:
         get_instrument(self.instrument)
@@ -346,6 +362,8 @@ class Voice:
             d["pan"] = self.pan
         if self.engine:
             d["engine"] = self.engine
+        if self.bank:
+            d["bank"] = self.bank
         return d
 
     @classmethod
@@ -353,7 +371,7 @@ class Voice:
         return cls(d["name"], d["instrument"], d.get("role", "melody"), d.get("octave"),
                    d.get("dynamic"), d.get("muted", False),
                    [Op.from_json(o) for o in d.get("ops", [])], d.get("pan"),
-                   d.get("engine"))
+                   d.get("engine"), d.get("bank"))
 
 
 # --------------------------------------------------------------------------
@@ -577,7 +595,7 @@ class Piece:
             raise ValueError(f"op {op_id!r} ({op.kind}) has no position to move")
         params = {key: self._shifted(op.params[key], bars, beats)}
         if op.kind in ("dynamics", "articulate", "rest", "shape", "swing", "chop",
-                       "filter") or "until" in op.params:
+                       "filter", "lyrics") or "until" in op.params:
             if op.params.get("until") is not None:
                 params["until"] = self._shifted(op.params["until"], bars, beats)
         return self.update_op(op_id, **params)
@@ -623,6 +641,9 @@ class Piece:
         if p.get("rhythm"):
             for d in str(p["rhythm"]).replace("|", " ").split():
                 ticks(d)
+        if op.kind == "lyrics":
+            from .lyrics import parse
+            parse(str(p["text"]), p.get("lang") or "auto")   # fail here, not mid-render
 
     # -- motifs ------------------------------------------------------------
 

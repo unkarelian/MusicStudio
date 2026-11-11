@@ -45,6 +45,8 @@ Why that matters for you:
     articulations ("4:1/4@tr", "2@gr+1", "0@st"), cells join into long themes
     (`then`), and a theme is decorated by derivation (`embellish`, `ornament`,
     `dot`, `expand`) -- so the ornate repeat is still provably the theme.
+  * It can sing. A voice with a `singer` instrument takes a `lyrics` op -- one
+    syllable per note -- and the built-in render synthesizes the words.
   * It is played, not sequenced. `chords` with lead=True voice-leads, ring=True
     pedals, figure= writes your own accompaniment pattern; the `shape` op
     phrases a line and legato notes are slurred. A section's tempo_end is a
@@ -440,6 +442,49 @@ def ms_adopt_pattern(name: str, motif: str, index: int = 0, unit: str = "1/8") -
 @mcp.tool(description="Write a standard MIDI file and return its path.")
 def ms_export_midi(name: str, path: str | None = None) -> str:
     return _guard(lambda: str(_studio.export_midi(name, path)))
+
+
+@mcp.tool(description=(
+    "Check a lyric before setting it: returns each syllable as it will be sung "
+    "(its phonemes), how many notes the line needs, and a warning for any word "
+    "whose pronunciation was guessed. To set words, add a `lyrics` op to a voice "
+    "with a `singer` instrument (singer, singer_warm, singer_low, "
+    "singer_breathy): one syllable per note, hyphenate words across notes "
+    "('lan-terns'), '-' holds a vowel over another note. Romaji lines are read "
+    "as Japanese; brackets give exact sounds ('[s t r ey n jh]')."))
+def ms_check_lyrics(text: str, lang: str = "auto") -> str:
+    def run():
+        from . import lyrics
+        syllables, warnings = lyrics.parse(text, lang)
+        return _j({"notes_needed": len(syllables),
+                   "syllables": [{"text": s.text, "sung": s.to_json()} for s in syllables],
+                   "warnings": warnings})
+    return _guard(run)
+
+
+@mcp.tool(description=(
+    "Neural singers: trained singing voices (DiffSinger voicebanks) that a "
+    "`singer` voice uses when its bank names one, e.g. add_voice(..., 'singer', "
+    "bank='qixuan'). Lists which are installed and, for each, what its terms of "
+    "use ask -- read them before publishing a song: most require crediting the "
+    "voicebank by name and some forbid commercial use. None ships with the "
+    "studio and this tool never downloads one; the user installs a voicebank "
+    "with `ms singer install <name> --accept-terms`. A voice whose bank is not "
+    "installed is sung by the synthesized singer instead, with a warning."))
+def ms_singers() -> str:
+    return _guard(lambda: _j(_studio.singers()))
+
+
+@mcp.tool(description=(
+    "How hard the finished mix is hit. push is dB into the limiter (default 3.5, "
+    "9 for electronic). clip instead drives the mix that many dB past full scale "
+    "and cuts the tops off flat -- a deliberate sound in breakcore and noise, a "
+    "fault anywhere else. level (dB, negative) turns the finished file down "
+    "without changing how it sounds. Pass 0 to clear one."))
+def ms_set_master(name: str, push: float | None = None, clip: float | None = None,
+                  level: float | None = None) -> str:
+    return _guard(lambda: _j(_studio.set_master(name, push=push, clip=clip,
+                                                level=level)))
 
 
 @mcp.tool(description=(

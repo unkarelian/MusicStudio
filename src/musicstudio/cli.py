@@ -36,6 +36,63 @@ def _bars(s: str | None):
     return (int(parts[0]), int(parts[-1]))
 
 
+def _singer(s, a) -> int:
+    """`ms singer ...`: the neural singers and what their terms ask."""
+    from . import soundfonts
+
+    def show(i: dict) -> None:
+        state = "installed" if i["installed"] else "not installed"
+        print(f"{i['name']:<12} {i.get('title', '(added by you)')}  [{state}]")
+        if i.get("voice"):
+            print(f"  voice      {i['voice']}")
+        if i.get("languages"):
+            print(f"  languages  {' '.join(i['languages'])}")
+        if i.get("speakers"):
+            print(f"  colours    {' '.join(i['speakers'])}   (bank=\"{i['name']}:<colour>\")")
+        if i.get("by"):
+            print(f"  by         {i['by']}")
+        if i.get("homepage"):
+            print(f"  from       {i['homepage']}")
+        if i.get("terms"):
+            print(f"  terms      {i['terms']}")
+        if i["installed"] and i.get("vocoder_installed") is False:
+            print(f"  missing    the vocoder {i.get('vocoder')!r}")
+        if i.get("problem"):
+            print(f"  problem    {i['problem']}")
+
+    if a.action == "list":
+        info = s.singers()
+        if not info["runtime"]:
+            print("neural singers need: uv sync --extra neural   (numpy, onnxruntime, pyyaml)")
+        for i in info["singers"]:
+            show(i)
+        print(f"kept in {info['where']}. None is part of MusicStudio: SINGERS.md says "
+              f"what each one's terms ask.")
+        return 0
+    if not a.name:
+        print("which singer? see: ms singer list", file=sys.stderr)
+        return 2
+    if a.action == "add" and not a.source:
+        print("ms singer add <name> <zip or folder>", file=sys.stderr)
+        return 2
+    try:
+        i = s.singer(a.name, install=a.action == "install", accept_terms=a.accept_terms,
+                     source=a.source if a.action == "add" else None, force=a.force,
+                     progress=soundfonts._progress if a.action == "install" else None)
+    except PermissionError as exc:
+        print(exc, file=sys.stderr)
+        return 1
+    show(i)
+    for line in i.get("asks", []):
+        print(f"  - {line}")
+    if i["installed"]:
+        print(f"  use it     add_voice(..., \"singer\", bank=\"{i['name']}\")")
+    elif i.get("listed"):
+        print(f"  get it     ms singer install {i['name']} --accept-terms"
+              f"   ({i.get('megabytes', '?')} MB)")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         prog="ms", description="MusicStudio - a music studio for agents")
@@ -192,6 +249,42 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("part", help="one voice as an event list")
     p.add_argument("name"); p.add_argument("voice"); p.add_argument("--bars", "-b")
+
+    p = sub.add_parser("lyrics", help="show how a line will be sung, or install "
+                                      "the pronouncing dictionary")
+    p.add_argument("text", nargs="*", help="a lyric line, or 'install'")
+    p.add_argument("--lang", default="auto", choices=("auto", "ja", "en"))
+
+    p = sub.add_parser("singer", help="neural singers (DiffSinger voicebanks): list "
+                                      "them, read one's terms, install or add one")
+    p.add_argument("action", choices=("list", "show", "install", "add", "check"),
+                   help="install: download a listed voicebank (needs --accept-terms). "
+                        "add: register one you downloaded yourself. check: render a "
+                        "piece's singer alone and have a speech recogniser write "
+                        "down what it hears (paid, needs OPENROUTER_API_KEY)")
+    p.add_argument("name", nargs="?", help="a singer, or a piece for check")
+    p.add_argument("source", nargs="?", help="with add: the zip or folder")
+    p.add_argument("--accept-terms", action="store_true",
+                   help="you have read the voicebank's terms of use and agree to them")
+    p.add_argument("--force", action="store_true", help="replace what is installed")
+
+    p = sub.add_parser("voicebank", help="a recorded singing voice: show it, record "
+                                         "it (once), or check what a piece's singer says")
+    p.add_argument("action", choices=("show", "build", "check"),
+                   help="build: record the bank (paid, needs OPENROUTER_API_KEY). "
+                        "check: render a piece's singer alone and have a speech "
+                        "recogniser write down what it hears (also paid)")
+    p.add_argument("name", help="a voice for show/build ('sarah'), a piece for check")
+    p.add_argument("--model", help="the speech model to record from")
+    p.add_argument("--words", type=int, default=0,
+                   help="with build: also record this many of the commonest English "
+                        "words whole (2000 is about a dollar)")
+
+    p = sub.add_parser("master", help="how hard the finished mix is hit")
+    p.add_argument("name")
+    p.add_argument("--push", type=float, help="dB into the limiter")
+    p.add_argument("--clip", type=float, help="dB past full scale, tops cut off")
+    p.add_argument("--level", type=float, help="dB (negative): turn the file down")
 
     p = sub.add_parser("tension", help="per bar: distance from home, surprise, and "
                                        "whether the climax was prepared")
@@ -400,6 +493,44 @@ def _dispatch(s: Studio, a) -> int:
         findings = s.lint(a.name)
         print(report(findings))
         return 1 if any(f.severity == "error" for f in findings) else 0
+    if c == "lyrics":
+        from . import lyrics
+        if a.text == ["install"]:
+            print(lyrics.install_dictionary())
+            return 0
+        syllables, warnings = lyrics.parse(" ".join(a.text), a.lang)
+        for syl in syllables:
+            print(f"  {syl.text:<12} {syl.to_json()}")
+        for w in warnings:
+            print(f"warning: {w}")
+        print(f"{len(syllables)} syllables: one note each")
+        return 0
+    if c == "singer" and a.action != "check":
+        return _singer(s, a)
+    if c in ("voicebank", "singer") and a.action == "check":
+        r = s.check_words(a.name)
+        print(f"{r['voice']}: a recogniser understood {r['understood']:.0%} of "
+              f"{r['words']} words")
+        print(f"  heard:  {r['heard']}")
+        if r["missed"]:
+            print(f"  missed: {' '.join(r['missed'])}")
+        return 0
+    if c == "voicebank":
+        def tick(done, total, word):
+            print(f"\r  {done}/{total} {word:<12}", end="", file=sys.stderr, flush=True)
+        info = s.voicebank(a.name, build=a.action == "build", model=a.model,
+                           words=a.words, progress=tick if a.action == "build" else None)
+        if a.action == "build":
+            print(file=sys.stderr)
+        print(f"{info['voice']} ({info['model']}): {info['recorded']} of "
+              f"{info['words']} unit words recorded, {info['vocabulary']} words in all"
+              + ("" if info["complete"] else f"; missing {' '.join(info['missing'][:12])}"
+                 + (" ..." if len(info["missing"]) > 12 else "")))
+        print(f"  kept in {info['where']}")
+        return 0
+    if c == "master":
+        print(s.set_master(a.name, push=a.push, clip=a.clip, level=a.level))
+        return 0
     if c == "tension":
         print(s.tension(a.name))
         return 0

@@ -354,6 +354,8 @@ def voice_view(piece: Piece, name: str, rend: Render | None = None, *, bars=None
         deg, alt, _ = key.degree_of(n.pitch)
         mark = ("#" if alt > 0 else "b" if alt < 0 else "") + str(deg + 1)
         label = n.motif + (f"[{n.form}]" if n.form else "") if n.motif else ""
+        if n.lyric:
+            label = f"{n.lyric!r} {label}".strip()
         out.append(f"  {f'{bar}:{float(beat):g}':<9} "
                    f"{spell_pitch(n.pitch, key):<6} {mark:<5} "
                    f"{ticks_to_dur(n.dur):<8} {velocity_dynamic(n.velocity):<5} "

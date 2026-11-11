@@ -160,6 +160,9 @@ def to_bytes(piece: Piece, rend: Render | None = None, *,
             if curve != 1.0:
                 vel = max(1, min(127, round(127 * (vel / 127) ** curve)))
             pitch = max(0, min(127, n.pitch))
+            if n.lyric and n.lyric != "-":
+                # A lyric meta event, so a notation program shows the words.
+                ev.append((n.start, b"\xff\x05" + _len(n.lyric.encode("utf-8"))))
             ev.append((n.start, bytes([0x90 | ch, pitch, vel])))
             ev.append((end, bytes([0x80 | ch, pitch, 0])))
         tracks.append(_track(ev))

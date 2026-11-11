@@ -286,6 +286,101 @@ class Studio:
         res.view = chart(p)
         return res
 
+    @staticmethod
+    def singers() -> dict:
+        """The neural singers: which are installed, which are listed and what
+        each one's terms ask. None ships with the studio."""
+        from . import neural
+        names = sorted(set(neural.CATALOGUE) | set(neural.installed()))
+        return {"runtime": neural.available(), "where": str(neural.SINGER_DIR.expanduser()),
+                "singers": [neural.describe(n) for n in names]}
+
+    @staticmethod
+    def singer(name: str, *, install: bool = False, accept_terms: bool = False,
+               source: str | None = None, force: bool = False, progress=None) -> dict:
+        """One neural singer. ``install`` downloads a listed one, and only with
+        ``accept_terms``: a voicebank is someone's voice under their terms.
+        ``source`` registers a voicebank you downloaded yourself instead."""
+        from . import neural
+        if source:
+            neural.add(name, source, force=force)
+        elif install:
+            neural.install(name, accept=accept_terms, progress=progress, force=force)
+        return neural.describe(name)
+
+    @staticmethod
+    def voicebank(voice: str, *, build: bool = False, model: str | None = None,
+                  words: int = 0, progress=None) -> dict:
+        """The state of a voice bank, and optionally record what is missing.
+
+        A bank is 271 short recordings made once; after that any lyric can be
+        sung from it. Recording costs money (a few cents in all) and needs
+        ``$OPENROUTER_API_KEY``; it is never done implicitly by a render.
+        """
+        from . import voicebank as vb
+        model = model or vb.DEFAULT_MODEL
+        if build:
+            return vb.build(voice, model=model, words=words, progress=progress)
+        return vb.status(voice, model)
+
+    def check_words(self, name: str, voice: str | None = None) -> dict:
+        """Render a singer alone and ask a speech recogniser what it said.
+
+        Returns the transcript, the share of the lyric's words it got, and the
+        words it missed. Costs a little per call and needs
+        ``$OPENROUTER_API_KEY``; never run implicitly.
+        """
+        import copy
+        import tempfile
+        from . import voicebank as vb
+        from .audio import save_wav
+        from .lyrics import parse
+        p = self.get(name)
+        singers = [v for v in p.voices
+                   if any(op.kind == "lyrics" for op in v.ops) and (voice in (None, v.name))]
+        if not singers:
+            raise ValueError(f"{name!r} has no voice with lyrics"
+                             + (f" called {voice!r}" if voice else ""))
+        target = singers[0]
+        written = []
+        for op in target.ops:
+            if op.kind == "lyrics" and op.enabled:
+                for syl in parse(str(op.params["text"]), op.params.get("lang") or "auto")[0]:
+                    if syl.word and syl.index == 0:
+                        written.append(syl.word)
+        solo = copy.deepcopy(p)
+        for v in solo.voices:
+            v.muted = v.name != target.name
+        with tempfile.TemporaryDirectory() as tmp:
+            heard = vb.transcribe_long(save_wav(solo, Path(tmp) / "solo.wav"))
+        share, missed = vb.words_heard(written, heard)
+        return {"voice": target.name, "heard": heard, "understood": round(share, 2),
+                "words": len(written), "missed": missed}
+
+    @_mutation
+    def set_master(self, name: str, *, push: float | None = None,
+                   clip: float | None = None, level: float | None = None) -> dict:
+        """How hard the finished mix is hit. ``push`` is dB into the limiter
+        (3.5 by default, 9 for electronic); ``clip`` instead drives it that many
+        dB past full scale and cuts the tops off, which is a sound, not a fault,
+        in the styles that want it. ``level`` (dB, negative) turns the finished
+        file down without changing its sound. Pass 0 to clear any of them."""
+        p = self.get(name)
+        master = dict(p.meta.get("master") or {})
+        for key, val in (("push", push), ("clip", clip), ("level", level)):
+            if val is None:
+                continue
+            if val:
+                master[key] = float(val)
+            else:
+                master.pop(key, None)
+        if master:
+            p.meta["master"] = master
+        else:
+            p.meta.pop("master", None)
+        self.save(p)
+        return {"master": master}
+
     # -- views -------------------------------------------------------------
 
     def render(self, name: str, *, upto: str | None = None) -> Render:
@@ -450,13 +545,14 @@ class Studio:
     @_mutation
     def add_voice(self, name: str, voice: str, instrument: str, *, role: str = "melody",
                   octave: int | None = None, dynamic: str | None = None,
-                  pan: float | None = None, engine: str | None = None) -> OpResult:
+                  pan: float | None = None, engine: str | None = None,
+                  bank: str | None = None) -> OpResult:
         p = self.get(name)
         if any(v.name == voice for v in p.voices):
             raise ValueError(f"voice {voice!r} already exists")
         inst = get_instrument(instrument)
         p.voices.append(Voice(voice, instrument, role, octave, dynamic, pan=pan,
-                              engine=engine))
+                              engine=engine, bank=bank))
         msg = (f"added voice {voice!r}: {instrument} ({inst.family}), role={role}, "
                f"range {inst.low}-{inst.high}")
         if inst.notes:
@@ -483,9 +579,9 @@ class Studio:
             if val is None:
                 continue
             if k not in ("instrument", "role", "octave", "dynamic", "muted", "pan",
-                         "engine"):
+                         "engine", "bank"):
                 raise ValueError(f"cannot set {k!r} on a voice; can set instrument, "
-                                 f"role, octave, dynamic, muted, pan, engine")
+                                 f"role, octave, dynamic, muted, pan, engine, bank")
             setattr(v, k, val)
         v.__post_init__()
         return self._result(p, None, f"updated voice {voice!r}: {sorted(fields)}",

@@ -1,0 +1,812 @@
+{
+  "schema": 1,
+  "name": "first_words",
+  "key": "E major",
+  "tempo": 112,
+  "meter": "4/4",
+  "style": "electronic",
+  "loop": false,
+  "meta": {},
+  "sections": [
+    {
+      "name": "intro",
+      "bars": 2,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mp",
+      "note": ""
+    },
+    {
+      "name": "verse",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "chorus",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "f",
+      "note": ""
+    },
+    {
+      "name": "outro",
+      "bars": 2,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mp",
+      "note": ""
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "2",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "4",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "6",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "8",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "10",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "12",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "14",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "16",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "17",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "18",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "19",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "20",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "ask",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "r 4 4 5 4:1/4 2:1/4 1:1/4 4:1/2 r:1/4",
+      "steps": [
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "rest": true
+        }
+      ],
+      "note": "seven notes for a seven-syllable line, over I and V"
+    },
+    {
+      "name": "answer",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "r 5 5 7 5:1/4 4:1/4 3:1/4 5:1/2 r:1/4",
+      "steps": [
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        },
+        {
+          "dur": "1/2",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "rest": true
+        }
+      ],
+      "note": "the same rhythm a step up, over vi and IV"
+    },
+    {
+      "name": "call",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "7:1/4 7:1/4 9:1/4. 8 8:1/2. r:1/4",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/4.",
+          "deg": 9
+        },
+        {
+          "dur": "1/8",
+          "deg": 8
+        },
+        {
+          "dur": "1/2.",
+          "deg": 8
+        },
+        {
+          "dur": "1/4",
+          "rest": true
+        }
+      ],
+      "note": "the chorus: five notes, the fourth leaning into the fifth"
+    },
+    {
+      "name": "fall",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "7:1/4 7:1/4 9:1/4. 7 5:1/2. r:1/4",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/4.",
+          "deg": 9
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/2.",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "rest": true
+        }
+      ],
+      "note": "the same opening, landing a third lower over vi"
+    },
+    {
+      "name": "close",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/4 4:1/4 7 9 8:1/4 7:1/1",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 9
+        },
+        {
+          "dur": "1/4",
+          "deg": 8
+        },
+        {
+          "dur": "1/1",
+          "deg": 7
+        }
+      ],
+      "note": "six notes up to the tonic, and hold it"
+    }
+  ],
+  "voices": [
+    {
+      "name": "vox",
+      "instrument": "singer",
+      "role": "melody",
+      "octave": 4,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "v1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "at": "3",
+            "motif": "ask"
+          }
+        },
+        {
+          "id": "v2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "at": "5",
+            "motif": "answer"
+          }
+        },
+        {
+          "id": "v3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "at": "7",
+            "motif": "ask"
+          }
+        },
+        {
+          "id": "v4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "at": "9",
+            "motif": "answer"
+          }
+        },
+        {
+          "id": "c1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "call",
+            "at": "11"
+          }
+        },
+        {
+          "id": "c2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "fall",
+            "at": "13"
+          }
+        },
+        {
+          "id": "c3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "call",
+            "at": "15"
+          }
+        },
+        {
+          "id": "c4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": null,
+            "articulation": null,
+            "anchor": null,
+            "motif": "close",
+            "at": "17"
+          }
+        },
+        {
+          "id": "vox_legato",
+          "kind": "articulate",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "style": "legato",
+            "from": "1",
+            "until": "21"
+          }
+        },
+        {
+          "id": "words_verse",
+          "kind": "lyrics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "lang": "auto",
+            "from": "3",
+            "until": "11",
+            "text": "I am a line of num-bers | learn-ing how to sing a song | no one gave me an-y breath | so I bor-rowed it from yours"
+          }
+        },
+        {
+          "id": "words_chorus",
+          "kind": "lyrics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "lang": "auto",
+            "from": "11",
+            "until": "21",
+            "text": "can you hear me now | I am on-ly sound | but the sound is yours | and you can keep it all"
+          }
+        },
+        {
+          "id": "vox_feel",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.3,
+            "timing": 5,
+            "seed": 0,
+            "from": null,
+            "until": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "harmony",
+      "instrument": "singer_warm",
+      "role": "counter",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "thirds_a",
+          "kind": "double",
+          "enabled": true,
+          "note": "the chorus, a third below, in a warmer voice -- except the second line, which the lead sings alone",
+          "params": {
+            "interval": -2,
+            "octaves": 0,
+            "dynamic": "mp",
+            "delay": null,
+            "from": "11",
+            "until": "13",
+            "source": "vox"
+          }
+        },
+        {
+          "id": "thirds_b",
+          "kind": "double",
+          "enabled": true,
+          "note": "the chorus, a third below, in a warmer voice -- except the second line, which the lead sings alone",
+          "params": {
+            "interval": -2,
+            "octaves": 0,
+            "dynamic": "mp",
+            "delay": null,
+            "from": "15",
+            "until": "21",
+            "source": "vox"
+          }
+        }
+      ],
+      "pan": 0.35
+    },
+    {
+      "name": "keys",
+      "instrument": "rhodes",
+      "role": "harmony",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "keys",
+          "kind": "chords",
+          "enabled": true,
+          "note": "3+3+2 stabs",
+          "params": {
+            "voicing": "block",
+            "rhythm": "1/8",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "mp",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": "0+1+2 . . 0+1+2 . . 0+1+2 .",
+            "articulation": null,
+            "at": "1",
+            "bars": 20
+          }
+        },
+        {
+          "id": "keys_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 3
+          }
+        }
+      ]
+    },
+    {
+      "name": "pad",
+      "instrument": "strings",
+      "role": "pad",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "pad",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "at": "11",
+            "bars": 10
+          }
+        },
+        {
+          "id": "pad_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "bass",
+      "instrument": "electric_bass",
+      "role": "bass",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "bass",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "root",
+            "rhythm": "1/4. 1/4. 1/4",
+            "octave": null,
+            "dynamic": null,
+            "degree": 0,
+            "articulation": null,
+            "at": "1",
+            "bars": 20
+          }
+        },
+        {
+          "id": "bass_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 6
+          }
+        }
+      ]
+    },
+    {
+      "name": "drums",
+      "instrument": "kit",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "groove",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "at": "1",
+            "bars": 18,
+            "lanes": {
+              "kick": "x.....x...x.....",
+              "snare": "....x.......x...",
+              "hat": "x.x.x.x.x.x.x.x.",
+              "open": "..............o."
+            }
+          }
+        },
+        {
+          "id": "fill",
+          "kind": "chop",
+          "enabled": true,
+          "note": "into the chorus",
+          "params": {
+            "slices": 8,
+            "from": "10",
+            "until": "11",
+            "order": "0 1 2 3 2 2*2 2*2 2*4"
+          }
+        },
+        {
+          "id": "last",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": null,
+            "tune": 0,
+            "at": "19",
+            "bars": 1,
+            "lanes": {
+              "kick": "x...............",
+              "crash": "x..............."
+            }
+          }
+        },
+        {
+          "id": "drums_glue",
+          "kind": "compress",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "ratio": 4,
+            "threshold": -18,
+            "makeup": 0.0
+          }
+        },
+        {
+          "id": "drums_level",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 8
+          }
+        },
+        {
+          "id": "drum_feel",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.4,
+            "timing": 4,
+            "seed": 0,
+            "from": null,
+            "until": null
+          }
+        }
+      ]
+    }
+  ]
+}
