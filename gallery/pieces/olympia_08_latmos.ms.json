@@ -1,0 +1,1431 @@
+{
+  "schema": 1,
+  "name": "olympia_08_latmos",
+  "key": "F# phrygian",
+  "tempo": 60,
+  "meter": "4/4",
+  "style": "ambient",
+  "loop": false,
+  "meta": {
+    "title": "Latmos",
+    "soundfont": "hq",
+    "master": {
+      "room": {
+        "decay": 4.5,
+        "wet": 0.42
+      }
+    }
+  },
+  "sections": [
+    {
+      "name": "dome",
+      "bars": 4,
+      "meter": "6/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "pp",
+      "note": "two held notes and a glockenspiel"
+    },
+    {
+      "name": "sleep",
+      "bars": 8,
+      "meter": "6/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "p",
+      "note": "the song, augmented, celesta"
+    },
+    {
+      "name": "watch",
+      "bars": 8,
+      "meter": "6/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "p",
+      "note": "its second half upside down, low flute; the celesta keeps only the rocking bar"
+    },
+    {
+      "name": "still",
+      "bars": 3,
+      "meter": "6/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "pp",
+      "note": ""
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "8",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "12",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "VII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "16",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "17",
+      "chord": "bII",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "19",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "21",
+      "chord": "i",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "cole",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/4. 0 1:1/4 0:1/4 -2:1/2 0:1/2 0:1/4. 0 2:1/4 1:1/4 0:1/1",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "deg": -2
+        },
+        {
+          "dur": "1/2",
+          "deg": 0
+        },
+        {
+          "dur": "1/4.",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/1",
+          "deg": 0
+        }
+      ],
+      "note": "Cole: keeps coming back to one note, never further than a third from it"
+    },
+    {
+      "name": "cole_head",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/4. 0 1:1/4 0:1/4",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        }
+      ],
+      "note": "Cole: keeps coming back to one note, never further than a third from it",
+      "derived_from": "cole",
+      "lineage": [
+        "fragment:0,4"
+      ]
+    },
+    {
+      "name": "cole_slow",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/2. 0:1/4 1:1/2 0:1/2 -2:1/1 0:1/1 0:1/2. 0:1/4 2:1/2 1:1/2 0:2/1",
+      "steps": [
+        {
+          "dur": "1/2.",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "deg": 1
+        },
+        {
+          "dur": "1/2",
+          "deg": 0
+        },
+        {
+          "dur": "1/1",
+          "deg": -2
+        },
+        {
+          "dur": "1/1",
+          "deg": 0
+        },
+        {
+          "dur": "1/2.",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 1
+        },
+        {
+          "dur": "2/1",
+          "deg": 0
+        }
+      ],
+      "note": "Cole: keeps coming back to one note, never further than a third from it",
+      "derived_from": "cole",
+      "lineage": [
+        "augment:2"
+      ]
+    },
+    {
+      "name": "cole_open",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "2:1/4. 2 4:1/4 2:1/4 -2:1/2 2:1/2 2:1/4. 2 6:1/4 4:1/4 2:1/1",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": -2
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        },
+        {
+          "dur": "1/4.",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 6
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/1",
+          "deg": 2
+        }
+      ],
+      "note": "the same contour with every step a third: the theme with its arms down",
+      "derived_from": "cole",
+      "lineage": [
+        "expand:2",
+        "transpose:2"
+      ]
+    },
+    {
+      "name": "ivy_a",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/4 5 4:1/4 2 3:1/4 4 2:1/4. 0:1/4 2:1/4 4:1/4 7:1/4 6 4:1/4.",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/4.",
+          "deg": 4
+        }
+      ],
+      "note": "Ivy: a boat song in six, with one bar that counts in three instead"
+    },
+    {
+      "name": "ivy_b",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/4 5 4:1/4 2 3:1/4 4 2:1/4. 1:1/4 0:1/4 -1:1/4 0:1/2.",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": -1
+        },
+        {
+          "dur": "1/2.",
+          "deg": 0
+        }
+      ]
+    },
+    {
+      "name": "ivy",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/4 5 4:1/4 2 3:1/4 4 2:1/4. 0:1/4 2:1/4 4:1/4 7:1/4 6 4:1/4. 4:1/4 5 4:1/4 2 3:1/4 4 2:1/4. 1:1/4 0:1/4 -1:1/4 0:1/2.",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/4.",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": -1
+        },
+        {
+          "dur": "1/2.",
+          "deg": 0
+        }
+      ],
+      "note": "Ivy: a boat song in six, with one bar that counts in three instead",
+      "derived_from": "ivy_a",
+      "lineage": [
+        "then:ivy_b"
+      ]
+    },
+    {
+      "name": "boat",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/4 5 4:1/4 2",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        }
+      ],
+      "note": "the rocking bar on its own",
+      "derived_from": "ivy_a",
+      "lineage": [
+        "fragment:0,4"
+      ]
+    },
+    {
+      "name": "hermes",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/16 2:1/16 4:1/16 7:1/16 6 4 5:1/16 4:1/16 2 4:1/4",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 5
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        }
+      ],
+      "note": "Hermes: up the chord in a hurry, a skip back down, a stop on the fifth"
+    },
+    {
+      "name": "hermes_tag",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/16 2:1/16 4:1/16 7:1/16 6 4",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        }
+      ],
+      "note": "Hermes: up the chord in a hurry, a skip back down, a stop on the fifth",
+      "derived_from": "hermes",
+      "lineage": [
+        "fragment:0,6"
+      ]
+    },
+    {
+      "name": "dance",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0 2 4 2 4 5 4 7:1/4 6 4 5 4 2 0 2 4 2 6 5 4 2:1/4 1:1/4 0:1/4.",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/4.",
+          "deg": 0
+        }
+      ],
+      "note": "Saturnalia: seven, counted two-two-three"
+    },
+    {
+      "name": "dance_head",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0 2 4 2 4 5 4",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        }
+      ],
+      "note": "Saturnalia: seven, counted two-two-three",
+      "derived_from": "dance",
+      "lineage": [
+        "fragment:0,7"
+      ]
+    },
+    {
+      "name": "throne",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/4. 0 4:1/2 5:1/4. 4 2:1/2 0:1/4. 0 4:1/4 7:1/4 6:1/2 4:1/2",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        },
+        {
+          "dur": "1/4.",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/2",
+          "deg": 6
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        }
+      ],
+      "note": "the old order: dotted, square, four in a bar"
+    },
+    {
+      "name": "ivy_slow",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/2 5:1/4 4:1/2 2:1/4 3:1/2 4:1/4 2:1/2. 0:1/2 2:1/2 4:1/2 7:1/2 6:1/4 4:1/2. 4:1/2 5:1/4 4:1/2 2:1/4 3:1/2 4:1/4 2:1/2. 1:1/2 0:1/2 -1:1/2 0:1/1.",
+      "steps": [
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 3
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/2.",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "deg": 6
+        },
+        {
+          "dur": "1/2.",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 3
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/2.",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 1
+        },
+        {
+          "dur": "1/2",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "deg": -1
+        },
+        {
+          "dur": "1/1.",
+          "deg": 0
+        }
+      ],
+      "note": "Ivy: a boat song in six, with one bar that counts in three instead",
+      "derived_from": "ivy_a",
+      "lineage": [
+        "then:ivy_b",
+        "augment:2"
+      ]
+    },
+    {
+      "name": "ivy_low",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/2 3:1/4 4:1/2 6:1/4 5:1/2 4:1/4 6:1/2. 7:1/2 8:1/2 9:1/2 8:1/1.",
+      "steps": [
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 6
+        },
+        {
+          "dur": "1/2",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/2.",
+          "deg": 6
+        },
+        {
+          "dur": "1/2",
+          "deg": 7
+        },
+        {
+          "dur": "1/2",
+          "deg": 8
+        },
+        {
+          "dur": "1/2",
+          "deg": 9
+        },
+        {
+          "dur": "1/1.",
+          "deg": 8
+        }
+      ],
+      "derived_from": "ivy_b",
+      "lineage": [
+        "invert:4",
+        "augment:2"
+      ]
+    },
+    {
+      "name": "boat_slow",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/2 5:1/4 4:1/2 2:1/4",
+      "steps": [
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        }
+      ],
+      "note": "the rocking bar on its own",
+      "derived_from": "ivy_a",
+      "lineage": [
+        "fragment:0,4",
+        "augment:2"
+      ]
+    },
+    {
+      "name": "star",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "r:1/1 7:1/2 r:1/2 4:1/1 r:1/1. r:1/4 9:1/4 r:1/1",
+      "steps": [
+        {
+          "dur": "1/1",
+          "rest": true
+        },
+        {
+          "dur": "1/2",
+          "deg": 7
+        },
+        {
+          "dur": "1/2",
+          "rest": true
+        },
+        {
+          "dur": "1/1",
+          "deg": 4
+        },
+        {
+          "dur": "1/1.",
+          "rest": true
+        },
+        {
+          "dur": "1/4",
+          "rest": true
+        },
+        {
+          "dur": "1/4",
+          "deg": 9
+        },
+        {
+          "dur": "1/1",
+          "rest": true
+        }
+      ]
+    }
+  ],
+  "voices": [
+    {
+      "name": "hi1",
+      "instrument": "violin",
+      "role": "pad",
+      "octave": 6,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "d_1",
+          "kind": "drone",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "degree": 0,
+            "octave": null,
+            "dynamic": "pp",
+            "retrigger": null,
+            "at": "1",
+            "bars": 23
+          }
+        },
+        {
+          "id": "lvl_hi1",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -12
+          }
+        }
+      ],
+      "pan": -0.5,
+      "engine": "soundfont",
+      "bank": "hq"
+    },
+    {
+      "name": "hi2",
+      "instrument": "violin",
+      "role": "pad",
+      "octave": 5,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "d_2",
+          "kind": "drone",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "degree": 4,
+            "octave": null,
+            "dynamic": "pp",
+            "retrigger": null,
+            "at": "2",
+            "bars": 22
+          }
+        },
+        {
+          "id": "lvl_hi2",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -12
+          }
+        }
+      ],
+      "pan": 0.5,
+      "engine": "soundfont",
+      "bank": "hq"
+    },
+    {
+      "name": "glock",
+      "instrument": "glockenspiel",
+      "role": "ornament",
+      "octave": 6,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "g_1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "star",
+            "at": "1"
+          }
+        },
+        {
+          "id": "g_2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "star",
+            "at": "17"
+          }
+        },
+        {
+          "id": "g_3",
+          "kind": "phrase",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "unit": "1/8",
+            "octave": null,
+            "transpose": 0,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": "scale",
+            "at": "22",
+            "steps": "7:1/1. | 4:1/1."
+          }
+        },
+        {
+          "id": "lvl_glock",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -6
+          }
+        }
+      ],
+      "pan": 0.3,
+      "engine": "soundfont",
+      "bank": "hq"
+    },
+    {
+      "name": "cel",
+      "instrument": "celesta",
+      "role": "melody",
+      "octave": 5,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "i_1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "motif": "ivy_slow",
+            "at": "5"
+          }
+        },
+        {
+          "id": "i_2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "boat_slow",
+            "at": "14"
+          }
+        },
+        {
+          "id": "i_3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "boat_slow",
+            "at": "16"
+          }
+        },
+        {
+          "id": "i_4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": -2,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "boat_slow",
+            "at": "18"
+          }
+        },
+        {
+          "id": "i_5",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "boat_slow",
+            "at": "21"
+          }
+        }
+      ],
+      "pan": -0.1,
+      "engine": "soundfont",
+      "bank": "hq"
+    },
+    {
+      "name": "fl",
+      "instrument": "flute",
+      "role": "melody",
+      "octave": 4,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "w_1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "ivy_low",
+            "at": "13"
+          }
+        },
+        {
+          "id": "w_2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": -1,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "ivy_low",
+            "at": "17"
+          }
+        },
+        {
+          "id": "w_shape",
+          "kind": "shape",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.6,
+            "peak": 0.62,
+            "breath": "1/4",
+            "from": null,
+            "until": null
+          }
+        },
+        {
+          "id": "lvl_fl",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -7
+          }
+        }
+      ],
+      "pan": 0.1,
+      "engine": "soundfont",
+      "bank": "hq"
+    }
+  ]
+}

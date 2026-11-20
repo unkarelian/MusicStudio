@@ -1,0 +1,1381 @@
+{
+  "schema": 1,
+  "name": "olympia_b2_32_delos",
+  "key": "E major",
+  "tempo": 84,
+  "meter": "4/4",
+  "style": "orchestral",
+  "loop": false,
+  "meta": {
+    "title": "Delos",
+    "soundfont": "hq",
+    "master": {
+      "room": {
+        "decay": 2.8,
+        "wet": 0.28
+      }
+    }
+  },
+  "sections": [
+    {
+      "name": "tune",
+      "bars": 12,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mp",
+      "note": ""
+    },
+    {
+      "name": "arms",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "lake",
+      "bars": 5,
+      "meter": "4/4",
+      "tempo": 60,
+      "key": null,
+      "dynamic": "pp",
+      "note": "",
+      "tempo_end": 50
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "12",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "17",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "21",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "cole",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/4. 0 1:1/4 0:1/4 -2:1/2 0:1/2 0:1/4. 0 2:1/4 1:1/4 0:1/1",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "deg": -2
+        },
+        {
+          "dur": "1/2",
+          "deg": 0
+        },
+        {
+          "dur": "1/4.",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/1",
+          "deg": 0
+        }
+      ],
+      "note": "Cole: keeps coming back to one note, never further than a third from it"
+    },
+    {
+      "name": "cole_head",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/4. 0 1:1/4 0:1/4",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        }
+      ],
+      "note": "Cole: keeps coming back to one note, never further than a third from it",
+      "derived_from": "cole",
+      "lineage": [
+        "fragment:0,4"
+      ]
+    },
+    {
+      "name": "cole_slow",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/2. 0:1/4 1:1/2 0:1/2 -2:1/1 0:1/1 0:1/2. 0:1/4 2:1/2 1:1/2 0:2/1",
+      "steps": [
+        {
+          "dur": "1/2.",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "deg": 1
+        },
+        {
+          "dur": "1/2",
+          "deg": 0
+        },
+        {
+          "dur": "1/1",
+          "deg": -2
+        },
+        {
+          "dur": "1/1",
+          "deg": 0
+        },
+        {
+          "dur": "1/2.",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 1
+        },
+        {
+          "dur": "2/1",
+          "deg": 0
+        }
+      ],
+      "note": "Cole: keeps coming back to one note, never further than a third from it",
+      "derived_from": "cole",
+      "lineage": [
+        "augment:2"
+      ]
+    },
+    {
+      "name": "cole_open",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "2:1/4. 2 4:1/4 2:1/4 -2:1/2 2:1/2 2:1/4. 2 6:1/4 4:1/4 2:1/1",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": -2
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        },
+        {
+          "dur": "1/4.",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 6
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/1",
+          "deg": 2
+        }
+      ],
+      "note": "the same contour with every step a third: the theme with its arms down",
+      "derived_from": "cole",
+      "lineage": [
+        "expand:2",
+        "transpose:2"
+      ]
+    },
+    {
+      "name": "ivy_a",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/4 5 4:1/4 2 3:1/4 4 2:1/4. 0:1/4 2:1/4 4:1/4 7:1/4 6 4:1/4.",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/4.",
+          "deg": 4
+        }
+      ],
+      "note": "Ivy: a boat song in six, with one bar that counts in three instead"
+    },
+    {
+      "name": "ivy_b",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/4 5 4:1/4 2 3:1/4 4 2:1/4. 1:1/4 0:1/4 -1:1/4 0:1/2.",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": -1
+        },
+        {
+          "dur": "1/2.",
+          "deg": 0
+        }
+      ]
+    },
+    {
+      "name": "ivy",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/4 5 4:1/4 2 3:1/4 4 2:1/4. 0:1/4 2:1/4 4:1/4 7:1/4 6 4:1/4. 4:1/4 5 4:1/4 2 3:1/4 4 2:1/4. 1:1/4 0:1/4 -1:1/4 0:1/2.",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/4.",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 3
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/4",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": -1
+        },
+        {
+          "dur": "1/2.",
+          "deg": 0
+        }
+      ],
+      "note": "Ivy: a boat song in six, with one bar that counts in three instead",
+      "derived_from": "ivy_a",
+      "lineage": [
+        "then:ivy_b"
+      ]
+    },
+    {
+      "name": "boat",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/4 5 4:1/4 2",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        }
+      ],
+      "note": "the rocking bar on its own",
+      "derived_from": "ivy_a",
+      "lineage": [
+        "fragment:0,4"
+      ]
+    },
+    {
+      "name": "hermes",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/16 2:1/16 4:1/16 7:1/16 6 4 5:1/16 4:1/16 2 4:1/4",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 5
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        }
+      ],
+      "note": "Hermes: up the chord in a hurry, a skip back down, a stop on the fifth"
+    },
+    {
+      "name": "hermes_tag",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/16 2:1/16 4:1/16 7:1/16 6 4",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        }
+      ],
+      "note": "Hermes: up the chord in a hurry, a skip back down, a stop on the fifth",
+      "derived_from": "hermes",
+      "lineage": [
+        "fragment:0,6"
+      ]
+    },
+    {
+      "name": "dance",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0 2 4 2 4 5 4 7:1/4 6 4 5 4 2 0 2 4 2 6 5 4 2:1/4 1:1/4 0:1/4.",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/4.",
+          "deg": 0
+        }
+      ],
+      "note": "Saturnalia: seven, counted two-two-three"
+    },
+    {
+      "name": "dance_head",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0 2 4 2 4 5 4",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        }
+      ],
+      "note": "Saturnalia: seven, counted two-two-three",
+      "derived_from": "dance",
+      "lineage": [
+        "fragment:0,7"
+      ]
+    },
+    {
+      "name": "throne",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/4. 0 4:1/2 5:1/4. 4 2:1/2 0:1/4. 0 4:1/4 7:1/4 6:1/2 4:1/2",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        },
+        {
+          "dur": "1/4.",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/2",
+          "deg": 6
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        }
+      ],
+      "note": "the old order: dotted, square, four in a bar"
+    },
+    {
+      "name": "leo",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/4 2 4 5:1/4 4:1/4 2:1/4. 1 0:1/2 4:1/4 2 4 7:1/4 6:1/4 4:1/2. r:1/4",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 1
+        },
+        {
+          "dur": "1/2",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "deg": 6
+        },
+        {
+          "dur": "1/2.",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "rest": true
+        }
+      ]
+    },
+    {
+      "name": "leo_slow",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/2 2:1/4 4:1/4 5:1/2 4:1/2 2:1/2. 1:1/4 0:1/1 4:1/2 2:1/4 4:1/4 7:1/2 6:1/2 4:1/1. r:1/2",
+      "steps": [
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 5
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/2.",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 1
+        },
+        {
+          "dur": "1/1",
+          "deg": 0
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 7
+        },
+        {
+          "dur": "1/2",
+          "deg": 6
+        },
+        {
+          "dur": "1/1.",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "rest": true
+        }
+      ],
+      "derived_from": "leo",
+      "lineage": [
+        "augment:2"
+      ]
+    },
+    {
+      "name": "leo_head",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/4 2 4 5:1/4 4:1/4",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        }
+      ],
+      "derived_from": "leo",
+      "lineage": [
+        "fragment:0,5"
+      ]
+    },
+    {
+      "name": "dee",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/2 2:1/1",
+      "steps": [
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/1",
+          "deg": 2
+        }
+      ]
+    }
+  ],
+  "voices": [
+    {
+      "name": "gtr",
+      "instrument": "guitar",
+      "role": "melody",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "l_1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "leo",
+            "at": "1"
+          }
+        },
+        {
+          "id": "l_2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 1,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "leo",
+            "at": "5"
+          }
+        },
+        {
+          "id": "l_3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mf",
+            "articulation": null,
+            "anchor": null,
+            "motif": "leo",
+            "at": "9"
+          }
+        },
+        {
+          "id": "l_4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "leo_head",
+            "at": "13"
+          }
+        },
+        {
+          "id": "l_5",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "motif": "leo_head",
+            "at": "15"
+          }
+        },
+        {
+          "id": "l_h",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.7,
+            "timing": 10,
+            "seed": 0,
+            "from": null,
+            "until": null
+          }
+        }
+      ],
+      "pan": -0.15,
+      "engine": "soundfont",
+      "bank": "hq"
+    },
+    {
+      "name": "bass",
+      "instrument": "contrabass",
+      "role": "bass",
+      "octave": 2,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "b_1",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "root",
+            "rhythm": null,
+            "octave": null,
+            "dynamic": "p",
+            "degree": 0,
+            "articulation": null,
+            "at": "5",
+            "bars": 8
+          }
+        },
+        {
+          "id": "b_2",
+          "kind": "drone",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "degree": 0,
+            "octave": null,
+            "dynamic": "mf",
+            "retrigger": null,
+            "at": "13",
+            "bars": 8
+          }
+        }
+      ],
+      "engine": "soundfont",
+      "bank": "hq"
+    },
+    {
+      "name": "st",
+      "instrument": "strings",
+      "role": "harmony",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "s_1",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "mf",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "rootless": false,
+            "at": "13",
+            "bars": 8
+          }
+        },
+        {
+          "id": "s_sw",
+          "kind": "shape",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.6,
+            "peak": 0.62,
+            "breath": "1/4",
+            "from": null,
+            "until": null
+          }
+        }
+      ],
+      "pan": 0.0,
+      "engine": "soundfont",
+      "bank": "hq"
+    },
+    {
+      "name": "hn",
+      "instrument": "horn",
+      "role": "melody",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "a_1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mf",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "leo_slow",
+            "at": "13"
+          }
+        },
+        {
+          "id": "a_shape",
+          "kind": "shape",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "peak": 0.62,
+            "breath": "1/4",
+            "from": null,
+            "until": null
+          }
+        }
+      ],
+      "pan": 0.25,
+      "engine": "soundfont",
+      "bank": "hq"
+    },
+    {
+      "name": "vn",
+      "instrument": "violin",
+      "role": "counter",
+      "octave": 5,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "v_1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 2,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mf",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "leo_slow",
+            "at": "15"
+          }
+        },
+        {
+          "id": "lvl_vn",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -3
+          }
+        }
+      ],
+      "pan": -0.3,
+      "engine": "soundfont",
+      "bank": "hq"
+    },
+    {
+      "name": "fl",
+      "instrument": "flute",
+      "role": "melody",
+      "octave": 5,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "d_1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "dee",
+            "at": "22"
+          }
+        },
+        {
+          "id": "d_2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": "legato",
+            "anchor": null,
+            "motif": "dee",
+            "at": "24"
+          }
+        }
+      ],
+      "pan": 0.2,
+      "engine": "soundfont",
+      "bank": "hq"
+    }
+  ]
+}

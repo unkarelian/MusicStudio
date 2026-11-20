@@ -1,0 +1,411 @@
+{
+  "schema": 1,
+  "name": "zeal_ult_usa",
+  "key": "Bb major",
+  "tempo": 132,
+  "meter": "3/4",
+  "style": "electronic",
+  "loop": false,
+  "meta": {
+    "master": {
+      "room": {
+        "decay": 1.6,
+        "wet": 0.2
+      },
+      "push": 3.0
+    }
+  },
+  "sections": [
+    {
+      "name": "a",
+      "bars": 5,
+      "meter": "3/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "2",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "4",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "banner",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "r:1/2 4:1/8. 2:1/16 0:1/4! 2:1/4 4:1/4 7:1/2! 9:1/8. 8:1/16 7:1/4! 2:1/4 #3:1/4 4:1/2.!",
+      "steps": [
+        {
+          "dur": "1/2",
+          "rest": true
+        },
+        {
+          "dur": "1/8.",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 7,
+          "accent": 1
+        },
+        {
+          "dur": "1/8.",
+          "deg": 9
+        },
+        {
+          "dur": "1/16",
+          "deg": 8
+        },
+        {
+          "dur": "1/4",
+          "deg": 7,
+          "accent": 1
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 3,
+          "alt": 1
+        },
+        {
+          "dur": "1/2.",
+          "deg": 4,
+          "accent": 1
+        }
+      ]
+    },
+    {
+      "name": "roots",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "r:1/2. 0:1/2.! 0:1/2.! 5:1/2! 5:1/4 4:1/2.!",
+      "steps": [
+        {
+          "dur": "1/2.",
+          "rest": true
+        },
+        {
+          "dur": "1/2.",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/2.",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/2",
+          "deg": 5,
+          "accent": 1
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/2.",
+          "deg": 4,
+          "accent": 1
+        }
+      ]
+    }
+  ],
+  "voices": [
+    {
+      "name": "lead",
+      "instrument": "monster_lead",
+      "role": "melody",
+      "octave": 4,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "l1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "banner",
+            "at": 1
+          }
+        },
+        {
+          "id": "lvl_l",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 8
+          }
+        }
+      ],
+      "engine": "soundfont"
+    },
+    {
+      "name": "brass",
+      "instrument": "heavy_square",
+      "role": "counter",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "s1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "banner",
+            "at": 1
+          }
+        }
+      ],
+      "engine": "soundfont"
+    },
+    {
+      "name": "gtr",
+      "instrument": "amp_guitar",
+      "role": "harmony",
+      "octave": 2,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "g1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "roots",
+            "at": 1
+          }
+        },
+        {
+          "id": "g2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 4,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "roots",
+            "at": 1
+          }
+        },
+        {
+          "id": "fx_g",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.2,
+            "mode": "soft"
+          }
+        },
+        {
+          "id": "lvl_g",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -5
+          }
+        }
+      ],
+      "engine": "soundfont"
+    },
+    {
+      "name": "bass",
+      "instrument": "rbx_picked_bass",
+      "role": "bass",
+      "octave": 1,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "b1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "roots",
+            "at": 1
+          }
+        },
+        {
+          "id": "lvl_b",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 5
+          }
+        }
+      ],
+      "engine": "soundfont"
+    },
+    {
+      "name": "drums",
+      "instrument": "kit_rock",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "d0",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": 1,
+            "bars": 1,
+            "lanes": {
+              "snare": "....xxxxxxxx"
+            }
+          }
+        },
+        {
+          "id": "d1",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/8",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": 2,
+            "bars": 3,
+            "lanes": {
+              "kick": "x.xx.x",
+              "snare": "..x.x.",
+              "crash": "x....."
+            }
+          }
+        },
+        {
+          "id": "d2",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/8",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": 5,
+            "bars": 1,
+            "lanes": {
+              "kick": "x.....",
+              "crash": "x....."
+            }
+          }
+        },
+        {
+          "id": "lvl_d",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 7
+          }
+        }
+      ],
+      "engine": "soundfont"
+    }
+  ]
+}

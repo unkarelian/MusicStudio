@@ -1,0 +1,4732 @@
+{
+  "schema": 1,
+  "name": "zeal_l1",
+  "key": "E minor",
+  "tempo": 176,
+  "meter": "4/4",
+  "style": "electronic",
+  "loop": false,
+  "meta": {
+    "master": {
+      "room": {
+        "decay": 1.4,
+        "wet": 0.16
+      },
+      "push": 3.0
+    }
+  },
+  "sections": [
+    {
+      "name": "a",
+      "bars": 7,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "f",
+      "note": ""
+    },
+    {
+      "name": "a7",
+      "bars": 1,
+      "meter": "7/8",
+      "tempo": null,
+      "key": null,
+      "dynamic": "f",
+      "note": ""
+    },
+    {
+      "name": "b",
+      "bars": 7,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "f",
+      "note": ""
+    },
+    {
+      "name": "b7",
+      "bars": 1,
+      "meter": "7/8",
+      "tempo": null,
+      "key": null,
+      "dynamic": "f",
+      "note": ""
+    },
+    {
+      "name": "c",
+      "bars": 7,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    },
+    {
+      "name": "c7",
+      "bars": 1,
+      "meter": "7/8",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    },
+    {
+      "name": "d",
+      "bars": 7,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    },
+    {
+      "name": "d7",
+      "bars": 1,
+      "meter": "7/8",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    },
+    {
+      "name": "x",
+      "bars": 7,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "x7",
+      "bars": 1,
+      "meter": "7/8",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "y",
+      "bars": 7,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "f",
+      "note": ""
+    },
+    {
+      "name": "y7",
+      "bars": 1,
+      "meter": "7/8",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "2",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "4",
+      "chord": "bII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "6",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "VI5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "8",
+      "chord": "bII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "10",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "VI5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "12",
+      "chord": "VI5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "iv5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "14",
+      "chord": "iv5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "bII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "16",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "17",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "18",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "19",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "20",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "21",
+      "chord": "bII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "22",
+      "chord": "bII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "23",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "24",
+      "chord": "bII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "25",
+      "chord": "iv5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "26",
+      "chord": "iv5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "27",
+      "chord": "iv5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "28",
+      "chord": "iv5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "29",
+      "chord": "v5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "30",
+      "chord": "v5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "31",
+      "chord": "bII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "32",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "33",
+      "chord": "VII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "34",
+      "chord": "VII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "35",
+      "chord": "VII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "36",
+      "chord": "VII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "37",
+      "chord": "VII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "38",
+      "chord": "VII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "39",
+      "chord": "bII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "40",
+      "chord": "VII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "41",
+      "chord": "v5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "42",
+      "chord": "v5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "43",
+      "chord": "VI5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "44",
+      "chord": "VI5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "45",
+      "chord": "VII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "46",
+      "chord": "VII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "47",
+      "chord": "bII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "48",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "ra1e",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! 0 b1 0 0! 0 2 0 0! 0 b1 0 b4! 4 2 b1",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        }
+      ],
+      "note": "the chug: root, flat second, and a tritone tail"
+    },
+    {
+      "name": "ra2e",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! 0 b1 0 0! 0 2 0 6! 5 4 2 b4! 2 b1 0",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 6,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        }
+      ],
+      "note": "its answer falls from the seventh"
+    },
+    {
+      "name": "ra7e",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! 0 b1 0 b4! 4 b4 2 b1! 0 b1 b4 7! 7",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 7,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        }
+      ],
+      "note": "the 7/8 bar: fourteen sixteenths and out"
+    },
+    {
+      "name": "rb1e",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! 0 7 0 0! 0 6 0 0! 0 5 0 b4! 4 b4 2",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        }
+      ],
+      "note": "pedal-point thrash: the top voice walks down"
+    },
+    {
+      "name": "rb2e",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! 0 5 0 0! 0 4 0 b1! b1 b1 b1 b4! b4 2 b1",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        }
+      ]
+    },
+    {
+      "name": "rb7e",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "7! 6 5 4 b4! 2 b1 0 b1! 2 b4 4 7! 7",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 7,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 7,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        }
+      ],
+      "note": "a run down and back up"
+    },
+    {
+      "name": "ra1",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/16! 0:1/16 b1:1/16 0:1/16 0:1/16! 0:1/16 2:1/16 0:1/16 0:1/16! 0:1/16 b1:1/16 0:1/16 b4:1/16! 4:1/16 2:1/16 b1:1/16",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        }
+      ],
+      "note": "the chug: root, flat second, and a tritone tail",
+      "derived_from": "ra1e",
+      "lineage": [
+        "diminish:2"
+      ]
+    },
+    {
+      "name": "ra2",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/16! 0:1/16 b1:1/16 0:1/16 0:1/16! 0:1/16 2:1/16 0:1/16 6:1/16! 5:1/16 4:1/16 2:1/16 b4:1/16! 2:1/16 b1:1/16 0:1/16",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 6,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 5
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        }
+      ],
+      "note": "its answer falls from the seventh",
+      "derived_from": "ra2e",
+      "lineage": [
+        "diminish:2"
+      ]
+    },
+    {
+      "name": "ra7",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/16! 0:1/16 b1:1/16 0:1/16 b4:1/16! 4:1/16 b4:1/16 2:1/16 b1:1/16! 0:1/16 b1:1/16 b4:1/16 7:1/16! 7:1/16",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 7,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 7
+        }
+      ],
+      "note": "the 7/8 bar: fourteen sixteenths and out",
+      "derived_from": "ra7e",
+      "lineage": [
+        "diminish:2"
+      ]
+    },
+    {
+      "name": "rb1",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/16! 0:1/16 7:1/16 0:1/16 0:1/16! 0:1/16 6:1/16 0:1/16 0:1/16! 0:1/16 5:1/16 0:1/16 b4:1/16! 4:1/16 b4:1/16 2:1/16",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 7
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 6
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 5
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        }
+      ],
+      "note": "pedal-point thrash: the top voice walks down",
+      "derived_from": "rb1e",
+      "lineage": [
+        "diminish:2"
+      ]
+    },
+    {
+      "name": "rb2",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/16! 0:1/16 5:1/16 0:1/16 0:1/16! 0:1/16 4:1/16 0:1/16 b1:1/16! b1:1/16 b1:1/16 b1:1/16 b4:1/16! b4:1/16 2:1/16 b1:1/16",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 5
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        }
+      ],
+      "derived_from": "rb2e",
+      "lineage": [
+        "diminish:2"
+      ]
+    },
+    {
+      "name": "rb7",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "7:1/16! 6:1/16 5:1/16 4:1/16 b4:1/16! 2:1/16 b1:1/16 0:1/16 b1:1/16! 2:1/16 b4:1/16 4:1/16 7:1/16! 7:1/16",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 7,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 6
+        },
+        {
+          "dur": "1/16",
+          "deg": 5
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 7,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 7
+        }
+      ],
+      "note": "a run down and back up",
+      "derived_from": "rb7e",
+      "lineage": [
+        "diminish:2"
+      ]
+    },
+    {
+      "name": "rc1",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! r 0 0 b1! r 0 r",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        }
+      ],
+      "note": "the stomp: half the notes, twice the weight"
+    },
+    {
+      "name": "rc2",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! r 0 0 b4! 4 b4 2",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        }
+      ]
+    },
+    {
+      "name": "rc7",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! 0 b1! b1 b4! b4 7",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        }
+      ]
+    },
+    {
+      "name": "hit7gap",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! r 0! r r r r",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        }
+      ],
+      "note": "the last bar of the loop: two stabs, then nothing, so the top of the loop detonates"
+    },
+    {
+      "name": "hit7",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! r 0! r b4! b4! b4!",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        }
+      ],
+      "note": "the 7/8 bar as one gesture: two stabs and a triple on the tritone (2+2+3), everyone together"
+    },
+    {
+      "name": "ra2he",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! 0 b1 0 0! 0 2 0 6! 5 4 2 r r r r",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 6,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        }
+      ],
+      "note": "bar 4 of each phrase: the riff, then a beat of nothing"
+    },
+    {
+      "name": "rb2he",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! 0 5 0 0! 0 4 0 b1! b1 b1 b1 r r r r",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        }
+      ]
+    },
+    {
+      "name": "ra2h",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/16! 0:1/16 b1:1/16 0:1/16 0:1/16! 0:1/16 2:1/16 0:1/16 6:1/16! 5:1/16 4:1/16 2:1/16 r:1/16 r:1/16 r:1/16 r:1/16",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 6,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 5
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        }
+      ],
+      "note": "bar 4 of each phrase: the riff, then a beat of nothing",
+      "derived_from": "ra2he",
+      "lineage": [
+        "diminish:2"
+      ]
+    },
+    {
+      "name": "rb2h",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/16! 0:1/16 5:1/16 0:1/16 0:1/16! 0:1/16 4:1/16 0:1/16 b1:1/16! b1:1/16 b1:1/16 b1:1/16 r:1/16 r:1/16 r:1/16 r:1/16",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 5
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        }
+      ],
+      "derived_from": "rb2he",
+      "lineage": [
+        "diminish:2"
+      ]
+    },
+    {
+      "name": "rc2h",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! r 0 0 b4! 4 r r",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        }
+      ]
+    },
+    {
+      "name": "rx1",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "-1! r r -1 r r b1 r",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": -1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        }
+      ],
+      "note": "the breakdown: three notes a bar on D, leaning on F"
+    },
+    {
+      "name": "rx2",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "-1! r r -1 r b1 0 r",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": -1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        }
+      ]
+    },
+    {
+      "name": "ring7",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "-1:1/2..!",
+      "steps": [
+        {
+          "dur": "1/2..",
+          "deg": -1,
+          "accent": 1
+        }
+      ],
+      "note": "its 7/8 bar is one chord left to ring"
+    },
+    {
+      "name": "chug",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4! 4 4 4 4! 4 4 4",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        }
+      ],
+      "note": "the build: one note, climbing a step every two bars"
+    },
+    {
+      "name": "chug7",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "b1! b1 b1 b1 b4! b4 b4 b4",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        }
+      ]
+    },
+    {
+      "name": "seqe",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! r 0 0 r 0 b1 r 0! r 0 7 r 0 b4 r",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        }
+      ],
+      "note": "a sequencer line with holes in it, not an arpeggio"
+    },
+    {
+      "name": "seq",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/16! r:1/16 0:1/16 0:1/16 r:1/16 0:1/16 b1:1/16 r:1/16 0:1/16! r:1/16 0:1/16 7:1/16 r:1/16 0:1/16 b4:1/16 r:1/16",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 7
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "rest": true
+        }
+      ],
+      "note": "a sequencer line with holes in it, not an arpeggio",
+      "derived_from": "seqe",
+      "lineage": [
+        "diminish:2"
+      ]
+    },
+    {
+      "name": "zeal",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/4. b1 2:1/4 4:1/4 b4:1/4. 4 7:1/2",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 7
+        }
+      ],
+      "note": "climbs through the flat second to the tritone, resolves up"
+    },
+    {
+      "name": "zeal_ans",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "7:1/4. 6 5:1/4 b4:1/4 4:1/4. 2 b1:1/2",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/4.",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 1,
+          "alt": -1
+        }
+      ],
+      "note": "and falls back onto the flat second, unresolved"
+    },
+    {
+      "name": "theme",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/4. b1 2:1/4 4:1/4 b4:1/4. 4 7:1/2 7:1/4. 6 5:1/4 b4:1/4 4:1/4. 2 b1:1/2",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/2",
+          "deg": 7
+        },
+        {
+          "dur": "1/4.",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/4",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/4.",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 1,
+          "alt": -1
+        }
+      ],
+      "note": "climbs through the flat second to the tritone, resolves up",
+      "derived_from": "zeal",
+      "lineage": [
+        "then:zeal_ans"
+      ]
+    },
+    {
+      "name": "frantic",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/8. b1:1/16 2 4 b4:1/8. 4:1/16 7:1/4 7:1/8. 6:1/16 5 b4 4:1/8. 2:1/16 b1:1/4",
+      "steps": [
+        {
+          "dur": "1/8.",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8.",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 7
+        },
+        {
+          "dur": "1/8.",
+          "deg": 7
+        },
+        {
+          "dur": "1/16",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8.",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 2
+        },
+        {
+          "dur": "1/4",
+          "deg": 1,
+          "alt": -1
+        }
+      ],
+      "note": "the whole theme in two bars",
+      "derived_from": "zeal",
+      "lineage": [
+        "then:zeal_ans",
+        "diminish:2"
+      ]
+    },
+    {
+      "name": "zeal_inv",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/4. #-1 -2:1/4 -4:1/4 #-4:1/4. -4 -7:1/2",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": -1,
+          "alt": 1
+        },
+        {
+          "dur": "1/4",
+          "deg": -2
+        },
+        {
+          "dur": "1/4",
+          "deg": -4
+        },
+        {
+          "dur": "1/4.",
+          "deg": -4,
+          "alt": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": -4
+        },
+        {
+          "dur": "1/2",
+          "deg": -7
+        }
+      ],
+      "note": "climbs through the flat second to the tritone, resolves up",
+      "derived_from": "zeal",
+      "lineage": [
+        "invert:0"
+      ]
+    },
+    {
+      "name": "toll",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/2. b1:1/4 2:1/2 4:1/2 b4:1/2. 4:1/4 7:1/1",
+      "steps": [
+        {
+          "dur": "1/2.",
+          "deg": 0
+        },
+        {
+          "dur": "1/4",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/2",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        },
+        {
+          "dur": "1/2.",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/1",
+          "deg": 7
+        }
+      ],
+      "note": "the theme as bells, far off",
+      "derived_from": "zeal",
+      "lineage": [
+        "augment:2"
+      ]
+    },
+    {
+      "name": "toll_ans",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "7:1/2. 6:1/4 5:1/2 b4:1/2 4:1/2. 2:1/4 b1:1/1",
+      "steps": [
+        {
+          "dur": "1/2.",
+          "deg": 7
+        },
+        {
+          "dur": "1/4",
+          "deg": 6
+        },
+        {
+          "dur": "1/2",
+          "deg": 5
+        },
+        {
+          "dur": "1/2",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/2.",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 2
+        },
+        {
+          "dur": "1/1",
+          "deg": 1,
+          "alt": -1
+        }
+      ],
+      "note": "and falls back onto the flat second, unresolved",
+      "derived_from": "zeal_ans",
+      "lineage": [
+        "augment:2"
+      ]
+    },
+    {
+      "name": "lead7",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "7 6 5 b4 4 2 b1",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        }
+      ],
+      "note": "the 7/8 scream down"
+    },
+    {
+      "name": "arpe",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0 4 7 9 11 9 7 4 0 4 7 9 b4 9 7 4",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 9
+        },
+        {
+          "dur": "1/8",
+          "deg": 11
+        },
+        {
+          "dur": "1/8",
+          "deg": 9
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 9
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 9
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        }
+      ]
+    },
+    {
+      "name": "arp",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/16 4:1/16 7:1/16 9:1/16 11:1/16 9:1/16 7:1/16 4:1/16 0:1/16 4:1/16 7:1/16 9:1/16 b4:1/16 9:1/16 7:1/16 4:1/16",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 7
+        },
+        {
+          "dur": "1/16",
+          "deg": 9
+        },
+        {
+          "dur": "1/16",
+          "deg": 11
+        },
+        {
+          "dur": "1/16",
+          "deg": 9
+        },
+        {
+          "dur": "1/16",
+          "deg": 7
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 0
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        },
+        {
+          "dur": "1/16",
+          "deg": 7
+        },
+        {
+          "dur": "1/16",
+          "deg": 9
+        },
+        {
+          "dur": "1/16",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 9
+        },
+        {
+          "dur": "1/16",
+          "deg": 7
+        },
+        {
+          "dur": "1/16",
+          "deg": 4
+        }
+      ],
+      "derived_from": "arpe",
+      "lineage": [
+        "diminish:2"
+      ]
+    },
+    {
+      "name": "treme",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "7! b8 7 b8 7! b8 7 b8 9! b8 9 b8 b11! 9 b8 7",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 7,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 7,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        },
+        {
+          "dur": "1/8",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 9,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 9
+        },
+        {
+          "dur": "1/8",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 11,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 9
+        },
+        {
+          "dur": "1/8",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        }
+      ]
+    },
+    {
+      "name": "trem",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "7:1/16! b8:1/16 7:1/16 b8:1/16 7:1/16! b8:1/16 7:1/16 b8:1/16 9:1/16! b8:1/16 9:1/16 b8:1/16 b11:1/16! 9:1/16 b8:1/16 7:1/16",
+      "steps": [
+        {
+          "dur": "1/16",
+          "deg": 7,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 7
+        },
+        {
+          "dur": "1/16",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 7,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 7
+        },
+        {
+          "dur": "1/16",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 9,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 9
+        },
+        {
+          "dur": "1/16",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 11,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/16",
+          "deg": 9
+        },
+        {
+          "dur": "1/16",
+          "deg": 8,
+          "alt": -1
+        },
+        {
+          "dur": "1/16",
+          "deg": 7
+        }
+      ],
+      "derived_from": "treme",
+      "lineage": [
+        "diminish:2"
+      ]
+    },
+    {
+      "name": "tick",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/8.! 4:1/8. 4:1/8. 4:1/8. 4:1/4",
+      "steps": [
+        {
+          "dur": "1/8.",
+          "deg": 4,
+          "accent": 1
+        },
+        {
+          "dur": "1/8.",
+          "deg": 4
+        },
+        {
+          "dur": "1/8.",
+          "deg": 4
+        },
+        {
+          "dur": "1/8.",
+          "deg": 4
+        },
+        {
+          "dur": "1/4",
+          "deg": 4
+        }
+      ],
+      "note": "three against four"
+    }
+  ],
+  "voices": [
+    {
+      "name": "drums",
+      "instrument": "kit_rock",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "d_a",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "1",
+            "bars": 7,
+            "lanes": {
+              "kick": "x.xx..x.x.xx..x.|x.xx..x.x.xxx.xx",
+              "snare": "....X.......X...|....X.......X.oo",
+              "hat": "x.x.x.x.x.x.x.x."
+            }
+          }
+        },
+        {
+          "id": "d_b",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "9",
+            "bars": 7,
+            "lanes": {
+              "kick": "x.xxx.xxx.xxx.xx",
+              "snare": "..X...X...X...X.",
+              "ride": "x.x.x.x.x.x.x.x."
+            }
+          }
+        },
+        {
+          "id": "d_c",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "17",
+            "bars": 7,
+            "lanes": {
+              "kick": "x..x..x.....x.xx|x..x..x...x.xxxx",
+              "snare": "........X.......",
+              "ride": "x...x...x...x...",
+              "tom_lo": "................|..............oo"
+            }
+          }
+        },
+        {
+          "id": "d_d",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "25",
+            "bars": 7,
+            "lanes": {
+              "kick": "x.xx..x.x.xx..x.|x.xx..x.x.xxx.xx",
+              "snare": "....X.......X...|....X.......X.oo",
+              "hat": "x.x.x.x.x.x.x.x.",
+              "open": "..............x."
+            }
+          }
+        },
+        {
+          "id": "d_a7",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "8",
+            "bars": 1,
+            "lanes": {
+              "kick": "x...x...x.x.x.",
+              "snare": "X...X...X.X.X.",
+              "crash": "x...x........."
+            }
+          }
+        },
+        {
+          "id": "d_crash_a",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "1",
+            "bars": 1,
+            "lanes": {
+              "crash": "x..............."
+            }
+          }
+        },
+        {
+          "id": "d_crash_a5",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "5",
+            "bars": 1,
+            "lanes": {
+              "crash": "x..............."
+            }
+          }
+        },
+        {
+          "id": "d_stop_a",
+          "kind": "cut",
+          "enabled": true,
+          "note": "the whole band stops for a beat, then slams back",
+          "params": {
+            "from": "4:4",
+            "until": "5"
+          }
+        },
+        {
+          "id": "d_b7",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "16",
+            "bars": 1,
+            "lanes": {
+              "kick": "x...x...x.x.x.",
+              "snare": "X...X...X.X.X.",
+              "crash": "x...x........."
+            }
+          }
+        },
+        {
+          "id": "d_crash_b",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "9",
+            "bars": 1,
+            "lanes": {
+              "crash": "x..............."
+            }
+          }
+        },
+        {
+          "id": "d_crash_b5",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "13",
+            "bars": 1,
+            "lanes": {
+              "crash": "x..............."
+            }
+          }
+        },
+        {
+          "id": "d_stop_b",
+          "kind": "cut",
+          "enabled": true,
+          "note": "the whole band stops for a beat, then slams back",
+          "params": {
+            "from": "12:4",
+            "until": "13"
+          }
+        },
+        {
+          "id": "d_c7",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "24",
+            "bars": 1,
+            "lanes": {
+              "kick": "x...x...x.x.x.",
+              "snare": "X...X...X.X.X.",
+              "crash": "x...x........."
+            }
+          }
+        },
+        {
+          "id": "d_crash_c",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "17",
+            "bars": 1,
+            "lanes": {
+              "crash": "x..............."
+            }
+          }
+        },
+        {
+          "id": "d_crash_c5",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "21",
+            "bars": 1,
+            "lanes": {
+              "crash": "x..............."
+            }
+          }
+        },
+        {
+          "id": "d_stop_c",
+          "kind": "cut",
+          "enabled": true,
+          "note": "the whole band stops for a beat, then slams back",
+          "params": {
+            "from": "20:4",
+            "until": "21"
+          }
+        },
+        {
+          "id": "d_d7",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "32",
+            "bars": 1,
+            "lanes": {
+              "kick": "x...x...x.x.x.",
+              "snare": "X...X...X.X.X.",
+              "crash": "x...x........."
+            }
+          }
+        },
+        {
+          "id": "d_crash_d",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "25",
+            "bars": 1,
+            "lanes": {
+              "crash": "x..............."
+            }
+          }
+        },
+        {
+          "id": "d_crash_d5",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "29",
+            "bars": 1,
+            "lanes": {
+              "crash": "x..............."
+            }
+          }
+        },
+        {
+          "id": "d_stop_d",
+          "kind": "cut",
+          "enabled": true,
+          "note": "the whole band stops for a beat, then slams back",
+          "params": {
+            "from": "28:4",
+            "until": "29"
+          }
+        },
+        {
+          "id": "d_x",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "f",
+            "tune": 0,
+            "cycle": null,
+            "at": "33",
+            "bars": 7,
+            "lanes": {
+              "kick": "x.........x.....|x.......x.x.....",
+              "snare": "........X.......",
+              "pedal": "x...x...x...x...",
+              "tom_lo": "..............o.|............o.o."
+            }
+          }
+        },
+        {
+          "id": "d_x7",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "40",
+            "bars": 1,
+            "lanes": {
+              "kick": "x.............",
+              "crash": "x............."
+            }
+          }
+        },
+        {
+          "id": "d_crash_x",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "33",
+            "bars": 1,
+            "lanes": {
+              "crash": "x..............."
+            }
+          }
+        },
+        {
+          "id": "d_y12",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "mf",
+            "tune": 0,
+            "cycle": null,
+            "at": "41",
+            "bars": 2,
+            "lanes": {
+              "kick": "x...x...x...x...",
+              "snare": "....x.......x..."
+            }
+          }
+        },
+        {
+          "id": "d_y34",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "f",
+            "tune": 0,
+            "cycle": null,
+            "at": "43",
+            "bars": 2,
+            "lanes": {
+              "kick": "x...x...x...x...",
+              "snare": "..x...x...x...x."
+            }
+          }
+        },
+        {
+          "id": "d_y56",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "f",
+            "tune": 0,
+            "cycle": null,
+            "at": "45",
+            "bars": 2,
+            "lanes": {
+              "kick": "x.x.x.x.x.x.x.x.",
+              "snare": "x.x.x.x.x.x.x.x."
+            }
+          }
+        },
+        {
+          "id": "d_y7",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "47",
+            "bars": 1,
+            "lanes": {
+              "kick": "xxxxxxxxxxxxxxxx",
+              "snare": "xxxxxxxxxxxxxxxx"
+            }
+          }
+        },
+        {
+          "id": "d_y8",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "48",
+            "bars": 1,
+            "lanes": {
+              "kick": "x...x.........",
+              "snare": "X...X.........",
+              "crash": "x...x........."
+            }
+          }
+        },
+        {
+          "id": "d_y8_gap",
+          "kind": "cut",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "48:3",
+            "until": "49"
+          }
+        },
+        {
+          "id": "d_y_swell",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "mp",
+            "end": "ff",
+            "from": "41",
+            "until": "48"
+          }
+        },
+        {
+          "id": "fx_slab",
+          "kind": "compress",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "ratio": 6,
+            "threshold": -22,
+            "makeup": 0.0
+          }
+        },
+        {
+          "id": "fx_room",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.3,
+            "mode": "soft"
+          }
+        },
+        {
+          "id": "fx_kick_weight",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 0.8,
+            "from": null,
+            "until": null,
+            "freq": 64,
+            "gain": 5
+          }
+        },
+        {
+          "id": "fx_snare_crack",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.0,
+            "from": null,
+            "until": null,
+            "freq": 4000,
+            "gain": 3
+          }
+        },
+        {
+          "id": "fx_cym_sheen",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.0,
+            "from": null,
+            "until": null,
+            "freq": 8500,
+            "gain": -4
+          }
+        },
+        {
+          "id": "d_rip_b",
+          "kind": "chop",
+          "enabled": true,
+          "note": "every second phrase the kit itself is torn up before the 7/8 hit",
+          "params": {
+            "slices": 8,
+            "order": "0 1 2 2*2 4 4*2 6*2 6*4 0 1*2 2 2*4 4*2 4*4 6*4 6*8^0>12",
+            "from": "14",
+            "until": "16"
+          }
+        },
+        {
+          "id": "d_rip_d",
+          "kind": "chop",
+          "enabled": true,
+          "note": "every second phrase the kit itself is torn up before the 7/8 hit",
+          "params": {
+            "slices": 8,
+            "order": "0 1 2 2*2 4 4*2 6*2 6*4 0 1*2 2 2*4 4*2 4*4 6*4 6*8^0>12",
+            "from": "30",
+            "until": "32"
+          }
+        },
+        {
+          "id": "fx_snare_body",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.0,
+            "from": null,
+            "until": null,
+            "freq": 190,
+            "gain": 4
+          }
+        },
+        {
+          "id": "lvl_drums",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 8
+          }
+        },
+        {
+          "id": "feel_drums",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "timing": 4,
+            "seed": 0,
+            "from": null,
+            "until": null
+          }
+        }
+      ],
+      "engine": "soundfont"
+    },
+    {
+      "name": "bass",
+      "instrument": "rbx_picked_bass",
+      "role": "bass",
+      "octave": 1,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "bass_a1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "ra1",
+            "at": "1"
+          }
+        },
+        {
+          "id": "bass_a2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "ra2",
+            "at": "2"
+          }
+        },
+        {
+          "id": "bass_a3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "ra1",
+            "at": "3"
+          }
+        },
+        {
+          "id": "bass_a4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "ra2h",
+            "at": "4"
+          }
+        },
+        {
+          "id": "bass_a5",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "ra1",
+            "at": "5"
+          }
+        },
+        {
+          "id": "bass_a6",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "ra2",
+            "at": "6"
+          }
+        },
+        {
+          "id": "bass_a7",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "ra1",
+            "at": "7"
+          }
+        },
+        {
+          "id": "bass_b1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rb1",
+            "at": "9"
+          }
+        },
+        {
+          "id": "bass_b2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rb2",
+            "at": "10"
+          }
+        },
+        {
+          "id": "bass_b3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rb1",
+            "at": "11"
+          }
+        },
+        {
+          "id": "bass_b4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rb2h",
+            "at": "12"
+          }
+        },
+        {
+          "id": "bass_b5",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rb1",
+            "at": "13"
+          }
+        },
+        {
+          "id": "bass_b6",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rb2",
+            "at": "14"
+          }
+        },
+        {
+          "id": "bass_b7",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rb1",
+            "at": "15"
+          }
+        },
+        {
+          "id": "bass_c1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rc1",
+            "at": "17"
+          }
+        },
+        {
+          "id": "bass_c2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rc2",
+            "at": "18"
+          }
+        },
+        {
+          "id": "bass_c3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rc1",
+            "at": "19"
+          }
+        },
+        {
+          "id": "bass_c4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rc2h",
+            "at": "20"
+          }
+        },
+        {
+          "id": "bass_c5",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rc1",
+            "at": "21"
+          }
+        },
+        {
+          "id": "bass_c6",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rc2",
+            "at": "22"
+          }
+        },
+        {
+          "id": "bass_c7",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rc1",
+            "at": "23"
+          }
+        },
+        {
+          "id": "bass_d1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 3,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "ra1",
+            "at": "25"
+          }
+        },
+        {
+          "id": "bass_d2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 3,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "ra2",
+            "at": "26"
+          }
+        },
+        {
+          "id": "bass_d3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 3,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "ra1",
+            "at": "27"
+          }
+        },
+        {
+          "id": "bass_d4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 3,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "ra2h",
+            "at": "28"
+          }
+        },
+        {
+          "id": "bass_d5",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 4,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "ra1",
+            "at": "29"
+          }
+        },
+        {
+          "id": "bass_d6",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 4,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "ra2",
+            "at": "30"
+          }
+        },
+        {
+          "id": "bass_d7",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rb2",
+            "at": "31"
+          }
+        },
+        {
+          "id": "bass_x1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rx1",
+            "at": "33"
+          }
+        },
+        {
+          "id": "bass_x2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rx2",
+            "at": "34"
+          }
+        },
+        {
+          "id": "bass_x3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rx1",
+            "at": "35"
+          }
+        },
+        {
+          "id": "bass_x4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rx2",
+            "at": "36"
+          }
+        },
+        {
+          "id": "bass_x5",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rx1",
+            "at": "37"
+          }
+        },
+        {
+          "id": "bass_x6",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rx2",
+            "at": "38"
+          }
+        },
+        {
+          "id": "bass_x7",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rx1",
+            "at": "39"
+          }
+        },
+        {
+          "id": "bass_x8",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "ring7",
+            "at": "40"
+          }
+        },
+        {
+          "id": "bass_y1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "chug",
+            "at": "41"
+          }
+        },
+        {
+          "id": "bass_y2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "chug",
+            "at": "42"
+          }
+        },
+        {
+          "id": "bass_y3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 1,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "chug",
+            "at": "43"
+          }
+        },
+        {
+          "id": "bass_y4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 1,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "chug",
+            "at": "44"
+          }
+        },
+        {
+          "id": "bass_y5",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 2,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "chug",
+            "at": "45"
+          }
+        },
+        {
+          "id": "bass_y6",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 2,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "chug",
+            "at": "46"
+          }
+        },
+        {
+          "id": "bass_y7",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "chug7",
+            "at": "47"
+          }
+        },
+        {
+          "id": "bass_y8",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "hit7gap",
+            "at": "48"
+          }
+        },
+        {
+          "id": "bass_gap",
+          "kind": "cut",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "48:3",
+            "until": "49"
+          }
+        },
+        {
+          "id": "bass_a8",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "hit7",
+            "at": "8"
+          }
+        },
+        {
+          "id": "bass_stop_a",
+          "kind": "cut",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "4:4",
+            "until": "5"
+          }
+        },
+        {
+          "id": "bass_b8",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "hit7",
+            "at": "16"
+          }
+        },
+        {
+          "id": "bass_stop_b",
+          "kind": "cut",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "12:4",
+            "until": "13"
+          }
+        },
+        {
+          "id": "bass_c8",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "hit7",
+            "at": "24"
+          }
+        },
+        {
+          "id": "bass_stop_c",
+          "kind": "cut",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "20:4",
+            "until": "21"
+          }
+        },
+        {
+          "id": "bass_d8",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "hit7",
+            "at": "32"
+          }
+        },
+        {
+          "id": "bass_stop_d",
+          "kind": "cut",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "28:4",
+            "until": "29"
+          }
+        },
+        {
+          "id": "fx_bass_grit",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "mode": "soft"
+          }
+        },
+        {
+          "id": "fx_bass_even",
+          "kind": "compress",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "ratio": 6,
+            "threshold": -20,
+            "makeup": 0.0
+          }
+        },
+        {
+          "id": "fx_bass_weight",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.5,
+            "from": null,
+            "until": null,
+            "freq": 75,
+            "gain": 7
+          }
+        },
+        {
+          "id": "lvl_bass",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 6
+          }
+        }
+      ],
+      "engine": "soundfont"
+    },
+    {
+      "name": "sub",
+      "instrument": "sub_bass",
+      "role": "bass",
+      "octave": 1,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "sub_all",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "pedal",
+            "rhythm": null,
+            "octave": null,
+            "dynamic": "f",
+            "degree": 0,
+            "articulation": null,
+            "at": 1,
+            "bars": 48
+          }
+        },
+        {
+          "id": "sub_stop_a",
+          "kind": "cut",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "4:4",
+            "until": "5"
+          }
+        },
+        {
+          "id": "sub_stop_b",
+          "kind": "cut",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "12:4",
+            "until": "13"
+          }
+        },
+        {
+          "id": "sub_stop_c",
+          "kind": "cut",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "20:4",
+            "until": "21"
+          }
+        },
+        {
+          "id": "sub_stop_d",
+          "kind": "cut",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "from": "28:4",
+            "until": "29"
+          }
+        },
+        {
+          "id": "lvl_sub",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 15
+          }
+        }
+      ]
+    }
+  ]
+}

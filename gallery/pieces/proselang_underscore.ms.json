@@ -1,0 +1,1365 @@
+{
+  "schema": 1,
+  "name": "proselang_underscore",
+  "key": "D major",
+  "tempo": 96,
+  "meter": "4/4",
+  "style": "freeform",
+  "loop": false,
+  "meta": {},
+  "sections": [
+    {
+      "name": "intro",
+      "bars": 4,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "p",
+      "note": ""
+    },
+    {
+      "name": "A",
+      "bars": 16,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "p",
+      "note": ""
+    },
+    {
+      "name": "B",
+      "bars": 16,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mp",
+      "note": ""
+    },
+    {
+      "name": "A2",
+      "bars": 16,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mp",
+      "note": ""
+    },
+    {
+      "name": "lift",
+      "bars": 16,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "mf",
+      "note": ""
+    },
+    {
+      "name": "outro",
+      "bars": 8,
+      "meter": "4/4",
+      "tempo": null,
+      "key": null,
+      "dynamic": "p",
+      "note": ""
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "17",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "19",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "21",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "23",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "25",
+      "chord": "ii",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "27",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "29",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "31",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "33",
+      "chord": "ii",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "35",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "37",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "39",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "41",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "43",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "45",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "47",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "49",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "51",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "53",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "54",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "55",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "57",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "58",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "59",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "61",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "62",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "63",
+      "chord": "vi",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "65",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "66",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "67",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "69",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "71",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "73",
+      "chord": "IV",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "75",
+      "chord": "I",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "curio",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/4 2 3 4:1/2",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 3
+        },
+        {
+          "dur": "1/2",
+          "deg": 4
+        }
+      ]
+    },
+    {
+      "name": "answer",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "5:1/4 4 2 1:1/2",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/2",
+          "deg": 1
+        }
+      ]
+    },
+    {
+      "name": "rise",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0 2 4 5 7:1/2",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/2",
+          "deg": 7
+        }
+      ]
+    },
+    {
+      "name": "curio_up",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "6:1/4 4 5 6:1/2",
+      "steps": [
+        {
+          "dur": "1/4",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/2",
+          "deg": 6
+        }
+      ],
+      "derived_from": "curio",
+      "lineage": [
+        "transpose:2"
+      ]
+    }
+  ],
+  "voices": [
+    {
+      "name": "pulse",
+      "instrument": "marimba",
+      "role": "harmony",
+      "octave": 4,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "pulse_intro",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "arpeggio_updown",
+            "rhythm": "1/8",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "rootless": false,
+            "at": "1",
+            "bars": 4
+          }
+        },
+        {
+          "id": "pulse_a",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "arpeggio_updown",
+            "rhythm": "1/8",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "rootless": false,
+            "at": "5",
+            "bars": 16
+          }
+        },
+        {
+          "id": "pulse_b",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "block",
+            "rhythm": "1/8",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": "0 2 1 2 0 2 1 2",
+            "articulation": null,
+            "rootless": false,
+            "at": "21",
+            "bars": 16
+          }
+        },
+        {
+          "id": "pulse_a2",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "arpeggio_updown",
+            "rhythm": "1/8",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "mp",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "rootless": false,
+            "at": "37",
+            "bars": 16
+          }
+        },
+        {
+          "id": "pulse_lift",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "arpeggio_updown",
+            "rhythm": "1/8",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "mp",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "rootless": false,
+            "at": "53",
+            "bars": 16
+          }
+        },
+        {
+          "id": "pulse_out",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "arpeggio_updown",
+            "rhythm": "1/8",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "rootless": false,
+            "at": "69",
+            "bars": 8
+          }
+        },
+        {
+          "id": "pulse_fade",
+          "kind": "dynamics",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "start": "p",
+            "end": "pp",
+            "from": "69",
+            "until": "77"
+          }
+        },
+        {
+          "id": "pulse_humanize",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.3,
+            "timing": 12,
+            "seed": 0,
+            "from": null,
+            "until": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "keys",
+      "instrument": "rhodes",
+      "role": "pad",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "keys_a",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "pp",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "rootless": false,
+            "at": "5",
+            "bars": 16
+          }
+        },
+        {
+          "id": "keys_b",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "rootless": false,
+            "at": "21",
+            "bars": 16
+          }
+        },
+        {
+          "id": "keys_a2",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "rootless": false,
+            "at": "37",
+            "bars": 16
+          }
+        },
+        {
+          "id": "keys_lift",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 4,
+            "dynamic": "mp",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "rootless": false,
+            "at": "53",
+            "bars": 16
+          }
+        },
+        {
+          "id": "keys_out",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "pad",
+            "rhythm": null,
+            "octave": null,
+            "tones": 3,
+            "dynamic": "pp",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "rootless": false,
+            "at": "69",
+            "bars": 8
+          }
+        }
+      ]
+    },
+    {
+      "name": "low",
+      "instrument": "upright_bass",
+      "role": "bass",
+      "octave": 2,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "low_a",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "root",
+            "rhythm": "1/2",
+            "octave": null,
+            "dynamic": "p",
+            "degree": 0,
+            "articulation": null,
+            "at": "13",
+            "bars": 8
+          }
+        },
+        {
+          "id": "low_b",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "root",
+            "rhythm": "1/2",
+            "octave": null,
+            "dynamic": "p",
+            "degree": 0,
+            "articulation": null,
+            "at": "21",
+            "bars": 16
+          }
+        },
+        {
+          "id": "low_a2",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "root_fifth",
+            "rhythm": "1/2",
+            "octave": null,
+            "dynamic": "mp",
+            "degree": 0,
+            "articulation": null,
+            "at": "37",
+            "bars": 16
+          }
+        },
+        {
+          "id": "low_lift",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "root_fifth",
+            "rhythm": "1/4",
+            "octave": null,
+            "dynamic": "mp",
+            "degree": 0,
+            "articulation": null,
+            "at": "53",
+            "bars": 16
+          }
+        },
+        {
+          "id": "low_out",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "root",
+            "rhythm": "1/1",
+            "octave": null,
+            "dynamic": "p",
+            "degree": 0,
+            "articulation": null,
+            "at": "69",
+            "bars": 8
+          }
+        }
+      ]
+    },
+    {
+      "name": "bell",
+      "instrument": "celesta",
+      "role": "melody",
+      "octave": 5,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "bell_a1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "motif": "curio",
+            "at": "7"
+          }
+        },
+        {
+          "id": "bell_a2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "motif": "answer",
+            "at": "11"
+          }
+        },
+        {
+          "id": "bell_a3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "motif": "curio",
+            "at": "15"
+          }
+        },
+        {
+          "id": "bell_a4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "motif": "answer",
+            "at": "19"
+          }
+        },
+        {
+          "id": "bell_b1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rise",
+            "at": "24"
+          }
+        },
+        {
+          "id": "bell_b2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "motif": "answer",
+            "at": "28"
+          }
+        },
+        {
+          "id": "bell_b3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rise",
+            "at": "32"
+          }
+        },
+        {
+          "id": "bell_b4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "motif": "curio",
+            "at": "36"
+          }
+        },
+        {
+          "id": "bell_c1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "curio",
+            "at": "39"
+          }
+        },
+        {
+          "id": "bell_c2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "curio_up",
+            "at": "43"
+          }
+        },
+        {
+          "id": "bell_c3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "curio",
+            "at": "47"
+          }
+        },
+        {
+          "id": "bell_c4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "answer",
+            "at": "51"
+          }
+        },
+        {
+          "id": "bell_l1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rise",
+            "at": "53"
+          }
+        },
+        {
+          "id": "bell_l2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "curio_up",
+            "at": "54"
+          }
+        },
+        {
+          "id": "bell_l3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "answer",
+            "at": "56"
+          }
+        },
+        {
+          "id": "bell_l4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rise",
+            "at": "57"
+          }
+        },
+        {
+          "id": "bell_l5",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "curio_up",
+            "at": "58"
+          }
+        },
+        {
+          "id": "bell_l6",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "answer",
+            "at": "60"
+          }
+        },
+        {
+          "id": "bell_l7",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mf",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rise",
+            "at": "61"
+          }
+        },
+        {
+          "id": "bell_l8",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mf",
+            "articulation": null,
+            "anchor": null,
+            "motif": "curio_up",
+            "at": "62"
+          }
+        },
+        {
+          "id": "bell_l9",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mf",
+            "articulation": null,
+            "anchor": null,
+            "motif": "rise",
+            "at": "65"
+          }
+        },
+        {
+          "id": "bell_l10",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mf",
+            "articulation": null,
+            "anchor": null,
+            "motif": "curio_up",
+            "at": "66"
+          }
+        },
+        {
+          "id": "bell_l11",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "mp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "answer",
+            "at": "68"
+          }
+        },
+        {
+          "id": "bell_o1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "p",
+            "articulation": null,
+            "anchor": null,
+            "motif": "curio",
+            "at": "71"
+          }
+        },
+        {
+          "id": "bell_o2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "pp",
+            "articulation": null,
+            "anchor": null,
+            "motif": "answer",
+            "at": "75"
+          }
+        }
+      ]
+    },
+    {
+      "name": "pizz",
+      "instrument": "pizz_strings",
+      "role": "counter",
+      "octave": 4,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "pizz_b",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "block",
+            "rhythm": "1/2",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "pp",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "rootless": false,
+            "at": "21",
+            "bars": 16
+          }
+        },
+        {
+          "id": "pizz_lift",
+          "kind": "chords",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "voicing": "block",
+            "rhythm": "1/4",
+            "octave": null,
+            "tones": 3,
+            "dynamic": "p",
+            "spread": false,
+            "lead": true,
+            "ring": false,
+            "roll": null,
+            "figure": null,
+            "articulation": null,
+            "rootless": false,
+            "at": "53",
+            "bars": 16
+          }
+        }
+      ]
+    },
+    {
+      "name": "drums",
+      "instrument": "kit_brush",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "d_a2",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "pp",
+            "tune": 0,
+            "cycle": null,
+            "at": "37",
+            "bars": 16,
+            "lanes": {
+              "shaker": "x.x.x.x.x.x.x.x."
+            }
+          }
+        },
+        {
+          "id": "d_lift",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/16",
+            "dynamic": "p",
+            "tune": 0,
+            "cycle": null,
+            "at": "53",
+            "bars": 16,
+            "lanes": {
+              "kick": "x.......x.......",
+              "shaker": "x.x.x.x.x.x.x.x.",
+              "rim": "....x.......x..."
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

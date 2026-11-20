@@ -1,0 +1,2897 @@
+{
+  "schema": 1,
+  "name": "zeal_warden_l0",
+  "key": "D minor",
+  "tempo": 156,
+  "meter": "12/8",
+  "style": "electronic",
+  "loop": false,
+  "meta": {
+    "master": {
+      "room": {
+        "decay": 2.2,
+        "wet": 0.24
+      },
+      "push": 3.0
+    }
+  },
+  "sections": [
+    {
+      "name": "a",
+      "bars": 4,
+      "meter": "12/8",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    },
+    {
+      "name": "b",
+      "bars": 4,
+      "meter": "12/8",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    },
+    {
+      "name": "a2",
+      "bars": 4,
+      "meter": "12/8",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    },
+    {
+      "name": "c",
+      "bars": 4,
+      "meter": "12/8",
+      "tempo": null,
+      "key": null,
+      "dynamic": "ff",
+      "note": ""
+    }
+  ],
+  "harmony": [
+    {
+      "at": "1",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "2",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "3",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "4",
+      "chord": "bII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "5",
+      "chord": "VI5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "6",
+      "chord": "VI5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "7",
+      "chord": "iv5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "8",
+      "chord": "bII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "9",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "10",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "11",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "12",
+      "chord": "bII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "13",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "14",
+      "chord": "i5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "15",
+      "chord": "bII5",
+      "dur": null,
+      "note": ""
+    },
+    {
+      "at": "16",
+      "chord": "V",
+      "dur": null,
+      "note": ""
+    }
+  ],
+  "motifs": [
+    {
+      "name": "wa1",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! r 0 0! r 0 b1! r b1 0! r r",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        }
+      ],
+      "note": "the swing: long-short, long-short, a lean on the flat second"
+    },
+    {
+      "name": "wa2",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! r 0 0! r 0 b4! 4 b4 2! b1 0",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 2,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        }
+      ],
+      "note": "answered through the tritone"
+    },
+    {
+      "name": "wa3",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! r 0 0! r 0 7! 6 5 b4! 2 b1",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 7,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 6
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        }
+      ],
+      "note": "and a fall from the octave"
+    },
+    {
+      "name": "wb1",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "5! r 5 5! r 5 4! r 4 b4! r r",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 5,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 5,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        }
+      ],
+      "note": "the same swing a sixth up, sinking by half steps"
+    },
+    {
+      "name": "wb2",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "2! r 2 2! r 2 b1! b1 b1 b1! b1 b1",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 2,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 2,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 2
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        }
+      ]
+    },
+    {
+      "name": "wb3",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "5! r 5 4! r 4 b4! r b4 2! b1 0",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 5,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 5
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 4
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "rest": true
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 2,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        }
+      ]
+    },
+    {
+      "name": "wc1",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/4.! r:1/4. 0:1/4.! b1:1/4.!",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/4.",
+          "rest": true
+        },
+        {
+          "dur": "1/4.",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/4.",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        }
+      ],
+      "note": "the stomp: three blows and a lean"
+    },
+    {
+      "name": "wc2",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "b1:1/4.! r:1/4. b1:1/4.! b4:1/4.!",
+      "steps": [
+        {
+          "dur": "1/4.",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/4.",
+          "rest": true
+        },
+        {
+          "dur": "1/4.",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/4.",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        }
+      ]
+    },
+    {
+      "name": "wc3",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0! 0 0 b1! b1 b1 b4! b4 b4 4! b4 7",
+      "steps": [
+        {
+          "dur": "1/8",
+          "deg": 0,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 0
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "accent": 1
+        },
+        {
+          "dur": "1/8",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/8",
+          "deg": 7
+        }
+      ],
+      "note": "twelve eighths straight up the wall"
+    },
+    {
+      "name": "zeal",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/2. b1:1/4. 2:1/4. 4:1/2. b4:1/2. 4:1/4. b4:1/4. 4:1/4. 7:1/4. 7:1/1.",
+      "steps": [
+        {
+          "dur": "1/2.",
+          "deg": 0
+        },
+        {
+          "dur": "1/4.",
+          "deg": 1,
+          "alt": -1
+        },
+        {
+          "dur": "1/4.",
+          "deg": 2
+        },
+        {
+          "dur": "1/2.",
+          "deg": 4
+        },
+        {
+          "dur": "1/2.",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/4.",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 4,
+          "alt": -1
+        },
+        {
+          "dur": "1/4.",
+          "deg": 4
+        },
+        {
+          "dur": "1/4.",
+          "deg": 7
+        },
+        {
+          "dur": "1/1.",
+          "deg": 7
+        }
+      ],
+      "note": "the game's theme, stretched over the swing"
+    },
+    {
+      "name": "zeal_inv",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/2. #-1:1/4. -2:1/4. -4:1/2. #-4:1/2. -4:1/4. #-4:1/4. -4:1/4. -7:1/4. -7:1/1.",
+      "steps": [
+        {
+          "dur": "1/2.",
+          "deg": 0
+        },
+        {
+          "dur": "1/4.",
+          "deg": -1,
+          "alt": 1
+        },
+        {
+          "dur": "1/4.",
+          "deg": -2
+        },
+        {
+          "dur": "1/2.",
+          "deg": -4
+        },
+        {
+          "dur": "1/2.",
+          "deg": -4,
+          "alt": 1
+        },
+        {
+          "dur": "1/4.",
+          "deg": -4
+        },
+        {
+          "dur": "1/4.",
+          "deg": -4,
+          "alt": 1
+        },
+        {
+          "dur": "1/4.",
+          "deg": -4
+        },
+        {
+          "dur": "1/4.",
+          "deg": -7
+        },
+        {
+          "dur": "1/1.",
+          "deg": -7
+        }
+      ],
+      "note": "the game's theme, stretched over the swing",
+      "derived_from": "zeal",
+      "lineage": [
+        "invert:0"
+      ]
+    },
+    {
+      "name": "chain",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "4:1/2.! 4:1/2.",
+      "steps": [
+        {
+          "dur": "1/2.",
+          "deg": 4,
+          "accent": 1
+        },
+        {
+          "dur": "1/2.",
+          "deg": 4
+        }
+      ],
+      "note": "iron on beats one and three"
+    },
+    {
+      "name": "knell",
+      "anchor": "scale",
+      "unit": "1/8",
+      "source": "0:1/1.",
+      "steps": [
+        {
+          "dur": "1/1.",
+          "deg": 0
+        }
+      ],
+      "note": "one bell a bar"
+    }
+  ],
+  "voices": [
+    {
+      "name": "drums",
+      "instrument": "kit_rock",
+      "role": "percussion",
+      "octave": null,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "d_a",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/8",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "1",
+            "bars": 3,
+            "lanes": {
+              "kick": "x.x.....x...|x.x..x..x.x.",
+              "snare": "......X.....",
+              "bell": "x..x..x..x.."
+            }
+          }
+        },
+        {
+          "id": "d_af",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/8",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "4",
+            "bars": 1,
+            "lanes": {
+              "kick": "x.x.....x...",
+              "snare": "......X..xxx",
+              "tom_lo": ".........x.x",
+              "tom_mid": "..........x."
+            }
+          }
+        },
+        {
+          "id": "d_ac",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/8",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "1",
+            "bars": 1,
+            "lanes": {
+              "crash": "x..........."
+            }
+          }
+        },
+        {
+          "id": "d_b",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/8",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "5",
+            "bars": 3,
+            "lanes": {
+              "kick": "x.x.....x...|x.x..x..x.x.",
+              "snare": "......X.....",
+              "bell": "x..x..x..x.."
+            }
+          }
+        },
+        {
+          "id": "d_bf",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/8",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "8",
+            "bars": 1,
+            "lanes": {
+              "kick": "x.x.....x...",
+              "snare": "......X..xxx",
+              "tom_lo": ".........x.x",
+              "tom_mid": "..........x."
+            }
+          }
+        },
+        {
+          "id": "d_bc",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/8",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "5",
+            "bars": 1,
+            "lanes": {
+              "crash": "x..........."
+            }
+          }
+        },
+        {
+          "id": "d_a2",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/8",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "9",
+            "bars": 3,
+            "lanes": {
+              "kick": "x.x.....x...|x.x..x..x.x.",
+              "snare": "......X.....",
+              "bell": "x..x..x..x.."
+            }
+          }
+        },
+        {
+          "id": "d_a2f",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/8",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "12",
+            "bars": 1,
+            "lanes": {
+              "kick": "x.x.....x...",
+              "snare": "......X..xxx",
+              "tom_lo": ".........x.x",
+              "tom_mid": "..........x."
+            }
+          }
+        },
+        {
+          "id": "d_a2c",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/8",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "9",
+            "bars": 1,
+            "lanes": {
+              "crash": "x..........."
+            }
+          }
+        },
+        {
+          "id": "d_c",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/8",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "13",
+            "bars": 3,
+            "lanes": {
+              "kick": "x..x..x..x..",
+              "snare": "...X.....X..",
+              "crash": "x.....x....."
+            }
+          }
+        },
+        {
+          "id": "d_c4",
+          "kind": "beat",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "res": "1/8",
+            "dynamic": "ff",
+            "tune": 0,
+            "cycle": null,
+            "at": "16",
+            "bars": 1,
+            "lanes": {
+              "kick": "xxxxxxxxxxxx",
+              "snare": "x..x..x..xxx",
+              "tom_lo": ".x..x..x...."
+            }
+          }
+        },
+        {
+          "id": "fx_slab",
+          "kind": "compress",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "ratio": 6,
+            "threshold": -22,
+            "makeup": 0.0
+          }
+        },
+        {
+          "id": "fx_room",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.3,
+            "mode": "soft"
+          }
+        },
+        {
+          "id": "fx_kick_weight",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 0.8,
+            "from": null,
+            "until": null,
+            "freq": 64,
+            "gain": 5
+          }
+        },
+        {
+          "id": "fx_snare_body",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.0,
+            "from": null,
+            "until": null,
+            "freq": 190,
+            "gain": 4
+          }
+        },
+        {
+          "id": "fx_snare_crack",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.0,
+            "from": null,
+            "until": null,
+            "freq": 4000,
+            "gain": 3
+          }
+        },
+        {
+          "id": "fx_cym_sheen",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.0,
+            "from": null,
+            "until": null,
+            "freq": 8500,
+            "gain": -4
+          }
+        },
+        {
+          "id": "lvl_drums",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 8
+          }
+        },
+        {
+          "id": "feel_drums",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "timing": 4,
+            "seed": 0,
+            "from": null,
+            "until": null
+          }
+        }
+      ],
+      "engine": "soundfont"
+    },
+    {
+      "name": "bass",
+      "instrument": "rbx_picked_bass",
+      "role": "bass",
+      "octave": 1,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "bass_a1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa1",
+            "at": "1"
+          }
+        },
+        {
+          "id": "bass_a2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa2",
+            "at": "2"
+          }
+        },
+        {
+          "id": "bass_a3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa1",
+            "at": "3"
+          }
+        },
+        {
+          "id": "bass_a4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa3",
+            "at": "4"
+          }
+        },
+        {
+          "id": "bass_b1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wb1",
+            "at": "5"
+          }
+        },
+        {
+          "id": "bass_b2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wb2",
+            "at": "6"
+          }
+        },
+        {
+          "id": "bass_b3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wb1",
+            "at": "7"
+          }
+        },
+        {
+          "id": "bass_b4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wb3",
+            "at": "8"
+          }
+        },
+        {
+          "id": "bass_a21",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa1",
+            "at": "9"
+          }
+        },
+        {
+          "id": "bass_a22",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa2",
+            "at": "10"
+          }
+        },
+        {
+          "id": "bass_a23",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa1",
+            "at": "11"
+          }
+        },
+        {
+          "id": "bass_a24",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa3",
+            "at": "12"
+          }
+        },
+        {
+          "id": "bass_c1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wc1",
+            "at": "13"
+          }
+        },
+        {
+          "id": "bass_c2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wc1",
+            "at": "14"
+          }
+        },
+        {
+          "id": "bass_c3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wc2",
+            "at": "15"
+          }
+        },
+        {
+          "id": "bass_c4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wc3",
+            "at": "16"
+          }
+        },
+        {
+          "id": "fx_bass_grit",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.5,
+            "mode": "soft"
+          }
+        },
+        {
+          "id": "fx_bass_even",
+          "kind": "compress",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "ratio": 6,
+            "threshold": -20,
+            "makeup": 0.0
+          }
+        },
+        {
+          "id": "fx_bass_weight",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.5,
+            "from": null,
+            "until": null,
+            "freq": 75,
+            "gain": 7
+          }
+        },
+        {
+          "id": "lvl_bass",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 6
+          }
+        }
+      ],
+      "engine": "soundfont"
+    },
+    {
+      "name": "sub",
+      "instrument": "sub_bass",
+      "role": "bass",
+      "octave": 1,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "sub_all",
+          "kind": "bass",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "pattern": "pedal",
+            "rhythm": null,
+            "octave": null,
+            "dynamic": "f",
+            "degree": 0,
+            "articulation": null,
+            "at": 1,
+            "bars": 16
+          }
+        },
+        {
+          "id": "lvl_sub",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 15
+          }
+        }
+      ]
+    },
+    {
+      "name": "gtrL",
+      "instrument": "amp_guitar",
+      "role": "harmony",
+      "octave": 2,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "gtrL_a1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa1",
+            "at": "1"
+          }
+        },
+        {
+          "id": "gtrL_a2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa2",
+            "at": "2"
+          }
+        },
+        {
+          "id": "gtrL_a3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa1",
+            "at": "3"
+          }
+        },
+        {
+          "id": "gtrL_a4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa3",
+            "at": "4"
+          }
+        },
+        {
+          "id": "gtrL_b1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wb1",
+            "at": "5"
+          }
+        },
+        {
+          "id": "gtrL_b2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wb2",
+            "at": "6"
+          }
+        },
+        {
+          "id": "gtrL_b3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wb1",
+            "at": "7"
+          }
+        },
+        {
+          "id": "gtrL_b4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wb3",
+            "at": "8"
+          }
+        },
+        {
+          "id": "gtrL_a21",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa1",
+            "at": "9"
+          }
+        },
+        {
+          "id": "gtrL_a22",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa2",
+            "at": "10"
+          }
+        },
+        {
+          "id": "gtrL_a23",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa1",
+            "at": "11"
+          }
+        },
+        {
+          "id": "gtrL_a24",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa3",
+            "at": "12"
+          }
+        },
+        {
+          "id": "gtrL_c1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wc1",
+            "at": "13"
+          }
+        },
+        {
+          "id": "gtrL_c2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wc1",
+            "at": "14"
+          }
+        },
+        {
+          "id": "gtrL_c3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wc2",
+            "at": "15"
+          }
+        },
+        {
+          "id": "gtrL_c4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wc3",
+            "at": "16"
+          }
+        },
+        {
+          "id": "fx_gl",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.2,
+            "mode": "soft"
+          }
+        },
+        {
+          "id": "fx_gl_hp",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 105,
+            "mode": "highpass",
+            "resonance": 0.0,
+            "from": null,
+            "until": null,
+            "start": 105
+          }
+        },
+        {
+          "id": "fx_gl_wool",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.0,
+            "from": null,
+            "until": null,
+            "freq": 260,
+            "gain": -3
+          }
+        },
+        {
+          "id": "fx_gl_pick",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.0,
+            "from": null,
+            "until": null,
+            "freq": 2400,
+            "gain": 3
+          }
+        },
+        {
+          "id": "fx_gl_fizz",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.0,
+            "from": null,
+            "until": null,
+            "freq": 6500,
+            "gain": -5
+          }
+        },
+        {
+          "id": "feel_gl",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.6,
+            "timing": 6,
+            "seed": 1,
+            "from": null,
+            "until": null
+          }
+        },
+        {
+          "id": "lvl_gl",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 10
+          }
+        }
+      ],
+      "pan": -0.9,
+      "engine": "soundfont"
+    },
+    {
+      "name": "gtrR",
+      "instrument": "amp_guitar",
+      "role": "harmony",
+      "octave": 2,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "gtrR_a1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa1",
+            "at": "1"
+          }
+        },
+        {
+          "id": "gtrR_a2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa2",
+            "at": "2"
+          }
+        },
+        {
+          "id": "gtrR_a3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa1",
+            "at": "3"
+          }
+        },
+        {
+          "id": "gtrR_a4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa3",
+            "at": "4"
+          }
+        },
+        {
+          "id": "gtrR_b1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wb1",
+            "at": "5"
+          }
+        },
+        {
+          "id": "gtrR_b2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wb2",
+            "at": "6"
+          }
+        },
+        {
+          "id": "gtrR_b3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wb1",
+            "at": "7"
+          }
+        },
+        {
+          "id": "gtrR_b4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wb3",
+            "at": "8"
+          }
+        },
+        {
+          "id": "gtrR_a21",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa1",
+            "at": "9"
+          }
+        },
+        {
+          "id": "gtrR_a22",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa2",
+            "at": "10"
+          }
+        },
+        {
+          "id": "gtrR_a23",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa1",
+            "at": "11"
+          }
+        },
+        {
+          "id": "gtrR_a24",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa3",
+            "at": "12"
+          }
+        },
+        {
+          "id": "gtrR_c1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wc1",
+            "at": "13"
+          }
+        },
+        {
+          "id": "gtrR_c2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wc1",
+            "at": "14"
+          }
+        },
+        {
+          "id": "gtrR_c3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wc2",
+            "at": "15"
+          }
+        },
+        {
+          "id": "gtrR_c4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wc3",
+            "at": "16"
+          }
+        },
+        {
+          "id": "fx_gr",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.2,
+            "mode": "soft"
+          }
+        },
+        {
+          "id": "fx_gr_hp",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 105,
+            "mode": "highpass",
+            "resonance": 0.0,
+            "from": null,
+            "until": null,
+            "start": 105
+          }
+        },
+        {
+          "id": "fx_gr_wool",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.0,
+            "from": null,
+            "until": null,
+            "freq": 260,
+            "gain": -3
+          }
+        },
+        {
+          "id": "fx_gr_pick",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.0,
+            "from": null,
+            "until": null,
+            "freq": 2400,
+            "gain": 3
+          }
+        },
+        {
+          "id": "fx_gr_fizz",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.0,
+            "from": null,
+            "until": null,
+            "freq": 6500,
+            "gain": -5
+          }
+        },
+        {
+          "id": "feel_gr",
+          "kind": "humanize",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.6,
+            "timing": 8,
+            "seed": 2,
+            "from": null,
+            "until": null
+          }
+        },
+        {
+          "id": "lvl_gr",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 10
+          }
+        }
+      ],
+      "pan": 0.9,
+      "engine": "soundfont"
+    },
+    {
+      "name": "grind",
+      "instrument": "grunge_bass",
+      "role": "harmony",
+      "octave": 2,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "grind_a1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa1",
+            "at": "1"
+          }
+        },
+        {
+          "id": "grind_a2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa2",
+            "at": "2"
+          }
+        },
+        {
+          "id": "grind_a3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa1",
+            "at": "3"
+          }
+        },
+        {
+          "id": "grind_a4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa3",
+            "at": "4"
+          }
+        },
+        {
+          "id": "grind_b1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wb1",
+            "at": "5"
+          }
+        },
+        {
+          "id": "grind_b2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wb2",
+            "at": "6"
+          }
+        },
+        {
+          "id": "grind_b3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wb1",
+            "at": "7"
+          }
+        },
+        {
+          "id": "grind_b4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wb3",
+            "at": "8"
+          }
+        },
+        {
+          "id": "grind_a21",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa1",
+            "at": "9"
+          }
+        },
+        {
+          "id": "grind_a22",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa2",
+            "at": "10"
+          }
+        },
+        {
+          "id": "grind_a23",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa1",
+            "at": "11"
+          }
+        },
+        {
+          "id": "grind_a24",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wa3",
+            "at": "12"
+          }
+        },
+        {
+          "id": "grind_c1",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wc1",
+            "at": "13"
+          }
+        },
+        {
+          "id": "grind_c2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wc1",
+            "at": "14"
+          }
+        },
+        {
+          "id": "grind_c3",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wc2",
+            "at": "15"
+          }
+        },
+        {
+          "id": "grind_c4",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 1,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "wc3",
+            "at": "16"
+          }
+        },
+        {
+          "id": "fx_grind",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 0.9,
+            "mode": "clip"
+          }
+        },
+        {
+          "id": "fx_grind_dark",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 2600,
+            "mode": "lowpass",
+            "resonance": 0.0,
+            "from": null,
+            "until": null,
+            "start": 2600
+          }
+        },
+        {
+          "id": "fx_grind_hp",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 90,
+            "mode": "highpass",
+            "resonance": 0.0,
+            "from": null,
+            "until": null,
+            "start": 90
+          }
+        },
+        {
+          "id": "fx_grind_teeth",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.2,
+            "from": null,
+            "until": null,
+            "freq": 1100,
+            "gain": 5
+          }
+        },
+        {
+          "id": "lvl_grind",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -3
+          }
+        }
+      ],
+      "engine": "soundfont"
+    },
+    {
+      "name": "chains",
+      "instrument": "clank",
+      "role": "ornament",
+      "octave": 5,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "ch_all",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 16,
+            "every": null,
+            "dynamic": "f",
+            "articulation": null,
+            "anchor": null,
+            "motif": "chain",
+            "at": 1
+          }
+        },
+        {
+          "id": "fx_chain",
+          "kind": "crush",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "rate": 12000,
+            "bits": 8
+          }
+        },
+        {
+          "id": "fx_chain_dark",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 2800,
+            "mode": "lowpass",
+            "resonance": 0.0,
+            "from": null,
+            "until": null,
+            "start": 2800
+          }
+        },
+        {
+          "id": "lvl_chain",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 9
+          }
+        }
+      ],
+      "pan": 0.35
+    },
+    {
+      "name": "bell",
+      "instrument": "fm_bells",
+      "role": "ornament",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "bell_a",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 4,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "knell",
+            "at": "1"
+          }
+        },
+        {
+          "id": "bell_a2",
+          "kind": "play",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "transpose": 0,
+            "octave": null,
+            "transform": null,
+            "times": 4,
+            "every": null,
+            "dynamic": "ff",
+            "articulation": null,
+            "anchor": null,
+            "motif": "knell",
+            "at": "9"
+          }
+        },
+        {
+          "id": "fx_bell",
+          "kind": "echo",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "time": "3/8",
+            "feedback": 0.4,
+            "mix": 0.3,
+            "tone": 3000,
+            "spread": 0.7,
+            "from": null,
+            "until": null
+          }
+        },
+        {
+          "id": "lvl_bell",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": 10
+          }
+        }
+      ],
+      "pan": -0.3,
+      "engine": "soundfont"
+    },
+    {
+      "name": "mob",
+      "instrument": "choir",
+      "role": "pad",
+      "octave": 3,
+      "dynamic": null,
+      "muted": false,
+      "ops": [
+        {
+          "id": "mob_0",
+          "kind": "drone",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "degree": 0,
+            "octave": null,
+            "dynamic": "ff",
+            "retrigger": null,
+            "at": "5",
+            "bars": 4
+          }
+        },
+        {
+          "id": "mobc_0",
+          "kind": "drone",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "degree": 0,
+            "octave": null,
+            "dynamic": "ff",
+            "retrigger": null,
+            "at": "13",
+            "bars": 4
+          }
+        },
+        {
+          "id": "mob_4",
+          "kind": "drone",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "degree": 4,
+            "octave": null,
+            "dynamic": "ff",
+            "retrigger": null,
+            "at": "5",
+            "bars": 4
+          }
+        },
+        {
+          "id": "mobc_4",
+          "kind": "drone",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "degree": 4,
+            "octave": null,
+            "dynamic": "ff",
+            "retrigger": null,
+            "at": "13",
+            "bars": 4
+          }
+        },
+        {
+          "id": "fx_mob",
+          "kind": "drive",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "amount": 1.0,
+            "mode": "clip"
+          }
+        },
+        {
+          "id": "fx_mob_dark",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 2800,
+            "mode": "lowpass",
+            "resonance": 0.0,
+            "from": null,
+            "until": null,
+            "start": 2800
+          }
+        },
+        {
+          "id": "fx_mob_hp",
+          "kind": "filter",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "end": 250,
+            "mode": "highpass",
+            "resonance": 0.0,
+            "from": null,
+            "until": null,
+            "start": 250
+          }
+        },
+        {
+          "id": "fx_mob_dip",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.0,
+            "from": null,
+            "until": null,
+            "freq": 450,
+            "gain": -4
+          }
+        },
+        {
+          "id": "fx_mob_form",
+          "kind": "eq",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "width": 1.4,
+            "from": null,
+            "until": null,
+            "freq": 1500,
+            "gain": 5
+          }
+        },
+        {
+          "id": "lvl_mob",
+          "kind": "gain",
+          "enabled": true,
+          "note": "",
+          "params": {
+            "db": -6
+          }
+        }
+      ],
+      "engine": "soundfont"
+    }
+  ]
+}

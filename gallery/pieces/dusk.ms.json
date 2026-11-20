@@ -614,6 +614,7 @@
             "roll": null,
             "figure": null,
             "articulation": null,
+            "rootless": false,
             "at": "5",
             "bars": 8
           }
@@ -635,6 +636,7 @@
             "roll": null,
             "figure": null,
             "articulation": null,
+            "rootless": false,
             "at": "13",
             "bars": 8
           }
@@ -656,6 +658,7 @@
             "roll": null,
             "figure": null,
             "articulation": null,
+            "rootless": false,
             "at": "21",
             "bars": 4
           }
@@ -699,6 +702,7 @@
             "roll": null,
             "figure": null,
             "articulation": null,
+            "rootless": false,
             "at": "1",
             "bars": 4
           }
@@ -720,6 +724,7 @@
             "roll": null,
             "figure": null,
             "articulation": null,
+            "rootless": false,
             "at": "13",
             "bars": 8
           }
