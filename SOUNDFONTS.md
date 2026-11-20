@@ -12,6 +12,13 @@ made them; this page says who that is and what each asks.
 particular bank name it (`ms instruments` shows a `font`); without the bank the
 instrument is played by its model, with a warning.
 
+A bank is chosen by name in three places: on a voice (`engine=soundfont
+bank=fluidr3`), for a piece (`meta soundfont = "fluidr3"` in its score file: the
+bank for its sampled voices that name none, and for `--soundfont` with no
+name), and for one render (`ms wav <piece> --soundfont fluidr3`). A bank you
+installed yourself is named by its file name. The MCP tool `ms_soundfonts`
+lists what is installed.
+
 ## General MIDI sets
 
 | name | what | by | terms |

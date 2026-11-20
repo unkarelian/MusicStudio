@@ -250,11 +250,12 @@ BANKS.update({b.name: b for b in [
 ]})
 
 
-def _fetch(url: str, sha256: str, progress=None) -> bytes:
-    """Download, and refuse the result unless it is exactly what was pinned."""
+def _download(url: str, sha256: str, keep, progress=None) -> None:
+    """Read ``url`` block by block into ``keep(block)``, and raise unless what
+    arrived is exactly what was pinned. The caller holds the blocks back (or
+    deletes them) until this returns."""
     req = urllib.request.Request(url, headers={"User-Agent": "musicstudio"})
     digest = hashlib.sha256()
-    chunks: list[bytes] = []
     with urllib.request.urlopen(req, timeout=60) as resp:
         total = int(resp.headers.get("Content-Length") or 0)
         got = 0
@@ -262,7 +263,7 @@ def _fetch(url: str, sha256: str, progress=None) -> bytes:
             block = resp.read(1 << 18)
             if not block:
                 break
-            chunks.append(block)
+            keep(block)
             digest.update(block)
             got += len(block)
             if progress:
@@ -271,7 +272,19 @@ def _fetch(url: str, sha256: str, progress=None) -> bytes:
         raise ValueError(
             f"checksum mismatch for {url}: expected {sha256}, got "
             f"{digest.hexdigest()}. Nothing was installed.")
+
+
+def _fetch(url: str, sha256: str, progress=None) -> bytes:
+    """Download, and refuse the result unless it is exactly what was pinned."""
+    chunks: list[bytes] = []
+    _download(url, sha256, chunks.append, progress)
     return b"".join(chunks)
+
+
+def _is_soundfont(head: bytes) -> bool:
+    """Whether a file that starts with these bytes is a SoundFont (RIFF/sfbk).
+    The hash says a download is the file that was asked for, not what it is."""
+    return head[:4] == b"RIFF" and head[8:12] == b"sfbk"
 
 
 def _fetch_file(url: str, sha256: str, folder: Path, progress=None) -> Path:
@@ -279,27 +292,11 @@ def _fetch_file(url: str, sha256: str, folder: Path, progress=None) -> Path:
     archives too large to hold in memory twice over. The same rule as
     ``_fetch``: a file that is not exactly what was pinned is deleted, and
     nothing is returned."""
-    req = urllib.request.Request(url, headers={"User-Agent": "musicstudio"})
-    digest = hashlib.sha256()
     folder.mkdir(parents=True, exist_ok=True)
     path = folder / f".download-{os.getpid()}-{sha256[:12]}.part"
     try:
-        with urllib.request.urlopen(req, timeout=60) as resp, open(path, "wb") as out:
-            total = int(resp.headers.get("Content-Length") or 0)
-            got = 0
-            while True:
-                block = resp.read(1 << 18)
-                if not block:
-                    break
-                out.write(block)
-                digest.update(block)
-                got += len(block)
-                if progress:
-                    progress(got, total)
-        if digest.hexdigest() != sha256.lower():
-            raise ValueError(
-                f"checksum mismatch for {url}: expected {sha256}, got "
-                f"{digest.hexdigest()}. Nothing was installed.")
+        with open(path, "wb") as out:
+            _download(url, sha256, out.write, progress)
     except BaseException:
         path.unlink(missing_ok=True)
         raise
@@ -422,7 +419,7 @@ def _install_seven(b: Bank, out: Path, progress) -> None:
             _seven(archive, b.member, f)
         with open(part, "rb") as f:
             head = f.read(12)
-        if head[:4] != b"RIFF" or head[8:12] != b"sfbk":
+        if not _is_soundfont(head):
             raise ValueError(f"{b.url} did not contain a SoundFont")
         if b.license_member:
             with tempfile.TemporaryFile() as lic:
@@ -445,6 +442,59 @@ def installed(dest: str | Path | None = None) -> list[Path]:
     if extra.is_dir():
         found += [f for f in extra.iterdir() if f.suffix.lower() in (".sf2", ".sf3")]
     return sorted(found)
+
+
+def resolve(name: str | os.PathLike, dest: str | Path | None = None) -> Path | None:
+    """The file a SoundFont is asked for by: a name in :data:`BANKS`, a path,
+    or the file name (with or without its suffix, any case) of anything
+    installed -- which is how a bank installed from a URL gets a name.
+    ``None`` when nothing installed answers to it."""
+    text = str(name)
+    if text in BANKS:
+        return path_of(text, dest)
+    p = Path(text).expanduser()
+    if p.suffix.lower() in (".sf2", ".sf3") and p.is_file():
+        return p
+    want = text.lower()
+    for f in installed(dest):
+        if want in (f.name.lower(), f.stem.lower()):
+            return f
+    return None
+
+
+def listing(dest: str | Path | None = None) -> dict:
+    """Every SoundFont the studio knows of or finds installed, as data: the
+    name a voice or a render asks for it by, whether it is a whole General
+    MIDI set or a bank for particular instruments, which instruments are
+    played from it by default, and what its licence asks."""
+    from .ensemble import INSTRUMENTS
+    plays: dict[str, list[str]] = {}
+    for inst in INSTRUMENTS.values():
+        if inst.font:
+            plays.setdefault(inst.font, []).append(inst.name)
+    known: dict[Path, str] = {}
+    banks = []
+    for b in BANKS.values():
+        path = path_of(b.name, dest)
+        if path is not None:
+            known[path] = b.name
+        own = sorted(plays.get(b.name, []))
+        banks.append({
+            "name": b.name, "installed": path is not None,
+            "path": str(path) if path else None,
+            # Only a bank some instrument names is a bank *for* instruments;
+            # the rest are whole General MIDI sets wherever they are kept.
+            "kind": "instruments" if own else "general midi",
+            "instruments": own, "summary": b.summary, "terms": b.terms or "MIT",
+            "size_mb": b.size_mb})
+    other = [{"name": f.stem, "installed": True, "path": str(f),
+              "kind": "general midi", "instruments": [],
+              "summary": "installed by you; not in the studio's list",
+              "terms": "its own -- see where it came from"}
+             for f in installed(dest) if f not in known]
+    return {"banks": banks + other,
+            "fluidsynth": shutil.which("fluidsynth"),
+            "where": str(Path(dest or INSTALL_DIR).expanduser())}
 
 
 def install(bank: str = DEFAULT_BANK, *, dest: str | Path | None = None,
@@ -471,7 +521,7 @@ def install(bank: str = DEFAULT_BANK, *, dest: str | Path | None = None,
         data = _fetch(url, sha256, show)
         # The same check a listed bank gets: the hash says it is the file that
         # was asked for, not that the file is a SoundFont.
-        if data[:4] != b"RIFF" or data[8:12] != b"sfbk":
+        if not _is_soundfont(data):
             raise ValueError(f"{url} is not a SoundFont (no RIFF/sfbk header)")
         _write(out, data)
         return out
@@ -499,7 +549,7 @@ def install(bank: str = DEFAULT_BANK, *, dest: str | Path | None = None,
         data = raw
     if b.license_url and b.license_sha256:
         license_text = _fetch(b.license_url, b.license_sha256)
-    if data[:4] != b"RIFF" or data[8:12] != b"sfbk":
+    if not _is_soundfont(data):
         raise ValueError(f"{b.url} did not contain a SoundFont")
     if license_text:
         _write(out.with_suffix(".LICENSE.txt"), license_text)

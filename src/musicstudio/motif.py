@@ -258,6 +258,10 @@ class Motif:
             lineage=self.lineage + (op,),
         )
 
+    def _next_pitched(self, i: int) -> Step | None:
+        """The first note after step ``i``, rests skipped: where a leap lands."""
+        return next((t for t in self.steps[i + 1:] if not t.is_rest), None)
+
     def transpose(self, n: int, *, name: str | None = None) -> Motif:
         """Move by ``n`` scale steps. Diatonic, so it stays in key by construction."""
         return self._derive([s if s.is_rest else replace(s, deg=s.deg + n)
@@ -348,7 +352,7 @@ class Motif:
         """
         out: list[Step] = []
         for i, s in enumerate(self.steps):
-            nxt = next((t for t in self.steps[i + 1:] if not t.is_rest), None)
+            nxt = self._next_pitched(i)
             gap = 0 if (s.is_rest or nxt is None) else nxt.deg - s.deg
             if abs(gap) < 2:
                 out.append(s)
@@ -420,7 +424,7 @@ class Motif:
                 out.append(s)
                 continue
             if kind == "passing":
-                nxt = next((t for t in self.steps[i + 1:] if not t.is_rest), None)
+                nxt = self._next_pitched(i)
                 gap = 0 if nxt is None else nxt.deg - s.deg
                 if abs(gap) < 2:
                     out.append(s)

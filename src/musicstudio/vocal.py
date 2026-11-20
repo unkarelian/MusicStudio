@@ -215,6 +215,57 @@ def _smooth(x: np.ndarray, frames: int) -> np.ndarray:
     return np.convolve(np.pad(x, (pad, pad), mode="edge"), k, mode="same")[pad:pad + len(x)]
 
 
+def _span(t: np.ndarray, a: float, b: float) -> tuple[int, int]:
+    """The samples of the rising time axis ``t`` between times ``a`` and
+    ``b``, as an index range with a couple of samples to spare either side."""
+    return (max(0, int(np.searchsorted(t, a)) - 2),
+            min(len(t), int(np.searchsorted(t, b)) + 2))
+
+
+def _pitch_line(sung: list[Sung], singer: Singer, n: int, t0: float, rng, *,
+                scoop: float, drift: float = 0.0, total: float = 0.0,
+                vowels_only: bool = False) -> np.ndarray:
+    """The pitch of a phrase in Hz, for each of ``n`` samples from ``t0``.
+
+    The line every singer here sings, whatever makes its sound: a slide into
+    each note, centred just ahead of it; a scoop of ``scoop`` cents into the
+    first; vibrato that arrives late on notes long enough to want it (only on
+    vowels with ``vowels_only``); and, with ``drift``, a slow wander of that
+    many cents (standard deviation) over a phrase ``total`` seconds long.
+
+    Each slide and each vibrato is worked out only where it does something.
+    A slide is a logistic curve clipped at 40 time constants: before that it
+    adds less than the pitch's own rounding (for any MIDI pitch above 8), and
+    after it exactly the whole step. Vibrato is zero outside its note. A
+    phrase can be a minute long and a hundred notes, and doing each over the
+    whole phrase was most of the time a recorded singer took.
+    """
+    t = np.arange(n) / SR + t0
+    midi = np.full(n, sung[0].pitch, dtype=np.float64)
+    tau = singer.glide / 4.0
+    for before, s in zip(sung, sung[1:]):
+        # A slide into each note, centred just ahead of it.
+        centre = s.start - 0.012
+        lo, hi = _span(t, centre - 40.0 * tau, centre + 40.0 * tau)
+        x = np.clip((t[lo:hi] - centre) / tau, -40.0, 40.0)
+        midi[lo:hi] += (s.pitch - before.pitch) / (1.0 + np.exp(-x))
+        midi[hi:] += s.pitch - before.pitch
+    cents = -scoop * np.exp(-np.maximum(t - sung[0].start, 0.0) / 0.05) * (t >= sung[0].start - 0.05)
+    for s in sung:
+        if s.end - s.start < 0.36 or (vowels_only and s.nucleus not in VOWELS):
+            continue
+        rate = singer.vibrato_rate * rng.uniform(0.95, 1.05)
+        phase = rng.uniform(0, 2 * np.pi)
+        lo, hi = _span(t, s.start + 0.2, s.end)
+        during = t[lo:hi]
+        rise = np.clip((during - s.start - 0.2) / 0.3, 0.0, 1.0) * (during < s.end)
+        cents[lo:hi] += singer.vibrato * rise * np.sin(2 * np.pi * rate * (during - s.start) + phase)
+    if drift:
+        cents = cents + np.interp(t, np.linspace(t[0], t[-1], max(4, int(total * 3))),
+                                  rng.normal(0.0, drift, max(4, int(total * 3))))
+    return 440.0 * 2.0 ** ((midi - 69.0) / 12.0 + cents / 1200.0)
+
+
 def render_phrase(sung: list[Sung], singer: Singer, seed: int) -> tuple[np.ndarray, float]:
     """Synthesize one phrase. Returns ``(samples, start time in seconds)``.
 
@@ -340,26 +391,8 @@ def render_phrase(sung: list[Sung], singer: Singer, seed: int) -> tuple[np.ndarr
     lowpass_s = np.exp(_smooth(np.log(lowpass), 4))
 
     # -- pitch ----------------------------------------------------------------
-    t = np.arange(n) / SR + t0
-    cents = np.zeros(n)
-    midi = np.full(n, sung[0].pitch, dtype=np.float64)
-    for i, s in enumerate(sung):
-        if i == 0:
-            continue
-        # A slide into each note, centred just ahead of it.
-        x = np.clip((t - (s.start - 0.012)) / (singer.glide / 4.0), -40.0, 40.0)
-        midi += (s.pitch - sung[i - 1].pitch) / (1.0 + np.exp(-x))
-    cents -= 55.0 * np.exp(-np.maximum(t - sung[0].start, 0.0) / 0.05) * (t >= sung[0].start - 0.05)
-    for s in sung:
-        if s.end - s.start < 0.36 or s.nucleus not in VOWELS:
-            continue
-        rate = singer.vibrato_rate * rng.uniform(0.95, 1.05)
-        rise = np.clip((t - s.start - 0.2) / 0.3, 0.0, 1.0) * (t < s.end)
-        cents += singer.vibrato * rise * np.sin(2 * np.pi * rate * (t - s.start)
-                                                + rng.uniform(0, 2 * np.pi))
-    drift = np.interp(t, np.linspace(t[0], t[-1], max(4, int(total * 3))),
-                      rng.normal(0.0, 5.0, max(4, int(total * 3))))
-    f0 = 440.0 * 2.0 ** ((midi - 69.0) / 12.0 + (cents + drift) / 1200.0)
+    f0 = _pitch_line(sung, singer, n, t0, rng, scoop=55.0, drift=5.0, total=total,
+                     vowels_only=True)
 
     # -- source ---------------------------------------------------------------
     from .synth import _osc, _table
@@ -397,8 +430,13 @@ def render_phrase(sung: list[Sung], singer: Singer, seed: int) -> tuple[np.ndarr
     window = np.sqrt(np.hanning(SIZE + 1)[:SIZE])
 
     def shape(signal: np.ndarray, gains: np.ndarray) -> np.ndarray:
-        fr = np.lib.stride_tricks.sliding_window_view(signal, SIZE)[::HOP][:count] * window
-        out_frames = np.fft.irfft(np.fft.rfft(fr, axis=1) * gains, SIZE, axis=1) * window
+        # A frame whose gains are all zero comes out silent whatever went in,
+        # so it is not transformed at all: most frames of the fricative noise
+        # (there is an "s" only now and then) and the rests in the others.
+        live = np.flatnonzero(gains.any(axis=1))
+        fr = np.lib.stride_tricks.sliding_window_view(signal, SIZE)[::HOP][:count][live] * window
+        out_frames = np.zeros((count, SIZE))
+        out_frames[live] = np.fft.irfft(np.fft.rfft(fr, axis=1) * gains[live], SIZE, axis=1) * window
         out = np.zeros(n)
         for k in range(SIZE // HOP):               # overlap-add, four frames deep
             part = out_frames[k::SIZE // HOP]
@@ -420,6 +458,30 @@ def render_phrase(sung: list[Sung], singer: Singer, seed: int) -> tuple[np.ndarr
 # a whole voice
 # --------------------------------------------------------------------------
 
+def _voice_stem(voice: str, notes, to_sec, total: int, pan: float, sing) -> tuple:
+    """One singer's ``(left, right)``, whatever engine sings it: the voice's
+    notes cut into phrases, each sung by ``sing(phrase, seed)`` -- which
+    returns ``(samples, start time in seconds)`` -- and laid where it starts.
+    The seed is the voice and the phrase's first note, so a phrase comes out
+    the same every render."""
+    mono = np.zeros(total)
+    for group in phrases(plan(notes, to_sec)):
+        seed = zlib.crc32(f"{voice}|{group[0].start:.4f}|{group[0].pitch}".encode())
+        sig, t0 = sing(group, seed)
+        a = int(t0 * SR)
+        k = min(len(sig), total - a)
+        if k > 0:
+            mono[a:a + k] += sig[:k]
+    theta = (max(-1.0, min(1.0, pan)) + 1.0) * math.pi / 4
+    # Scaled in place where it can be: a stem is as long as the piece, and
+    # each further copy of one costs about as much as singing a short phrase.
+    left = mono * math.cos(theta)
+    left *= math.sqrt(2)
+    mono *= math.sin(theta)
+    mono *= math.sqrt(2)
+    return left, mono
+
+
 def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float],
                 skip=()) -> dict[str, tuple]:
     """``{voice: (left, right)}`` for every singer in the piece, less the
@@ -433,15 +495,7 @@ def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float],
         if not mine:
             continue
         singer = SINGERS[v.instrument]
-        mono = np.zeros(total)
-        for group in phrases(plan(mine, to_sec)):
-            seed = zlib.crc32(f"{v.name}|{group[0].start:.4f}|{group[0].pitch}".encode())
-            sig, t0 = render_phrase(group, singer, seed)
-            a = int(t0 * SR)
-            k = min(len(sig), total - a)
-            if k > 0:
-                mono[a:a + k] += sig[:k]
-        theta = (max(-1.0, min(1.0, pans.get(v.name, 0.0))) + 1.0) * math.pi / 4
-        out[v.name] = (mono * math.cos(theta) * math.sqrt(2),
-                       mono * math.sin(theta) * math.sqrt(2))
+        out[v.name] = _voice_stem(
+            v.name, mine, to_sec, total, pans.get(v.name, 0.0),
+            lambda group, seed, singer=singer: render_phrase(group, singer, seed))
     return out

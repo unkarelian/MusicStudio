@@ -34,6 +34,7 @@ render -- the built-in models, or a SoundFont through FluidSynth.
 
 from __future__ import annotations
 
+import functools
 import math
 import re
 import tempfile
@@ -44,7 +45,7 @@ from pathlib import Path
 from . import audio
 from .doc import Piece
 from .render import Note, Render, render
-from .tension import EARLY, _spans, followers, tune_at
+from .tension import EARLY, _spans, followers, op_kinds, tune_at
 
 try:                                   # pragma: no cover - depends on the extras
     import numpy as np
@@ -97,21 +98,27 @@ def stems(piece: Piece, rend: Render | None = None, *, source: str = "models",
         return out, "the built-in instrument models"
     if source != "soundfont":
         raise ValueError(f"source must be 'models' or 'soundfont', got {source!r}")
-    bank = audio.find_soundfont(soundfont)
+    bank = (audio.piece_soundfont(piece) if soundfont in (None, "auto") else None) \
+        or audio.find_soundfont(soundfont)
     with tempfile.TemporaryDirectory() as tmp:
         for name, notes in by_voice.items():
             path = audio.save_wav_soundfont(
                 piece, Path(tmp) / "stem.wav", bank, Render(piece, list(notes)),
                 room=False, normalize=False)
-            with wave.open(str(path), "rb") as w:
-                raw = np.frombuffer(w.readframes(w.getnframes()), dtype="<i2")
-                data = raw.reshape(-1, w.getnchannels()).astype(np.float64) / 32768.0
+            data = _read_wav(path)
             if data.shape[1] == 1:
                 data = np.repeat(data, 2, axis=1)
             fixed = np.zeros((total, 2))
             fixed[:min(total, len(data))] = data[:total]
             out[name] = fixed
     return out, f"the SoundFont {bank.name}"
+
+
+def _read_wav(path) -> "np.ndarray":
+    """A 16-bit WAV as ``samples[n, channels]`` in -1..1."""
+    with wave.open(str(path), "rb") as w:
+        raw = np.frombuffer(w.readframes(w.getnframes()), dtype="<i2")
+        return raw.reshape(-1, w.getnchannels()).astype(np.float64) / 32768.0
 
 
 def _fixed(buf, lo: int, n: int):
@@ -125,6 +132,43 @@ def _fixed(buf, lo: int, n: int):
     return seg
 
 
+def _calibration_phrase(p: Piece, voice: str, tag: str, bar: int, percussive: bool) -> None:
+    """What every instrument plays to be measured: the same bar soft (``p``)
+    at ``bar`` and loud (``f``) two bars on -- a beat for a kit, four notes
+    for anything pitched."""
+    for j, dyn in enumerate(("p", "f")):
+        if percussive:
+            p.add_op(voice, "beat", id=f"{tag}{dyn}", at=str(bar + 2 * j), bars=1,
+                     dynamic=dyn, res="1/8",
+                     lanes={"kick": "x...x...", "snare": "..x...x.",
+                            "hat": "xxxxxxxx"})
+        else:
+            p.add_op(voice, "phrase", id=f"{tag}{dyn}", at=str(bar + 2 * j), unit="1/4",
+                     steps="0 4 7 4", dynamic=dyn)
+
+
+def _match_dynamics(modelled: list[float], sampled: list[float]) -> tuple[float, float] | None:
+    """From the loudness of the soft and the loud phrase through the models
+    and through the sampler: the exponent velocity must be raised to, and how
+    far the model's ``mf`` then sits above the sampler's, in dB. ``None``
+    when either was silent."""
+    from .theory import DYNAMICS
+    if min(modelled + sampled) <= 1e-12:
+        return None
+    soft, loud, mid = DYNAMICS["p"], DYNAMICS["f"], DYNAMICS["mf"]
+    span = 20 * math.log10(loud / soft)
+    m_soft, m_loud, s_soft, s_loud = (_db(x) for x in modelled + sampled)
+    s_slope = (s_loud - s_soft) / span          # dB per dB of velocity
+    m_slope = (m_loud - m_soft) / span
+    c = max(0.35, min(1.25, m_slope / s_slope)) if s_slope > 0.2 else 1.0
+    # Where this instrument's mf lands in each, once the curve has
+    # reshaped the velocity the sampler is sent.
+    sent = 127 * (mid / 127) ** c
+    s_mid = s_soft + s_slope * 20 * math.log10(sent / soft)
+    m_mid = m_soft + m_slope * 20 * math.log10(mid / soft)
+    return round(c, 2), m_mid - s_mid
+
+
 def _calibrate_font(names: list[str]) -> dict:
     """Trim and velocity curve for instruments sampled from their own bank.
 
@@ -133,9 +177,6 @@ def _calibrate_font(names: list[str]) -> dict:
     """
     from .doc import Section, Voice
     from .ensemble import INSTRUMENTS
-    from .theory import DYNAMICS
-    soft, loud, mid = DYNAMICS["p"], DYNAMICS["f"], DYNAMICS["mf"]
-    span = 20 * math.log10(loud / soft)
     trims: dict[str, float] = {}
     curve: dict[str, float] = {}
     for name in names:
@@ -146,15 +187,7 @@ def _calibrate_font(names: list[str]) -> dict:
             p.sections.append(Section("A", 4))
             p.voices.append(Voice("v", name, "percussion" if inst.percussive else "melody",
                                   pan=0.0, engine=engine))
-            for j, dyn in enumerate(("p", "f")):
-                if inst.percussive:
-                    p.add_op("v", "beat", id=f"c{dyn}", at=str(1 + 2 * j), bars=1,
-                             dynamic=dyn, res="1/8",
-                             lanes={"kick": "x...x...", "snare": "..x...x.",
-                                    "hat": "xxxxxxxx"})
-                else:
-                    p.add_op("v", "phrase", id=f"c{dyn}", at=str(1 + 2 * j), unit="1/4",
-                             steps="0 4 7 4", dynamic=dyn)
+            _calibration_phrase(p, "v", "c", 1, inst.percussive)
             to_sec = audio._tick_seconds(p)
             if engine is None:
                 left, right = audio.synthesize(p, reverb=False, models=True)
@@ -170,17 +203,12 @@ def _calibrate_font(names: list[str]) -> dict:
             levels[engine] = [
                 _loudness(_fixed(buf, int(to_sec(p.tick_of(1 + 2 * j)) * SR), 8 * SR),
                           heard) for j in (0, 1)]
-        if len(levels) < 2 or min(levels[None] + levels["soundfont"]) <= 1e-12:
+        matched = _match_dynamics(levels[None], levels["soundfont"]) if len(levels) == 2 \
+            else None
+        if matched is None:
             continue
-        m_soft, m_loud = (_db(x) for x in levels[None])
-        s_soft, s_loud = (_db(x) for x in levels["soundfont"])
-        s_slope, m_slope = (s_loud - s_soft) / span, (m_loud - m_soft) / span
-        c = max(0.35, min(1.25, m_slope / s_slope)) if s_slope > 0.2 else 1.0
-        curve[name] = round(c, 2)
-        sent = 127 * (mid / 127) ** c
-        s_mid = s_soft + s_slope * 20 * math.log10(sent / soft)
-        m_mid = m_soft + m_slope * 20 * math.log10(mid / soft)
-        trims[name] = round(max(-24.0, min(24.0, m_mid - s_mid)), 1)
+        curve[name], apart = matched
+        trims[name] = round(max(-24.0, min(24.0, apart)), 1)
     return {"trim": trims, "curve": curve, "offset": 0.0}
 
 
@@ -224,7 +252,6 @@ def calibrate(bank: str | Path, *, refresh: bool = False,
     from . import synth
     from .doc import Section, Voice
     from .ensemble import INSTRUMENTS
-    from .theory import DYNAMICS
     _need_numpy()
     bank = Path(bank)
     stat = bank.stat()
@@ -252,8 +279,6 @@ def calibrate(bank: str | Path, *, refresh: bool = False,
         cache.parent.mkdir(parents=True, exist_ok=True)
         cache.write_text(json.dumps(result))
         return result
-    soft, loud, mid = DYNAMICS["p"], DYNAMICS["f"], DYNAMICS["mf"]
-    span = 20 * math.log10(loud / soft)
     diff: dict[str, float] = {}
     curve: dict[str, float] = {}
     with tempfile.TemporaryDirectory() as tmp:
@@ -265,24 +290,13 @@ def calibrate(bank: str | Path, *, refresh: bool = False,
                 drums = INSTRUMENTS[name].percussive
                 p.voices.append(Voice(name, name, "percussion" if drums else "melody",
                                       pan=0.0))
-                for j, dyn in enumerate(("p", "f")):
-                    if drums:
-                        p.add_op(name, "beat", id=f"c{k}{dyn}", at=str(1 + 4 * k + 2 * j),
-                                 bars=1, dynamic=dyn, res="1/8",
-                                 lanes={"kick": "x...x...", "snare": "..x...x.",
-                                        "hat": "xxxxxxxx"})
-                    else:
-                        p.add_op(name, "phrase", id=f"c{k}{dyn}",
-                                 at=str(1 + 4 * k + 2 * j), unit="1/4",
-                                 steps="0 4 7 4", dynamic=dyn)
+                _calibration_phrase(p, name, f"c{k}", 1 + 4 * k, drums)
             to_sec = audio._tick_seconds(p)
             left, right = audio.synthesize(p, reverb=False, models=True)
             path = audio.save_wav_soundfont(p, Path(tmp) / "c.wav", bank, room=False,
                                             normalize=False, balance=False,
                                             velocity_curve=1.0)
-            with wave.open(str(path), "rb") as w:
-                raw = np.frombuffer(w.readframes(w.getnframes()), dtype="<i2")
-                sampled = raw.reshape(-1, w.getnchannels()).astype(np.float64) / 32768.0
+            sampled = _read_wav(path)
             modelled = np.stack([left, right], 1)
 
             def level(buf, bar, weighted):
@@ -298,19 +312,9 @@ def calibrate(bank: str | Path, *, refresh: bool = False,
                 heard = inst.percussive or inst.centre >= 48
                 m = [level(modelled, 1 + 4 * k + 2 * j, heard) for j in (0, 1)]
                 s = [level(sampled, 1 + 4 * k + 2 * j, heard) for j in (0, 1)]
-                if min(m + s) <= 1e-12:
-                    continue
-                m_soft, m_loud, s_soft, s_loud = (_db(x) for x in m + s)
-                s_slope = (s_loud - s_soft) / span          # dB per dB of velocity
-                m_slope = (m_loud - m_soft) / span
-                c = max(0.35, min(1.25, m_slope / s_slope)) if s_slope > 0.2 else 1.0
-                curve[name] = round(c, 2)
-                # Where this instrument's mf lands in each, once the curve has
-                # reshaped the velocity the sampler is sent.
-                sent = 127 * (mid / 127) ** c
-                s_mid = s_soft + s_slope * 20 * math.log10(sent / soft)
-                m_mid = m_soft + m_slope * 20 * math.log10(mid / soft)
-                diff[name] = m_mid - s_mid
+                matched = _match_dynamics(m, s)
+                if matched is not None:
+                    curve[name], diff[name] = matched
     if not diff:
         return {"trim": {}, "curve": {}, "offset": 0.0}
     centre = float(np.median(list(diff.values())))
@@ -341,18 +345,53 @@ def _a_weight(f):
     return (ra * 1.2589) ** 2
 
 
+@functools.lru_cache(maxsize=16)
+def _a_weights(size: int):
+    """The A-weighting of every bin of a ``size``-point FFT. A piece has a
+    handful of bar lengths and every voice is measured in every bar, so the
+    curve is worked out once per length and shared; nobody writes to it."""
+    w = _a_weight(np.fft.rfftfreq(size, 1.0 / SR))
+    w.setflags(write=False)
+    return w
+
+
+@functools.lru_cache(maxsize=64)
+def _hann(n: int):
+    """``(np.hanning(n), the sum of its squares)``, kept per length for the
+    same reason: read-only, and the same for every note of one length."""
+    window = np.hanning(n)
+    window.setflags(write=False)
+    return window, float((window ** 2).sum())
+
+
+def _mono(stereo):
+    """The mean of the two channels -- bit for bit what ``mean(axis=1)``
+    gives for two columns, in a third of the time on a whole stem (one new
+    array, halved in place)."""
+    out = stereo[:, 0] + stereo[:, 1]
+    out *= 0.5
+    return out
+
+
+def _mean_square(x, scratch) -> float:
+    """``mean(x ** 2)``, with the squares written into ``scratch``. A stem is
+    minutes of samples, and a fresh array that long for every figure cost
+    more than the arithmetic did."""
+    return float(np.mean(np.multiply(x, x, out=scratch)))
+
+
 def _db(power: float) -> float:
     return 10.0 * math.log10(power) if power > 1e-14 else -140.0
 
 
 def _loudness(seg, weighted: bool = True) -> float:
     """Mean power of a stereo segment, A-weighted unless told otherwise."""
-    if len(seg) < 64:
-        return 0.0
+    if len(seg) < 64 or not seg.any():
+        return 0.0                         # a voice resting in this bar: no FFT
     # Zero-padded to a power of two: a bar is an arbitrary number of samples,
     # and an FFT of an awkward length is many times slower for the same answer.
     size = 1 << int(math.ceil(math.log2(len(seg))))
-    w = _a_weight(np.fft.rfftfreq(size, 1.0 / SR)) if weighted else 1.0
+    w = _a_weights(size) if weighted else 1.0
     power = 0.0
     for ch in range(seg.shape[1]):
         spec = np.abs(np.fft.rfft(seg[:, ch], size)) ** 2
@@ -377,7 +416,7 @@ def roughness(mono, frame: int = 8192, peaks: int = 32) -> float:
     """
     if len(mono) < frame:
         return 0.0
-    window = np.hanning(frame)
+    window, _ = _hann(frame)
     freqs = np.fft.rfftfreq(frame, 1.0 / SR)
     values = []
     for start in range(0, len(mono) - frame + 1, frame // 2):
@@ -405,7 +444,7 @@ def _note_level(stem_mono, freq: float, start: int, length: int) -> float | None
     seg = stem_mono[start:start + length]
     if len(seg) < 256:
         return None
-    window = np.hanning(len(seg))
+    window, window_power = _hann(len(seg))
     size = max(4096, 1 << int(math.ceil(math.log2(len(seg)))))
     spec = np.abs(np.fft.rfft(seg * window, size)) ** 2
     res = SR / size
@@ -417,7 +456,7 @@ def _note_level(stem_mono, freq: float, start: int, length: int) -> float | None
         if centre + half >= len(spec):
             break
         power += float(spec[max(1, centre - half):centre + half + 1].sum())
-    return _db(power / float((window ** 2).sum()) / size + 1e-16)
+    return _db(power / window_power / size + 1e-16)
 
 
 # --------------------------------------------------------------------------
@@ -472,7 +511,7 @@ def hear(piece: Piece, rend: Render | None = None, *, source: str = "models",
     r = rend if rend is not None else render(piece)
     parts, through = stems(piece, r, source=source, soundfont=soundfont)
     to_sec = audio._tick_seconds(piece)
-    doubles = followers(piece)
+    doubles, kinds = followers(piece), op_kinds(piece)
     mix = sum(parts.values()) if parts else np.zeros((1, 2))
     # Roughness is judged on the pitched voices: a cymbal is all roughness by
     # this measure, and that says nothing about the harmony.
@@ -486,15 +525,15 @@ def hear(piece: Piece, rend: Render | None = None, *, source: str = "models",
         hi_t = piece.tick_of(bar + 1) if bar < count else piece.total_ticks
         lo, hi = int(to_sec(lo_t) * SR), int(to_sec(hi_t) * SR)
         seg = mix[lo:hi]
-        mono = seg.mean(axis=1) if len(seg) else np.zeros(1)
+        mono = _mono(seg) if len(seg) else np.zeros(1)
         whole = _loudness(seg)
         b = BarHeard(bar, _db(whole), _centroid(mono) if len(mono) > 64 else 0.0,
-                     roughness(tuned[lo:hi].mean(axis=1)) if hi > lo else 0.0)
+                     roughness(_mono(tuned[lo:hi])) if hi > lo else 0.0)
         power = {name: _loudness(stem[lo:hi]) for name, stem in parts.items()}
         # A voice 60 dB under the mix is the tail of a note from the bar before.
         power = {name: p for name, p in power.items() if p > whole * 1e-6}
         b.voices = {name: _db(p) for name, p in power.items()}
-        b.tune, group = tune_at(piece, r.notes, lo_t - EARLY, hi_t - EARLY, doubles)
+        b.tune, group = tune_at(piece, r.notes, lo_t - EARLY, hi_t - EARLY, doubles, kinds)
         b.group = tuple(sorted(group))
         if b.tune and b.tune in b.voices:
             mine = sum(power.get(v, 0.0) for v in group)
@@ -519,12 +558,16 @@ GAP_SECONDS, GAP_DB = 0.3, 40.0
 
 def _character(piece: Piece, r: Render, parts) -> dict[str, dict]:
     out: dict[str, dict] = {}
+    scratch = None
     for v in piece.voices:
         stem = parts.get(v.name)
         if stem is None or not len(stem):
             continue
-        mid, side = stem.mean(axis=1), (stem[:, 0] - stem[:, 1]) * 0.5
-        power = float(np.mean(mid ** 2))
+        mid, side = _mono(stem), stem[:, 0] - stem[:, 1]
+        side *= 0.5
+        if scratch is None or len(scratch) != len(mid):
+            scratch = np.empty(len(mid))
+        power = _mean_square(mid, scratch)
         if power < 1e-12:
             continue
         # Whole half-second frames, the louder half of them: picking loud
@@ -551,10 +594,11 @@ def _character(piece: Piece, r: Render, parts) -> dict[str, dict]:
             else:
                 run, at, first_vel = 1, b.start, b.velocity
         vels = [n.velocity for n in notes]
+        side_power = _mean_square(side, scratch)
         out[v.name] = {
             "centroid": sound["centroid"], "above4k": sound["above4k"],
             "below100": sound["below100"],
-            "width": float(np.mean(side ** 2)) / (power + float(np.mean(side ** 2))),
+            "width": side_power / (power + side_power),
             "vel_spread": float(np.std(vels)) if len(vels) > 1 else 0.0,
             "notes": len(notes), "run": best,
             "run_bar": piece.position_of(where)[0] if notes else 0,
@@ -567,7 +611,7 @@ def _gaps(piece: Piece, r: Render, mix, to_sec) -> list[tuple[int, float, float,
     if not r.notes or not len(mix):
         return []
     hop = 441                                           # 10 ms
-    mono = mix.mean(axis=1)
+    mono = _mono(mix)
     n = len(mono) // hop
     level = np.sqrt(np.mean(mono[:n * hop].reshape(n, hop) ** 2, axis=1) + 1e-20)
     first = int(to_sec(min(x.start for x in r.notes)) * SR / hop)
@@ -635,7 +679,7 @@ def _weak_notes(piece: Piece, r: Render, parts, to_sec) -> tuple[list[WeakNote],
                 silenced.setdefault(v.name, []).append(
                     (piece.tick_of(op.params["from"]), piece.tick_of(op.params["until"])))
     for name, stem in parts.items():
-        mono = stem.mean(axis=1)
+        mono = _mono(stem)
         rows = []
         for n in r.notes:
             if n.voice != name or n.percussive:
@@ -759,20 +803,6 @@ def reading(h: Heard) -> list[str]:
     return out
 
 
-def _runs(bars: list[int]) -> str:
-    """``[3, 4, 5, 9]`` -> ``'3-5, 9'``."""
-    out, start, prev = [], None, None
-    for b in bars + [None]:
-        if start is None:
-            start = prev = b
-        elif b is not None and b == prev + 1:
-            prev = b
-        else:
-            out.append(str(start) if start == prev else f"{start}-{prev}")
-            start = prev = b
-    return ", ".join(out)
-
-
 def _reading_character(h: Heard) -> list[str]:
     """What a listener would say first and no score view can: one thing far
     too loud, a note repeated like a machine, a hole, a voice that is all top
@@ -799,7 +829,7 @@ def _reading_character(h: Heard) -> list[str]:
     for voice, hits in over.items():
         worst = max(d for _, d in hits)
         out.append(f"{voice} ({role.get(voice)}) alone is up to {worst:.0f} dB louder "
-                   f"than everything else together in bar {_runs([b for b, _ in hits])}")
+                   f"than everything else together in bar {_spans([b for b, _ in hits])}")
     for voice, c in h.character.items():
         if c["run"] >= SAME_NOTE_RUN:
             kind = ("a sampled instrument, so one recording that many times"
@@ -997,7 +1027,8 @@ def match(piece: Piece, reference: str | Path, *, slices: int = 10,
     ref = np.asarray(decode_audio(reference, SR), dtype=np.float64)
     # The mastered mix, as `save_wav` writes it: the limiter and any clipping
     # are part of what is heard, and of the crest and the top of the spectrum.
-    left, right = audio.synthesize(piece)
+    rend = render(piece)                   # once, for the mix and for the stems
+    left, right = audio.synthesize(piece, rend)
     how = piece.meta.get("master") or {}
     left, right = audio._master(
         np.asarray(left), np.asarray(right),
@@ -1005,7 +1036,7 @@ def match(piece: Piece, reference: str | Path, *, slices: int = 10,
         clip=float(how.get("clip", 0.0)))
     mine = (np.asarray(left) + np.asarray(right)) * 0.5
     to_sec = audio._tick_seconds(piece)
-    len_m, len_r = len(mine) / SR, len(ref) / SR
+    len_r = len(ref) / SR
     # The render carries a tail of reverb; the music ends where the form does.
     end_m = to_sec(piece.total_ticks)
     quiet = np.where(np.abs(ref) > 10 ** (-50 / 20) * (np.abs(ref).max() or 1.0))[0]
@@ -1028,24 +1059,31 @@ def match(piece: Piece, reference: str | Path, *, slices: int = 10,
             rows.append((name, a, pm, pr))
     # Which voice holds each band in each stretch, from the dry stems: a
     # difference is only useful with the name of the line that makes it.
-    parts, _ = stems(piece)
+    parts, _ = stems(piece, rend)
     span_of = {name: (int(a * SR), int(b * SR)) for name, a, b, _, _ in spans}
     shaping = ("gain", "eq", "filter", "dynamics", "drive", "compress", "crush")
     tick_of = {name: (_tick_at(piece, to_sec, a), _tick_at(piece, to_sec, b))
                for name, a, b, _, _ in spans}
 
-    def holder(span: str, band: int) -> str:
+    @functools.cache
+    def band_energy(span: str) -> dict[str, list[float]]:
+        """Each voice's energy in every band over one stretch. Several
+        findings name the same stretch, and its spectra are the cost."""
         lo, hi = span_of[span]
-        a, b, _ = MATCH_BANDS[band]
-        share: dict[str, float] = {}
+        energy: dict[str, list[float]] = {}
         for voice, stem in parts.items():
-            seg = stem[lo:hi].mean(axis=1)
+            seg = _mono(stem[lo:hi])
             if len(seg) < 4096:
                 continue
             size = 1 << int(math.ceil(math.log2(len(seg))))
             spec = np.abs(np.fft.rfft(seg, size)) ** 2
             f = np.fft.rfftfreq(size, 1.0 / SR)
-            share[voice] = float(spec[(f >= a) & (f < b)].sum())
+            energy[voice] = [float(spec[(f >= a) & (f < b)].sum())
+                             for a, b, _ in MATCH_BANDS]
+        return energy
+
+    def holder(span: str, band: int) -> str:
+        share = {voice: bands[band] for voice, bands in band_energy(span).items()}
         total = sum(share.values())
         if total <= 0:
             return ""
@@ -1175,12 +1213,11 @@ def _grid_raw(x, piece: Piece, to_sec, first: int, last: int, lo: float, hi: flo
     return acc / max(1, count)
 
 
-def _grid(x, piece: Piece, to_sec, first: int, last: int, lo: float, hi: float,
-          top: float | None = None) -> str:
-    """The grid as marks. ``top`` is the strength that counts as loudest --
-    the track's own strongest section -- so a section where the hats have
-    all but gone shows as dots, not as a pattern scaled back up to full."""
-    acc = _grid_raw(x, piece, to_sec, first, last, lo, hi)
+def _grid_marks(acc, top: float | None = None) -> str:
+    """A grid from ``_grid_raw`` as marks. ``top`` is the strength that counts
+    as loudest -- the track's own strongest section -- so a section where the
+    hats have all but gone shows as dots, not as a pattern scaled back up to
+    full."""
     top = top or float(acc.max())
     if top <= 0 or float(acc.max()) <= 0:
         return ""
@@ -1225,8 +1262,9 @@ def _stem_sound(x) -> dict:
     if level[keep].max() <= 0:
         return {}
     acc = None
+    window, _ = _hann(hop)
     for k in keep[:240]:
-        spec = np.abs(np.fft.rfft(x[k * hop:(k + 1) * hop] * np.hanning(hop))) ** 2
+        spec = np.abs(np.fft.rfft(x[k * hop:(k + 1) * hop] * window)) ** 2
         acc = spec if acc is None else acc + spec
     f = np.fft.rfftfreq(hop, 1.0 / SR)
     total = float(acc.sum()) or 1e-20
@@ -1390,11 +1428,15 @@ def _match_stems(piece: Piece, parts, folder: Path, spans, to_sec, same_form: bo
         out += ["", "  drums on a sixteenth grid, two bars, each track against its own "
                     "loudest section (X loudest; the low band for the kick, the top band "
                     "for hats and cymbals)"]
-        scale = {(who, lo): max((_grid_raw(x, piece, to_sec, first, first + sec.bars, lo, hi)
-                                 .max() for sec, first, _ in piece.section_bounds()
-                                 if sec.bars >= 4), default=0.0)
-                 for who, x in (("m", mine["drums"]), ("r", ref["drums"]))
-                 for lo, hi in ((30.0, 110.0), (6000.0, 14000.0))}
+        # Every section's grid is needed twice: once to find the track's
+        # strongest, once to draw it against that.
+        raw = {(who, lo, first): _grid_raw(x, piece, to_sec, first, first + sec.bars, lo, hi)
+               for who, x in (("m", mine["drums"]), ("r", ref["drums"]))
+               for lo, hi in ((30.0, 110.0), (6000.0, 14000.0))
+               for sec, first, _ in piece.section_bounds() if sec.bars >= 4}
+        scale = {(who, lo): max((acc.max() for (w, l, _), acc in raw.items()
+                                 if (w, l) == (who, lo)), default=0.0)
+                 for who in ("m", "r") for lo in (30.0, 6000.0)}
         for k, (sec, first, _) in enumerate(piece.section_bounds()):
             if sec.bars < 4:
                 continue
@@ -1403,10 +1445,8 @@ def _match_stems(piece: Piece, parts, folder: Path, spans, to_sec, same_form: bo
             there_m = table["m"]["drums"][k] is not None
             there_r = table["r"]["drums"][k] is not None
             for band, lo, hi in (("kick", 30.0, 110.0), ("top", 6000.0, 14000.0)):
-                m = _grid(mine["drums"], piece, to_sec, first, first + sec.bars, lo, hi,
-                          scale[("m", lo)]) if there_m else ""
-                r = _grid(ref["drums"], piece, to_sec, first, first + sec.bars, lo, hi,
-                          scale[("r", lo)]) if there_r else ""
+                m = _grid_marks(raw[("m", lo, first)], scale[("m", lo)]) if there_m else ""
+                r = _grid_marks(raw[("r", lo, first)], scale[("r", lo)]) if there_r else ""
                 if m or r:
                     out.append(f"  {sec.name[:9]:<10}{band:<5} piece {m or '(none)':<34} "
                                f"reference {r or '(none)'}")

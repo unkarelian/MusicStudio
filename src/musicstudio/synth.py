@@ -80,11 +80,61 @@ def _table(amps: np.ndarray, normalize: bool = True) -> np.ndarray:
     return np.append(tab, tab[0])
 
 
-def _osc(tab: np.ndarray, cycles: np.ndarray) -> np.ndarray:
-    pos = (cycles - np.floor(cycles)) * TABLE
+# A note is tens of thousands of samples, and every temporary that long is
+# memory the allocator has to find and give back. So the per-sample code in
+# this module works in place on arrays it owns (``x *= a``,
+# ``np.exp(x, out=x)``) where a plain expression would make three or four
+# temporaries: measured on real pieces, that is a tenth to a third of a
+# sustained note and more of a long one. It is the same operations on the
+# same operands in the same order, so the samples are bit for bit what the
+# plain expression gives -- and it has to stay that way. Re-associating a
+# product to save a pass (``a * (b * c)`` for ``a * b * c``) changes the last
+# bit of a render.
+
+def _decay(t: np.ndarray, tau: float) -> np.ndarray:
+    """``exp(-t / tau)``: what a struck, released or settling thing does."""
+    out = t / -tau
+    np.exp(out, out=out)
+    return out
+
+
+def _phase(cycles: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Where in a table each sample reads: ``(index, fraction to the next)``."""
+    pos = cycles - np.floor(cycles)
+    pos *= TABLE
     i = pos.astype(np.int64)
-    frac = pos - i
-    return tab[i] + (tab[i + 1] - tab[i]) * frac
+    pos -= i
+    return i, pos
+
+
+def _read(tab: np.ndarray, i: np.ndarray, frac: np.ndarray) -> np.ndarray:
+    """A table read at ``_phase`` positions; two tables can share one phase."""
+    lo = tab.take(i)
+    step = tab.take(i + 1)
+    step -= lo
+    # Not in place: the synth's stacks are float32, and so is the step between
+    # two of their samples, but its product with ``frac`` is a double.
+    out = step * frac
+    out += lo
+    return out
+
+
+def _osc(tab: np.ndarray, cycles: np.ndarray) -> np.ndarray:
+    return _read(tab, *_phase(cycles))
+
+
+def _cycles(cents: np.ndarray, f0: float, phase: float) -> np.ndarray:
+    """The running phase, in cycles, of a tone ``cents`` away from ``f0``.
+
+    Uses ``cents`` up: the result is written over it.
+    """
+    cents /= 1200.0
+    np.power(2.0, cents, out=cents)
+    cents *= f0
+    np.cumsum(cents, out=cents)
+    cents /= SR
+    cents += phase
+    return cents
 
 
 def _harmonics(f0: float) -> np.ndarray:
@@ -848,6 +898,14 @@ def _amp(ctx: NoteCtx, level: float) -> float:
     return LEVEL * level * ctx.vel ** 1.3
 
 
+def _release(env: np.ndarray, r0: int) -> None:
+    """Let go from sample ``r0``: a straight fade to the end, squared."""
+    n = len(env)
+    if n > r0:
+        rel = 1.0 - np.arange(n - r0) / max(1, n - r0)
+        env[r0:] *= rel * rel
+
+
 def _sustained_tables(name: str, m: Sustained, pitch: int, f0: float):
     # Keyed by the frequency the table is built from, not only by the
     # written pitch: a re-tuned note must not get, or leave behind, the table
@@ -885,37 +943,63 @@ def _sustained(ctx: NoteCtx, m: Sustained, limit: int) -> list[tuple[np.ndarray,
     k = min(n, int(att * SR))
     if k > 1:
         env[:k] = 0.5 - 0.5 * np.cos(np.pi * np.arange(k) / k)
-    env *= m.settle + (1.0 - m.settle) * np.exp(-t / 0.4)
-    r0 = min(n, int(ctx.dur * SR))
-    if n > r0:
-        rel = 1.0 - np.arange(n - r0) / max(1, n - r0)
-        env[r0:] *= rel * rel
+    settle = _decay(t, 0.4)
+    settle *= 1.0 - m.settle
+    settle += m.settle
+    env *= settle
+    _release(env, min(n, int(ctx.dur * SR)))
     # Upper partials arrive late and leave early.
-    bloom = (1.0 - np.exp(-t / max(0.005, m.bloom))) * env
-    mix = np.clip(v ** 1.4 * 1.15 * bloom, 0.0, 1.0)
+    mix = _decay(t, max(0.005, m.bloom))
+    np.subtract(1.0, mix, out=mix)
+    mix *= env
+    mix *= v ** 1.4 * 1.15
+    np.clip(mix, 0.0, 1.0, out=mix)
+
+    # What every player of a section shares is worked out once, not once each:
+    # the slide into the note (or the scoop up to it) and the breath's contour.
+    slide = scoop = breath = None
+    if legato_in and m.glide:
+        slide = _decay(t, m.glide / 2.5)
+        slide *= (ctx.slur_from - ctx.pitch) * 100.0
+    elif m.scoop:
+        scoop = _decay(t, 0.035)
+        scoop *= m.scoop * (0.5 + v)
+    if m.noise or m.chiff:
+        breath = _decay(t, 0.045)
+        breath *= 0.0 if legato_in else m.chiff
+        breath += m.noise
 
     layers: list[tuple[np.ndarray, float]] = []
     count = max(1, m.unison)
     for u in range(count):
         rng = _rng(*ctx.key, u)
-        cents = m.drift * _wander(t, rng)
+        cents = _wander(t, rng)
+        cents *= m.drift
         if count > 1:
             cents += m.detune * (2 * u / (count - 1) - 1) * rng.uniform(0.7, 1.0)
         vib = None
         if m.vib_depth and ctx.dur > 0.3:
             rate = m.vib_rate * rng.uniform(0.93, 1.07)
             depth = m.vib_depth * (0.55 + 0.6 * v) * rng.uniform(0.8, 1.15)
-            fade = np.clip((t - m.vib_delay * rng.uniform(0.8, 1.3)) / 0.45, 0.0, 1.0)
-            vib = fade * np.sin(2 * np.pi * rate * t + rng.uniform(0, 2 * np.pi)
-                                + 0.6 * _wander(t, rng, (0.4, 0.9)))
-            cents = cents + depth * vib
-        if legato_in and m.glide:
-            cents = cents + (ctx.slur_from - ctx.pitch) * 100.0 * np.exp(-t / (m.glide / 2.5))
-        elif m.scoop:
-            cents = cents - m.scoop * (0.5 + v) * np.exp(-t / 0.035)
-        cycles = np.cumsum(f0 * 2.0 ** (cents / 1200.0)) / SR + rng.uniform(0, 1)
-        sig = _osc(dark, cycles)
-        sig += (_osc(bright, cycles) - sig) * mix
+            fade = t - m.vib_delay * rng.uniform(0.8, 1.3)
+            fade /= 0.45
+            np.clip(fade, 0.0, 1.0, out=fade)
+            vib = 2 * np.pi * rate * t
+            vib += rng.uniform(0, 2 * np.pi)
+            vib += 0.6 * _wander(t, rng, (0.4, 0.9))
+            np.sin(vib, out=vib)
+            vib *= fade
+            cents += depth * vib
+        if slide is not None:
+            cents += slide
+        elif scoop is not None:
+            cents -= scoop
+        i, frac = _phase(_cycles(cents, f0, rng.uniform(0, 1)))
+        sig = _read(dark, i, frac)
+        upper = _read(bright, i, frac)
+        upper -= sig
+        upper *= mix
+        sig += upper
         amp = env.copy()
         if vib is not None and m.vib_am:
             amp *= 1.0 + m.vib_am * vib
@@ -923,13 +1007,16 @@ def _sustained(ctx: NoteCtx, m: Sustained, limit: int) -> list[tuple[np.ndarray,
             trem = np.sin(2 * np.pi * rng.uniform(10.5, 13.0) * t + rng.uniform(0, 2 * np.pi))
             amp *= 1.0 - m.tremolo * (0.5 + 0.5 * trem)
         amp *= 1.0 + 0.04 * _wander(t, rng, (2.3, 5.1, 7.7))
-        sig *= amp * m.tone
-        if m.noise or m.chiff:
-            hiss = _noise_slice(_noise(ctx.instrument, *m.noise_band), n, rng)
-            onset = 0.0 if legato_in else m.chiff
-            sig += hiss * env * (m.noise + onset * np.exp(-t / 0.045)) * (0.6 + 0.6 * v)
+        amp *= m.tone
+        sig *= amp
+        if breath is not None:
+            hiss = _noise_slice(_noise(ctx.instrument, *m.noise_band), n, rng) * env
+            hiss *= breath
+            hiss *= 0.6 + 0.6 * v
+            sig += hiss
         pan = m.spread * (2 * u / (count - 1) - 1) if count > 1 else 0.0
-        layers.append((sig * (_amp(ctx, m.level) / math.sqrt(count)), pan))
+        sig *= _amp(ctx, m.level) / math.sqrt(count)
+        layers.append((sig, pan))
     return layers
 
 
@@ -948,7 +1035,7 @@ def _acid(ctx: NoteCtx, m: Acid, limit: int) -> np.ndarray:
     v = ctx.vel
     f = np.full(n, ctx.freq)
     if slid and m.glide:
-        f = f * 2.0 ** ((ctx.slur_from - ctx.pitch) / 12.0 * np.exp(-t / (m.glide / 2.5)))
+        f = f * 2.0 ** ((ctx.slur_from - ctx.pitch) / 12.0 * _decay(t, m.glide / 2.5))
     phase = np.cumsum(f) / SR + rng.uniform(0, 1)
 
     # Velocity is the envelope's depth and its speed, and a little resonance.
@@ -956,7 +1043,7 @@ def _acid(ctx: NoteCtx, m: Acid, limit: int) -> np.ndarray:
     # left of the last one, which is why a slide sounds like one long vowel.
     depth = m.sweep * (0.1 + 0.9 * v ** 1.6) * (0.4 if slid else 1.0)
     fall = m.decay * (1.3 - 0.75 * v)
-    fc = m.cutoff * 2.0 ** (m.open * v ** 1.5 + depth * np.exp(-t / fall))
+    fc = m.cutoff * 2.0 ** (m.open * v ** 1.5 + depth * _decay(t, fall))
     # The filter does not follow the keyboard, but it is never shut on the
     # note itself: a line that climbs two octaves must not climb into silence.
     fc = np.maximum(fc, 1.2 * f)
@@ -970,23 +1057,36 @@ def _acid(ctx: NoteCtx, m: Acid, limit: int) -> np.ndarray:
     for a in range(0, len(ks), 24):
         k = ks[a:a + 24, None]
         hz = k * f[None, :]
-        x2 = (hz / fc[None, :]) ** 2
-        gain = 1.0 / np.sqrt(((1.0 - x2) ** 2 + x2 / (q * q)) * (1.0 + x2))
-        gain = np.where(hz < CEILING, gain, 0.0) / k
-        out += np.sum(gain * np.sin(2 * np.pi * k * phase[None, :]), axis=0)
+        x2 = hz / fc[None, :]
+        np.square(x2, out=x2)
+        # gain = 1 / sqrt(((1 - x2)^2 + x2 / q^2) * (1 + x2)), then 1/k for
+        # the wave and nothing at all above the ceiling.
+        gain = 1.0 - x2
+        np.square(gain, out=gain)
+        gain += x2 / (q * q)
+        x2 += 1.0
+        gain *= x2
+        np.sqrt(gain, out=gain)
+        np.divide(1.0, gain, out=gain)
+        gain[hz >= CEILING] = 0.0
+        gain /= k
+        wave = 2 * np.pi * k * phase[None, :]
+        np.sin(wave, out=wave)
+        gain *= wave
+        out += np.sum(gain, axis=0)
     # The peak is tamed, not removed: a resonant filter is louder, but q of 9
     # must not be 19 dB louder.
     out /= 0.9 * math.sqrt(1.0 + (q / 3.0) ** 2)
 
-    env = np.exp(-t / 1.5)
+    env = _decay(t, 1.5)
     k = min(n, int((0.02 if slid else 0.003) * SR))
     if k > 1:
         env[:k] *= np.arange(k) / k
-    r0 = min(n, int(ctx.dur * SR))
-    if n > r0:
-        rel = 1.0 - np.arange(n - r0) / max(1, n - r0)
-        env[r0:] *= rel * rel
-    return out * env * (LEVEL * m.level * (0.3 + 0.8 * v)) * 1.25
+    _release(env, min(n, int(ctx.dur * SR)))
+    out *= env
+    out *= LEVEL * m.level * (0.3 + 0.8 * v)
+    out *= 1.25
+    return out
 
 
 # -- the subtractive synth -------------------------------------------------
@@ -1031,15 +1131,23 @@ def _synth_stack(wave: str, q: float, poles: int, f0: float) -> np.ndarray:
 
 
 def _stack_osc(stack: np.ndarray, cycles: np.ndarray, row: np.ndarray) -> np.ndarray:
-    pos = (cycles - np.floor(cycles)) * TABLE
-    i = pos.astype(np.int64)
-    frac = pos - i
-    r = np.clip(row, 0.0, len(stack) - 1.001)
-    j = r.astype(np.int64)
-    mix = r - j
-    lo = stack[j, i] + (stack[j, i + 1] - stack[j, i]) * frac
-    hi = stack[j + 1, i] + (stack[j + 1, i + 1] - stack[j + 1, i]) * frac
-    return lo + (hi - lo) * mix
+    i, frac = _phase(cycles)
+    mix = np.clip(row, 0.0, len(stack) - 1.001)
+    j = mix.astype(np.int64)
+    mix -= j
+    # One index into the stack laid end to end: the next sample is one on,
+    # the next table a whole table on. (Reading it as ``stack[j, i]`` four
+    # times was most of the cost of a synth note.)
+    flat = stack.reshape(-1)
+    j *= stack.shape[1]
+    j += i
+    lo = _read(flat, j, frac)
+    j += stack.shape[1]
+    hi = _read(flat, j, frac)
+    hi -= lo
+    hi *= mix
+    hi += lo
+    return hi
 
 
 def _adsr(t: np.ndarray, dur: float, attack: float, decay: float, sustain: float,
@@ -1077,9 +1185,9 @@ def _synth(ctx: NoteCtx, m: Synth, limit: int) -> list[tuple[np.ndarray, float]]
     # Pitch, in cents away from the note, shared by the unison.
     cents = np.zeros(n)
     if slid and m.glide:
-        cents += (ctx.slur_from - ctx.pitch) * 100.0 * np.exp(-t / (m.glide / 2.5))
+        cents += (ctx.slur_from - ctx.pitch) * 100.0 * _decay(t, m.glide / 2.5)
     elif m.bend:
-        cents += m.bend * 100.0 * np.exp(-t / (m.bend_time / 2.5))
+        cents += m.bend * 100.0 * _decay(t, m.bend_time / 2.5)
     if lfo is not None and m.lfo_pitch:
         cents += m.lfo_pitch * lfo
 
@@ -1123,21 +1231,37 @@ def _synth(ctx: NoteCtx, m: Synth, limit: int) -> list[tuple[np.ndarray, float]]
     layers: list[tuple[np.ndarray, float]] = []
     for u in range(count):
         rng = _rng(*ctx.key, "u", u)
-        c = cents + m.drift * _wander(t, rng)
+        f = _wander(t, rng)
+        f *= m.drift
+        f += cents
         if count > 1:
-            c = c + m.detune * (u / (count - 1) - 0.5) * rng.uniform(0.85, 1.0)
-        f = f0 * 2.0 ** (c / 1200.0)
-        cycles = np.cumsum(f) / SR + rng.uniform(0, 1)
-        row = _STACK_STEP * np.log2(np.maximum(fc / f, _STACK_LOW) / _STACK_LOW)
+            f += m.detune * (u / (count - 1) - 0.5) * rng.uniform(0.85, 1.0)
+        # Cents become the frequency at each sample: the phase is its running
+        # sum, and how far up the stack to read is the cutoff over it.
+        f /= 1200.0
+        np.power(2.0, f, out=f)
+        f *= f0
+        cycles = np.cumsum(f)
+        cycles /= SR
+        cycles += rng.uniform(0, 1)
+        row = np.divide(fc, f, out=f)
+        np.maximum(row, _STACK_LOW, out=row)
+        row /= _STACK_LOW
+        np.log2(row, out=row)
+        row *= _STACK_STEP
         sig = _stack_osc(stack, cycles, row)
         if pulse:
             # Two saws make a pulse of twice the height; 0.7 puts it level.
-            sig = (sig - _stack_osc(stack, cycles + width, row)) * 0.7
+            cycles += width
+            sig -= _stack_osc(stack, cycles, row)
+            sig *= 0.7
         pan = m.spread * (2 * u / (count - 1) - 1) if count > 1 else 0.0
-        layers.append((sig * env * (trim * _amp(ctx, m.level) / math.sqrt(count)), pan))
+        sig *= env
+        sig *= trim * _amp(ctx, m.level) / math.sqrt(count)
+        layers.append((sig, pan))
     extra = np.zeros(n)
     if m.sub:
-        phase = np.cumsum(f0 * 0.5 * 2.0 ** (cents / 1200.0)) / SR + lead.uniform(0, 1)
+        phase = _cycles(cents.copy(), f0 * 0.5, lead.uniform(0, 1))
         extra += m.sub * math.sqrt(2.0) * np.sin(2 * np.pi * phase)
     if m.noise:
         extra += m.noise * _noise_slice(_noise(ctx.instrument, *m.noise_band), n, lead)
@@ -1163,8 +1287,7 @@ def _fm(ctx: NoteCtx, m: FM, limit: int) -> list[tuple[np.ndarray, float]]:
     if m.tremolo:
         env = env * (1.0 - m.tremolo * (0.5 + 0.5 * np.sin(2 * np.pi * m.tremolo_rate * t)))
     # The index is brightness. It is kept under what the sample rate can hold:
-    # sidebands reach about (index + 1) modulator-widths above the carrier.
-    # Sidebands reach about (index + 1) modulator-widths above the carrier, and
+    # sidebands reach about (index + 1) modulator-widths above the carrier, and
     # two modulators' reaches add: they share one budget.
     want = m.index * (1.0 - m.vel_index + m.vel_index * v ** 1.5)
     want2 = m.index2 * (0.4 + 0.6 * v) if m.mod2 and m.index2 else 0.0
@@ -1173,32 +1296,41 @@ def _fm(ctx: NoteCtx, m: FM, limit: int) -> list[tuple[np.ndarray, float]]:
     squeeze = min(1.0, budget / span) if span > 0 else 1.0
     peak = max(0.0, (want + 1.0) * squeeze - 1.0)
     peak2 = max(0.0, (want2 + 1.0) * squeeze - 1.0) if want2 else 0.0
-    shape = m.index_sustain + (1.0 - m.index_sustain) * np.exp(-t / max(0.004, m.index_decay / 3.0))
+    shape = m.index_sustain + (1.0 - m.index_sustain) * _decay(t, max(0.004, m.index_decay / 3.0))
     if m.index_attack > 0:
-        shape = shape * (1.0 - np.exp(-t / (m.index_attack / 3.0)))
+        shape = shape * (1.0 - _decay(t, m.index_attack / 3.0))
     index = peak * (m.index_sustain if slid else shape)
     cents = np.zeros(n)
     if slid and m.glide:
-        cents += (ctx.slur_from - ctx.pitch) * 100.0 * np.exp(-t / (m.glide / 2.5))
+        cents += (ctx.slur_from - ctx.pitch) * 100.0 * _decay(t, m.glide / 2.5)
     if m.vib_depth and ctx.dur > 0.3:
         cents += m.vib_depth * np.clip((t - 0.2) / 0.4, 0.0, 1.0) * np.sin(
             2 * np.pi * m.vib_rate * t + lead.uniform(0, 2 * np.pi))
+    index2 = None
+    if m.mod2 and m.index2:
+        index2 = peak2 * _decay(t, max(0.004, m.index2_decay / 3.0))
     layers: list[tuple[np.ndarray, float]] = []
     count = 2 if m.detune else 1
     for u in range(count):
         c = cents + (m.detune * (u - 0.5) if count > 1 else 0.0)
         # Phase follows the clock for struck sounds, as the bells' does: a key
         # struck again while it rings adds to itself instead of cancelling.
-        phase = np.cumsum(f0 * 2.0 ** (c / 1200.0)) / SR + (f0 * ctx.start) % 1.0
-        bend = index * np.sin(2 * np.pi * m.mod * phase)
-        if m.mod2 and m.index2:
-            bend = bend + (peak2
-                           * np.exp(-t / max(0.004, m.index2_decay / 3.0))
-                           * np.sin(2 * np.pi * m.mod2 * phase))
-        sig = np.sin(2 * np.pi * m.ratio * phase + bend)
+        phase = _cycles(c, f0, (f0 * ctx.start) % 1.0)
+        bend = 2 * np.pi * m.mod * phase
+        np.sin(bend, out=bend)
+        bend *= index
+        if index2 is not None:
+            metal = 2 * np.pi * m.mod2 * phase
+            np.sin(metal, out=metal)
+            metal *= index2
+            bend += metal
+        sig = 2 * np.pi * m.ratio * phase
+        sig += bend
+        np.sin(sig, out=sig)
         pan = m.spread * (2 * u - 1) if count > 1 else 0.0
-        layers.append((sig * env * (math.sqrt(2.0) * _amp(ctx, m.level) / math.sqrt(count)),
-                       pan))
+        sig *= env
+        sig *= math.sqrt(2.0) * _amp(ctx, m.level) / math.sqrt(count)
+        layers.append((sig, pan))
     return layers
 
 
@@ -1206,7 +1338,7 @@ _BANDS = (1, 2, 3, 4, 6, 8, 12, 16, 24, 40, 100000)
 
 
 def _plucked_tables(name: str, m: Plucked, pitch: int, f0: float, bucket: int):
-    """Band tables for a decaying string: ``[(table, mean harmonic, weight)]``."""
+    """Band tables for a decaying string: ``[(table, mean harmonic)]``."""
     key = ("plk", name, pitch, bucket, round(f0, 4))
     if key not in _tables:
         n = _harmonics(f0)
@@ -1248,12 +1380,17 @@ def _plucked(ctx: NoteCtx, m: Plucked, limit: int) -> np.ndarray:
         # No point computing a band after it has fallen 70 dB.
         k = min(n, int(8.0 / rate * SR) + 1)
         tb = t[:k]
-        env = np.exp(-rate * tb)
+        env = -rate * tb
+        np.exp(env, out=env)
         if m.two_stage:
-            env = m.two_stage * np.exp(-3.5 * rate * tb) + (1 - m.two_stage) * env
+            fast = -3.5 * rate * tb
+            np.exp(fast, out=fast)
+            fast *= m.two_stage
+            env *= 1 - m.two_stage
+            env += fast
         ratio = math.sqrt(1.0 + stiff * mean * mean)
         strings = m.strings if (m.strings > 1 and b < 4) else 1
-        part = np.zeros(k)
+        part = 0.0
         # One hammer strikes all the strings of a note at once, so they start
         # in phase and only then drift apart. Giving each its own random phase
         # let some notes begin cancelled and stay nearly silent for seconds --
@@ -1261,8 +1398,12 @@ def _plucked(ctx: NoteCtx, m: Plucked, limit: int) -> np.ndarray:
         phase = rng.uniform(0, 1)
         for s in range(strings):
             cents = 0.0 if strings == 1 else (s - (strings - 1) / 2) * rng.uniform(1.2, 2.4)
-            part += _osc(tab, f0 * ratio * 2 ** (cents / 1200.0) * tb + phase)
-        out[:k] += part * env / strings
+            cycles = f0 * ratio * 2 ** (cents / 1200.0) * tb
+            cycles += phase
+            part += _osc(tab, cycles)
+        part *= env
+        part /= strings
+        out[:k] += part
     # The attack is a couple of milliseconds, not zero: an instant onset clicks.
     k = min(n, int(0.0018 * SR))
     out[:k] *= np.arange(k) / k
@@ -1277,7 +1418,9 @@ def _plucked(ctx: NoteCtx, m: Plucked, limit: int) -> np.ndarray:
     r0 = min(n, int(ctx.dur * SR))
     if n > r0:
         out[r0:] *= np.exp(-np.arange(n - r0) / SR / (release / 4.5))
-    return out * _amp(ctx, m.level) * 1.05
+    out *= _amp(ctx, m.level)
+    out *= 1.05
+    return out
 
 
 def _bell(ctx: NoteCtx, m: Bell, limit: int) -> np.ndarray:
@@ -1292,21 +1435,29 @@ def _bell(ctx: NoteCtx, m: Bell, limit: int) -> np.ndarray:
     t = np.arange(n) / SR
     out = np.zeros(n)
     norm = math.sqrt(sum(a * a for _, a, _ in m.partials) / 2) or 1.0
-    bend = 2.0 ** (m.settle * np.exp(-t / 0.05) / 1200.0) if m.settle else None
+    bend = 2.0 ** (m.settle * _decay(t, 0.05) / 1200.0) if m.settle else None
     for i, (ratio, amp, life) in enumerate(m.partials):
         f = f0 * ratio
         if f > CEILING:
             continue
         k = min(n, int(8.0 * base * life * SR) + 1)
-        phase = (np.cumsum(f * bend[:k]) / SR if bend is not None else f * t[:k])
+        if bend is not None:
+            phase = np.cumsum(f * bend[:k])
+            phase /= SR
+        else:
+            phase = f * t[:k]
         # Phase follows the clock, not the note: a bar struck again while it
         # is still ringing then adds to itself. With a random phase per stroke
         # the second could cancel the first, and `hear` found repeated notes
         # that came out 14 dB down.
-        phase = phase + (f * ctx.start) % 1.0
+        phase += (f * ctx.start) % 1.0
+        phase *= 2 * np.pi
+        np.sin(phase, out=phase)
+        decay = _decay(t[:k], base * life)
         # A soft stroke excites the fundamental and little else.
-        out[:k] += (amp * v ** (0.45 * i) / norm * np.exp(-t[:k] / (base * life))
-                    * np.sin(2 * np.pi * phase))
+        decay *= amp * v ** (0.45 * i) / norm
+        decay *= phase
+        out[:k] += decay
     k = min(n, int(0.0012 * SR))
     out[:k] *= np.arange(k) / k
     if m.tremolo:
@@ -1323,7 +1474,8 @@ def _bell(ctx: NoteCtx, m: Bell, limit: int) -> np.ndarray:
         r0 = min(n, int(ctx.dur * SR))
         if n > r0:
             out[r0:] *= np.exp(-np.arange(n - r0) / SR / (m.release / 4.5))
-    return out * _amp(ctx, m.level) * 1.0
+    out *= _amp(ctx, m.level)
+    return out
 
 
 def _hit(kind: str, variant: int, flavour: str = "acoustic") -> np.ndarray:

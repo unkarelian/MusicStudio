@@ -53,12 +53,10 @@ voice the studio cannot run.
 from __future__ import annotations
 
 import json
-import math
 import re
 import shutil
 import wave
 import zipfile
-import zlib
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -656,7 +654,9 @@ def _unit(e: Entry):
     for PSOLA, and its landmarks as sample positions in it."""
     from .vocal import SR
     from .voicebank import FRAME, Unit, voicing
-    key = (str(e.path), e.path.stat().st_mtime_ns, e.offset, e.cutoff)
+    # Every field the landmarks are worked out from: an oto.ini edited while the
+    # server runs must not be answered from the entry as it was.
+    key = (str(e.path), e.path.stat().st_mtime_ns, e.offset, e.cutoff, e.pre, e.consonant)
     hit = _units.get(key)
     if hit is not None:
         return hit
@@ -681,51 +681,22 @@ def _unit(e: Entry):
     return got
 
 
-# --------------------------------------------------------------------------
-# singing a phrase
-# --------------------------------------------------------------------------
+def _japanese_events(bank: UtauBank, spans, lost: set | None) -> list[_Event]:
+    """What a bank of Japanese syllables sings for each note: any extra opening
+    consonants (borrowed from the front of other syllables), the syllable
+    itself on the beat, then what it closes on, in the end of its own note."""
 
-def render_phrase(sung, bank: UtauBank, singer, seed: int,
-                  lost: set | None = None) -> "tuple[np.ndarray, float]":
-    """Sing one phrase from the bank. Returns ``(samples, start time)``.
-    Syllables the bank has no recording for are added to ``lost``."""
-    from .vocal import SR
-    from .voicebank import LEVEL, VOWEL_RMS, _stretch, psola
-    rng = np.random.default_rng(seed)
-    t0 = max(0.0, sung[0].start - 0.6)
-    total = sung[-1].end - t0 + 0.5
-    n = int(total * SR)
-    out = np.zeros(n)
+    def bare(c: str, pitch: float) -> Entry | None:
+        for v in (_REST_VOWEL.get(c, "u"), "u", "a"):
+            if (c, v) in _KANA:
+                e = _lookup(bank, (c, v), "-", pitch, chained=False)
+                if e is not None and not _CHAIN_RE.match(e.alias) and e.pre > 0.012:
+                    return e
+        return None
 
-    # -- pitch: the score's, as every singer here has it -------------------------
-    t = np.arange(n) / SR + t0
-    midi = np.full(n, float(sung[0].pitch))
-    for i, s in enumerate(sung[1:], 1):
-        x = np.clip((t - (s.start - 0.012)) / (singer.glide / 4.0), -40.0, 40.0)
-        midi += (s.pitch - sung[i - 1].pitch) / (1.0 + np.exp(-x))
-    cents = -30.0 * np.exp(-np.maximum(t - sung[0].start, 0.0) / 0.05) * (t >= sung[0].start - 0.05)
-    for s in sung:
-        if s.end - s.start < 0.36:
-            continue
-        rate = singer.vibrato_rate * rng.uniform(0.95, 1.05)
-        rise = np.clip((t - s.start - 0.2) / 0.3, 0.0, 1.0) * (t < s.end)
-        cents += singer.vibrato * rise * np.sin(2 * np.pi * rate * (t - s.start)
-                                                + rng.uniform(0, 2 * np.pi))
-    f0 = 440.0 * 2.0 ** ((midi - 69.0) / 12.0 + cents / 1200.0)
-
-    # -- which recordings, and when ------------------------------------------------
-    # A held note (a melisma) is the syllable before it going on: one recording
-    # across both, with the pitch moving under it.
-    spans: list[list] = []
-    for s in sung:
-        if s.hold and spans and s.start - spans[-1][1] < 0.05:
-            spans[-1][1] = s.end
-        else:
-            spans.append([s, s.end])
-
-    events: list[_Event] = _english_events(bank, spans, lost) if bank.english else []
+    events: list[_Event] = []
     before = "-"
-    for j, (s, end) in enumerate([] if bank.english else spans):
+    for j, (s, end) in enumerate(spans):
         if j and s.start - spans[j - 1][1] > 0.12:
             before = "-"
         gain = (max(1, min(127, s.velocity)) / 127.0) ** 1.2
@@ -734,14 +705,6 @@ def render_phrase(sung, bank: UtauBank, singer, seed: int,
             # A phrase that begins on a held note: the vowel, from nothing.
             extra, key, tails, coda = [], ("", "a"), [], []
         length = end - s.start
-
-        def bare(c: str, pitch: float) -> Entry | None:
-            for v in (_REST_VOWEL.get(c, "u"), "u", "a"):
-                if (c, v) in _KANA:
-                    e = _lookup(bank, (c, v), "-", pitch, chained=False)
-                    if e is not None and not _CHAIN_RE.match(e.alias) and e.pre > 0.012:
-                        return e
-            return None
 
         openers = [e for e in (bare(c, s.pitch) for c in extra) if e is not None]
         main = _lookup(bank, key, "-" if openers else before, s.pitch)
@@ -779,15 +742,24 @@ def render_phrase(sung, bank: UtauBank, singer, seed: int,
             at += slots[len(tails) + k]
             prev = "-"
         before = prev
+    return events
 
-    # -- layout: each sound gives way as the next begins ------------------------------
+
+#: How much of a note stays vowel when the consonants sung between two beats
+#: want more of it than that (so they may take ``1 - KEEP``, 55%).
+KEEP = 0.45
+
+
+def _layout(events: list[_Event], t0: float) -> list[float]:
+    """When each event starts sounding, in seconds: each sound gives way as
+    the next begins. Fills in every event's ``on``, ``lead`` and ``ovl``."""
     # Lead-ins are sung ahead of the beat at the speed they were recorded; when
     # there is no room the lead-in is hurried, never the beat moved.
     # Everything sung between two beats -- what closes one syllable and what
     # opens the next -- is taken out of the first note, and may take at most
     # ``1 - KEEP`` of it: a note that is all consonants has no pitch and no
     # level. Past that the consonants are hurried, and then cut.
-    KEEP = 0.45
+    from .vocal import SR
     written = [ev.on for ev in events]
     free = [ev.bare or ev.whole for ev in events]
 
@@ -810,34 +782,70 @@ def render_phrase(sung, bank: UtauBank, singer, seed: int,
             at[i] = on - want[i]
         return at
 
-    if events:
-        want[0] = min(want[0], max(0.0, written[0] - t0))
-        starts = place()
-        mains = [i for i in range(len(events)) if not free[i]]
-        for k, a in enumerate(mains):
-            last = mains[k + 1] if k + 1 < len(mains) else len(events) - 1
-            if last <= a:
-                continue
-            c = a + 1                      # the run of sounds that follows this vowel
-            while c < last and starts[c + 1] <= written[c] + 1e-6:
-                c += 1
-            until, first = events[c].on, starts[a + 1]
-            floor = written[a] + KEEP * (until - written[a])
-            if first < floor and until - first > 1e-6:
-                squeeze = max(0.0, (until - floor) / (until - first))
-                for i in range(a + 1, c + 1):
-                    want[i] *= squeeze
-        starts = place()
-        for i, ev in enumerate(events):
-            ev.lead = want[i]
-            scale = want[i] / full[i] if full[i] > 1e-6 else 1.0
-            ev.ovl = max(0.008 if ev.whole else 0.004,
-                         min(ev.entry.overlap * scale, want[i] / 2.0 if ev.whole else want[i]))
-        # Sounds are sung one after another: none begins before the one before it.
-        for i in range(1, len(events)):
-            if starts[i] < starts[i - 1] + 0.008:
-                starts[i] = starts[i - 1] + 0.008
-                events[i].lead = max(0.0, events[i].on - starts[i])
+    if not events:
+        return []
+    want[0] = min(want[0], max(0.0, written[0] - t0))
+    starts = place()
+    mains = [i for i in range(len(events)) if not free[i]]
+    for k, a in enumerate(mains):
+        last = mains[k + 1] if k + 1 < len(mains) else len(events) - 1
+        if last <= a:
+            continue
+        c = a + 1                      # the run of sounds that follows this vowel
+        while c < last and starts[c + 1] <= written[c] + 1e-6:
+            c += 1
+        until, first = events[c].on, starts[a + 1]
+        floor = written[a] + KEEP * (until - written[a])
+        if first < floor and until - first > 1e-6:
+            squeeze = max(0.0, (until - floor) / (until - first))
+            for i in range(a + 1, c + 1):
+                want[i] *= squeeze
+    starts = place()
+    for i, ev in enumerate(events):
+        ev.lead = want[i]
+        scale = want[i] / full[i] if full[i] > 1e-6 else 1.0
+        ev.ovl = max(0.008 if ev.whole else 0.004,
+                     min(ev.entry.overlap * scale, want[i] / 2.0 if ev.whole else want[i]))
+    # Sounds are sung one after another: none begins before the one before it.
+    for i in range(1, len(events)):
+        if starts[i] < starts[i - 1] + 0.008:
+            starts[i] = starts[i - 1] + 0.008
+            events[i].lead = max(0.0, events[i].on - starts[i])
+    return starts
+
+
+# --------------------------------------------------------------------------
+# singing a phrase
+# --------------------------------------------------------------------------
+
+def render_phrase(sung, bank: UtauBank, singer, seed: int,
+                  lost: set | None = None) -> "tuple[np.ndarray, float]":
+    """Sing one phrase from the bank. Returns ``(samples, start time)``.
+    Syllables the bank has no recording for are added to ``lost``."""
+    from .vocal import SR, _pitch_line
+    from .voicebank import LEVEL, VOWEL_RMS, _stretch, psola
+    rng = np.random.default_rng(seed)
+    t0 = max(0.0, sung[0].start - 0.6)
+    total = sung[-1].end - t0 + 0.5
+    n = int(total * SR)
+    out = np.zeros(n)
+
+    # -- pitch: the score's, as every singer here has it -------------------------
+    f0 = _pitch_line(sung, singer, n, t0, rng, scoop=30.0)
+
+    # -- which recordings, and when ------------------------------------------------
+    # A held note (a melisma) is the syllable before it going on: one recording
+    # across both, with the pitch moving under it.
+    spans: list[list] = []
+    for s in sung:
+        if s.hold and spans and s.start - spans[-1][1] < 0.05:
+            spans[-1][1] = s.end
+        else:
+            spans.append([s, s.end])
+
+    events = (_english_events if bank.english else _japanese_events)(bank, spans, lost)
+    # -- layout: each sound gives way as the next begins ------------------------------
+    starts = _layout(events, t0)
 
     for i, ev in enumerate(events):
         unit, start, pre, fixed, end, level = _unit(ev.entry)
@@ -903,7 +911,7 @@ def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float], *,
     ``utau:<name>`` and whose bank is here. A bank that is not is left to the
     formant singer with a warning, or raises under ``strict``."""
     import warnings
-    from .vocal import SINGERS, SR, phrases, plan
+    from .vocal import SINGERS, _voice_stem
     out: dict[str, tuple] = {}
     for v in piece.voices:
         if v.muted or not is_utau(v.bank) or v.instrument not in SINGERS:
@@ -923,22 +931,15 @@ def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float], *,
                           stacklevel=2)
             continue
         singer = SINGERS[v.instrument]
-        mono = np.zeros(total)
         lost: set[str] = set()
-        for group in phrases(plan(mine, to_sec)):
-            seed = zlib.crc32(f"{v.name}|{group[0].start:.4f}|{group[0].pitch}".encode())
-            sig, t0 = render_phrase(group, bank, singer, seed, lost)
-            a = int(t0 * SR)
-            k = min(len(sig), total - a)
-            if k > 0:
-                mono[a:a + k] += sig[:k]
+        out[v.name] = _voice_stem(
+            v.name, mine, to_sec, total, pans.get(v.name, 0.0),
+            lambda group, seed, bank=bank, singer=singer, lost=lost:
+                render_phrase(group, bank, singer, seed, lost))
         if lost:
             warnings.warn(f"voice {v.name!r}: the UTAU bank {name!r} has no recording for "
                           f"{' '.join(sorted(lost))}; the nearest it has was sung instead",
                           stacklevel=2)
-        theta = (max(-1.0, min(1.0, pans.get(v.name, 0.0))) + 1.0) * math.pi / 4
-        out[v.name] = (mono * math.cos(theta) * math.sqrt(2),
-                       mono * math.sin(theta) * math.sqrt(2))
     return out
 
 

@@ -29,6 +29,7 @@ from .motif import TRANSFORMS, Motif, apply_transform
 from .readback import chart, diff, motif_map, score, squint, stats, voice_view
 from .render import Render, render
 from .style import STYLES, get_style
+from .theory import Key, parse_chord, parse_position
 
 
 @dataclass
@@ -44,6 +45,9 @@ class OpResult:
     #: syllable with no note). Not lint: nothing here is a judgement of the
     #: writing, only a statement that the piece is not sung as it is written.
     warnings: list[str] = field(default_factory=list)
+    #: The piece a `build` made, which only the score file names: a caller
+    #: that goes on to render it reads it here, not out of the message.
+    piece: str = ""
 
     def to_json(self) -> dict:
         return {"ok": self.ok, "op_id": self.op_id, "message": self.message,
@@ -68,6 +72,29 @@ HISTORY_DEPTH = 100
 #: A redo/undo entry meaning "the piece did not exist here" -- what lets a
 #: delete be undone, and the undo of a delete be redone.
 _TOMBSTONE = ""
+
+#: What `set_voice` may change, and what `build` compares to say a voice changed.
+_VOICE_FIELDS = ("instrument", "role", "octave", "dynamic", "muted", "pan", "engine",
+                 "bank")
+
+#: What `update_section` may change: a section's fields, not its name and not
+#: whatever else a `Section` happens to have an attribute called.
+_SECTION_FIELDS = ("bars", "meter", "tempo", "tempo_end", "key", "dynamic", "note")
+
+#: How many changes a build's "since the last build" line names before it counts.
+_CHANGES_SHOWN = 14
+
+#: What a verb raises when the request was wrong rather than the studio: the
+#: CLI and the MCP server both turn exactly these into one line of text.
+EXPECTED_ERRORS = (KeyError, ValueError, TypeError, IndexError, RuntimeError,
+                   ImportError, OSError)
+
+
+def error_text(exc: BaseException) -> str:
+    """An expected error as the sentence it was raised with. A ``KeyError``
+    prints as the repr of its argument, quotes and all, so its argument is
+    taken instead."""
+    return str(exc.args[0] if isinstance(exc, KeyError) and exc.args else exc)
 
 
 def _mutation(fn):
@@ -129,9 +156,7 @@ def _changes(old: Piece, new: Piece) -> list[str]:
         o = next((x for x in old.voices if x.name == v.name), None)
         if o is None:
             out.append(f"+voice {v.name}")
-        elif (o.instrument, o.role, o.octave, o.dynamic, o.pan, o.engine, o.bank,
-              o.muted) != (v.instrument, v.role, v.octave, v.dynamic, v.pan, v.engine,
-                           v.bank, v.muted):
+        elif any(getattr(o, f) != getattr(v, f) for f in _VOICE_FIELDS):
             out.append(f"voice {v.name}")
         else:
             # Order is meaning: a gain before a drive is not a gain after it.
@@ -144,6 +169,14 @@ def _changes(old: Piece, new: Piece) -> list[str]:
     if (old.meta.get("master") or {}) != (new.meta.get("master") or {}):
         out.append("the master")
     return out
+
+
+def _changes_line(changed: list[str]) -> str:
+    """`_changes` as one line: the first few by name, the rest as a count."""
+    if not changed:
+        return "nothing changed"
+    more = len(changed) - _CHANGES_SHOWN
+    return "; ".join(changed[:_CHANGES_SHOWN]) + (f"; +{more} more" if more > 0 else "")
 
 
 class Studio:
@@ -209,8 +242,7 @@ class Studio:
         if record and path.exists():
             old = path.read_text()
             if old != text:
-                self._push(piece.name, "undo", old)
-                self._clear(piece.name, "redo")
+                self._checkpoint(piece.name, old)
         path.parent.mkdir(parents=True, exist_ok=True)
         # Written beside the piece and renamed over it: a crash mid-write
         # leaves the old file whole instead of a truncated one.
@@ -245,6 +277,12 @@ class Studio:
         (d / f"{nxt:06d}.json").write_text(text)
         for old in have[: max(0, len(have) + 1 - HISTORY_DEPTH)]:
             old.unlink(missing_ok=True)
+
+    def _checkpoint(self, name: str, text: str) -> None:
+        """A new change: what was on disk can be undone to, and whatever had
+        been undone before it can no longer be redone."""
+        self._push(name, "undo", text)
+        self._clear(name, "redo")
 
     def _pop(self, name: str, which: str) -> str | None:
         have = self._entries(name, which)
@@ -301,6 +339,15 @@ class Studio:
                sections: list | None = None, overwrite: bool = False,
                loop: bool = False) -> Piece:
         """Start a piece. Give a form preset so it has a shape before it has notes."""
+        piece = self._new_piece(name, key=key, tempo=tempo, meter=meter, style=style,
+                                form=form, sections=sections, overwrite=overwrite, loop=loop)
+        self.save(piece)
+        return piece
+
+    def _new_piece(self, name: str, *, key: str, tempo: int, meter: str, style: str,
+                   form: str | None, sections: list | None, overwrite: bool,
+                   loop: bool = False) -> Piece:
+        """What `create` saves, before it is saved."""
         if self.path_for(name).exists() and not overwrite:
             raise FileExistsError(f"piece {name!r} already exists; pass overwrite=True")
         st = get_style(style)
@@ -314,8 +361,14 @@ class Studio:
                               else (entry, 8))
             # No per-section tempo: they inherit the piece, so retiming works.
             piece.sections.append(Section(str(sec_name), int(bars), meter))
-        self.save(piece)
         return piece
+
+    def describe_new(self, piece: Piece) -> str:
+        """What `create` made, as the CLI and the MCP server both report it."""
+        return (f"created {piece.name}: {piece.key.name}, q={piece.tempo}, {piece.meter}, "
+                f"style={piece.style}{', loop' if piece.loop else ''}\n"
+                f"sections: {[(s.name, s.bars) for s in piece.sections] or 'none yet'}\n"
+                f"file: {self.path_for(piece.name)}")
 
     # -- the score language ------------------------------------------------
 
@@ -334,15 +387,7 @@ class Studio:
         """
         from .score import compile_score
         if text is None:
-            if source is None:
-                raise ValueError("give a score file, or text=")
-            path = Path(source)
-            if not path.is_file():
-                named = self.scores_dir / f"{source}.ms"
-                if not named.is_file():
-                    raise FileNotFoundError(f"no score file {source!s} (nor {named})")
-                path = named
-            text = path.read_text()
+            text = self._score_file(source).read_text()
         piece = compile_score(text)
         r = render(piece)
         findings = lint(piece, r)
@@ -358,10 +403,21 @@ class Studio:
         message = (f"built {piece.name!r}: {piece.total_bars} bars, "
                    f"{len(piece.voices)} voices, {ops} ops")
         if before is not None:
-            message += ("\n  since the last build: " + ("; ".join(changed[:14])
-                        + (f"; +{len(changed) - 14} more" if len(changed) > 14 else "")
-                        if changed else "nothing changed"))
-        return OpResult(True, None, chart(piece), findings, message, list(r.warnings))
+            message += "\n  since the last build: " + _changes_line(changed)
+        return OpResult(True, None, chart(piece, r), findings, message, list(r.warnings),
+                        piece=piece.name)
+
+    def _score_file(self, source: str | Path | None) -> Path:
+        """The file `build` was pointed at: a path, or a name in ``scores/``."""
+        if source is None:
+            raise ValueError("give a score file, or text=")
+        path = Path(source)
+        if path.is_file():
+            return path
+        named = self.scores_dir / f"{source}.ms"
+        if not named.is_file():
+            raise FileNotFoundError(f"no score file {source!s} (nor {named})")
+        return named
 
     def source(self, name: str, *, write: bool = False) -> str:
         """A piece as score text. ``write`` puts it in ``scores/<name>.ms``,
@@ -378,8 +434,7 @@ class Studio:
         path = self.path_for(name)
         if not path.exists():
             raise KeyError(f"no piece {name!r} to delete")
-        self._push(name, "undo", path.read_text())
-        self._clear(name, "redo")
+        self._checkpoint(name, path.read_text())
         path.unlink()
         self._cache.pop(name, None)
 
@@ -407,7 +462,6 @@ class Studio:
             p.tempo = int(tempo)
             changed.append("tempo")
         if key is not None:
-            from .theory import Key, parse_chord
             p.key = Key.parse(key)
             for h in p.harmony:
                 parse_chord(h.chord, p.key_at(p.tick_of(h.at)))
@@ -417,11 +471,23 @@ class Studio:
             changed.append("loop")
         if not changed:
             raise ValueError("nothing to change; give key=, tempo=, style= or loop=")
-        res = self._result(p, None, f"updated {name!r}: {', '.join(changed)} -> "
-                                    f"{p.key.name}, q={p.tempo}, style={p.style}"
-                                    + (", loop" if p.loop else ""), quiet=True)
-        res.view = chart(p)
-        return res
+        return self._result(p, None, f"updated {name!r}: {', '.join(changed)} -> "
+                                     f"{p.key.name}, q={p.tempo}, style={p.style}"
+                                     + (", loop" if p.loop else ""),
+                            view=lambda r: chart(p, r))
+
+    @staticmethod
+    def soundfonts() -> dict:
+        """The SoundFonts: which are installed, what each is asked for by, which
+        instruments each plays, what its terms ask, and which one a whole-piece
+        sampled render uses when nothing chooses."""
+        from . import audio, soundfonts
+        out = soundfonts.listing()
+        try:
+            out["default"] = str(audio.find_soundfont())
+        except FileNotFoundError:
+            out["default"] = None
+        return out
 
     @staticmethod
     def singers() -> dict:
@@ -660,8 +726,10 @@ class Studio:
 
         ``reverb=None`` and ``models=None`` add the style's room and the
         instrument models if numpy is there. ``soundfont`` renders through
-        FluidSynth with sampled instruments instead: a path to an .sf2/.sf3, or
-        ``'auto'`` to use ``$MUSICSTUDIO_SOUNDFONT`` or one found on the system.
+        FluidSynth with sampled instruments instead: a bank's name (`ms
+        soundfont banks`), a path to an .sf2/.sf3, or ``'auto'`` for the piece's
+        own (``meta soundfont``), else ``$MUSICSTUDIO_SOUNDFONT``, else one
+        found on the system.
         """
         from .audio import save_wav, save_wav_soundfont
         p = self.get(name)
@@ -683,24 +751,31 @@ class Studio:
         pos = op.params.get("at") or op.params.get("from")
         if pos is None:
             return None
-        from .theory import parse_position
         bar = parse_position(pos)[0]
         end = op.params.get("until")
         last = parse_position(end)[0] if end else bar + 3
         return max(1, bar), min(piece.total_bars, max(bar, last))
 
-    def _result(self, piece: Piece, op_id, message, *, bars=None, quiet=False) -> OpResult:
+    def _result(self, piece: Piece, op_id, message, *, bars=None, quiet=False,
+                view=None) -> OpResult:
+        """Render, lint, save, and report. The view is the score cropped to
+        ``bars`` (or to the op), nothing when ``quiet``, or whatever ``view``
+        -- a function of the new render -- returns: a verb that shows a chart
+        or a diff builds it from this render and not from a second one."""
         # Render and lint *before* saving: an edit that cannot be rendered must
         # not reach the file, or the file stops being the last good state and
         # `_mutation` evicting the cache would reload the broken piece.
         r = render(piece)
-        view = ""
-        if not quiet:
+        if view is not None:
+            shown = view(r)
+        elif quiet:
+            shown = ""
+        else:
             focus = bars if bars is not None else self._focus(piece, op_id)
-            view = score(piece, r, bars=focus, legend=False)
+            shown = score(piece, r, bars=focus, legend=False)
         findings = lint(piece, r)
         self.save(piece)
-        return OpResult(True, op_id, view, findings, message, list(r.warnings))
+        return OpResult(True, op_id, shown, findings, message, list(r.warnings))
 
     # -- form --------------------------------------------------------------
 
@@ -729,9 +804,9 @@ class Studio:
         for k, v in fields.items():
             if v is None:
                 continue
-            if not hasattr(sec, k):
-                raise ValueError(f"section has no field {k!r}; have bars, meter, "
-                                 f"tempo, tempo_end, key, dynamic, note")
+            if k not in _SECTION_FIELDS:
+                raise ValueError(f"section has no field {k!r}; have "
+                                 f"{', '.join(_SECTION_FIELDS)}")
             setattr(sec, k, v)
         sec.__post_init__()
         return self._result(p, None, f"updated section {section!r}: {sorted(fields)}",
@@ -756,7 +831,6 @@ class Studio:
                 at, chord, *rest = e
                 made.append(HarmonyEntry(str(at), chord, rest[0] if rest else None))
         for h in made:                       # fail before mutating anything
-            from .theory import parse_chord
             parse_chord(h.chord, p.key_at(p.tick_of(h.at)))
         p.harmony = made if replace else p.harmony + made
         return self._result(p, None, f"{'set' if replace else 'added'} {len(made)} "
@@ -798,10 +872,9 @@ class Studio:
         for k, val in fields.items():
             if val is None:
                 continue
-            if k not in ("instrument", "role", "octave", "dynamic", "muted", "pan",
-                         "engine", "bank"):
-                raise ValueError(f"cannot set {k!r} on a voice; can set instrument, "
-                                 f"role, octave, dynamic, muted, pan, engine, bank")
+            if k not in _VOICE_FIELDS:
+                raise ValueError(f"cannot set {k!r} on a voice; can set "
+                                 f"{', '.join(_VOICE_FIELDS)}")
             setattr(v, k, val)
         v.__post_init__()
         return self._result(p, None, f"updated voice {voice!r}: {sorted(fields)}",
@@ -884,10 +957,9 @@ class Studio:
         p = self.get(name)
         before = render(p)
         op = p.move_op(op_id, bars, beats)
-        res = self._result(p, op.id, f"moved {op.id!r} by {bars:+d} bar(s) "
-                                     f"{beats:+g} beat(s)", quiet=True)
-        res.view = diff(before, render(p), p)
-        return res
+        return self._result(p, op.id, f"moved {op.id!r} by {bars:+d} bar(s) "
+                                      f"{beats:+g} beat(s)",
+                            view=lambda after: diff(before, after, p))
 
     @_mutation
     def remove_op(self, name: str, op_id: str) -> OpResult:
@@ -920,6 +992,7 @@ class Studio:
 
     # -- import and analysis -----------------------------------------------
 
+    @_mutation
     def import_music(self, name: str, path: str, *, kind: str = "auto",
                      voice: str = "imported", instrument: str = "piano",
                      tempo: int | None = None, overwrite: bool = False) -> dict:
@@ -941,14 +1014,18 @@ class Studio:
 
         bar = 4 * 480
         bars = max(1, -(-ing.duration // bar))
-        piece = self.create(name, key=ing.key.name if ing.key else "C major",
-                            tempo=ing.tempo, meter=ing.meter, style="freeform",
-                            sections=[("imported", bars)], overwrite=overwrite)
+        # Made whole and saved once: saved empty first, a failure after that
+        # left an empty piece where (with overwrite) a real one had been.
+        piece = self._new_piece(name, key=ing.key.name if ing.key else "C major",
+                                tempo=ing.tempo, meter=ing.meter, style="freeform",
+                                form=None, sections=[("imported", bars)],
+                                overwrite=overwrite)
         piece.meta["import"] = {"source": ing.source, "confidence": ing.confidence,
                                 "warnings": ing.notes}
         piece.voices.append(Voice(voice, instrument, "melody"))
         piece.add_op(voice, "events", id="source", events=[e.to_json() for e in ing.events],
                      note=f"imported from {src.name}")
+        render(piece)                 # what cannot be rendered is not saved
         self.save(piece)
         return {"summary": ing.summary(), "confidence": ing.confidence,
                 "warnings": ing.notes, "events": len(ing.events),

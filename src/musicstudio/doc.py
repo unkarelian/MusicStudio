@@ -20,6 +20,8 @@ same layering that lets an outline op trace whatever ended up underneath it.
 from __future__ import annotations
 
 import json
+import operator
+from bisect import bisect_right
 from dataclasses import dataclass, field
 from fractions import Fraction
 from pathlib import Path
@@ -28,11 +30,17 @@ from typing import Any
 from .ensemble import ROLES, get_instrument
 from .motif import Motif, make_motif
 from .theory import (
-    Chord, Key, bar_ticks, beat_ticks, dynamic_velocity, parse_chord, parse_meter,
-    parse_position, ticks,
+    Chord, Key, bar_ticks, beat_ticks, dynamic_velocity, format_position, parse_chord,
+    parse_meter, parse_position, ticks,
 )
 
 SCHEMA_VERSION = 1
+
+#: What `Piece.harmony_spans` and `Piece._section_edges` depend on: read off
+#: every entry and section on each call, so they are C-level getters rather
+#: than a generator per call.
+_HARMONY_SIG = operator.attrgetter("at", "chord", "dur")
+_FORM_SIG = operator.attrgetter("bars", "meter")
 
 
 # --------------------------------------------------------------------------
@@ -321,12 +329,11 @@ class Section:
             Key.parse(self.key)
         # Fail at the section, not three tool calls later inside a render.
         dynamic_velocity(self.dynamic)
-        if self.tempo is not None and not 1 <= int(self.tempo) <= 400:
-            raise ValueError(f"section {self.name!r}: tempo {self.tempo} is not a "
-                             f"plausible marking")
-        if self.tempo_end is not None and not 1 <= int(self.tempo_end) <= 400:
-            raise ValueError(f"section {self.name!r}: tempo_end {self.tempo_end} is "
-                             f"not a plausible marking")
+        for what in ("tempo", "tempo_end"):
+            marking = getattr(self, what)
+            if marking is not None and not 1 <= int(marking) <= 400:
+                raise ValueError(f"section {self.name!r}: {what} {marking} is not a "
+                                 f"plausible marking")
 
     @property
     def bar_ticks(self) -> int:
@@ -483,13 +490,37 @@ class Piece:
         for sec, first, tick in bounds:
             if first <= bar < first + sec.bars:
                 return sec, first, tick
-        sec, first, tick = bounds[-1]
-        return sec, first, tick
+        return bounds[-1]
+
+    def _section_edges(self) -> list[int] | None:
+        """Where each section starts, and last where the piece ends.
+
+        `section_of_tick` is asked at every note of a render (for the key, the
+        chord, the tempo), so the edges are kept -- against the bars and meter
+        of every section, which is all they depend on and is cheap to read
+        again on each call, so an edit made in place is always seen. ``None``
+        when some section has no length: then the edges are not strictly
+        rising and cannot be searched.
+        """
+        sig = tuple(map(_FORM_SIG, self.sections))
+        cached = getattr(self, "_edges", None)
+        if cached is not None and cached[0] == sig:
+            return cached[1]
+        edges = [0]
+        for sec in self.sections:
+            edges.append(edges[-1] + sec.length)
+        out = edges if all(a < b for a, b in zip(edges, edges[1:])) else None
+        self._edges = (sig, out)
+        return out
 
     def section_of_tick(self, tick: int) -> Section:
-        for sec, _, start in self.section_bounds():
-            if start <= tick < start + sec.length:
-                return sec
+        edges = self._section_edges()
+        if edges is None:
+            for sec, _, start in self.section_bounds():
+                if start <= tick < start + sec.length:
+                    return sec
+        elif 0 <= tick < edges[-1]:
+            return self.sections[bisect_right(edges, tick) - 1]
         return self.sections[-1] if self.sections else Section("", 1, self.meter, self.tempo)
 
     def tick_of(self, pos: str | int) -> int:
@@ -554,8 +585,8 @@ class Piece:
             return []
         # Asked for at every note of every render; the answer only changes when
         # the scaffold or the form does, so it is kept against exactly those.
-        sig = (tuple((h.at, h.chord, h.dur) for h in self.harmony),
-               tuple((s.bars, s.meter) for s in self.sections))
+        sig = (tuple(map(_HARMONY_SIG, self.harmony)),
+               tuple(map(_FORM_SIG, self.sections)))
         cached = getattr(self, "_spans", None)
         if cached is not None and cached[0] == sig:
             return cached[1]
@@ -677,14 +708,11 @@ class Piece:
         if op.params.get(key) is None:
             raise ValueError(f"op {op_id!r} ({op.kind}) has no position to move")
         params = {key: self._shifted(op.params[key], bars, beats)}
-        if op.kind in ("dynamics", "articulate", "rest", "shape", "swing", "chop",
-                       "filter", "lyrics") or "until" in op.params:
-            if op.params.get("until") is not None:
-                params["until"] = self._shifted(op.params["until"], bars, beats)
+        if op.params.get("until") is not None:
+            params["until"] = self._shifted(op.params["until"], bars, beats)
         return self.update_op(op_id, **params)
 
     def _shifted(self, pos: str | int, bars: int, beats: float) -> str:
-        from .theory import format_position
         bar, beat = parse_position(pos)
         sec, _, _ = self.section_at_bar(bar)
         num, _ = parse_meter(sec.meter)

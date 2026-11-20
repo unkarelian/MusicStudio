@@ -39,7 +39,6 @@ synthesized singer and says so.
 from __future__ import annotations
 
 import json
-import math
 import os
 import re
 import shutil
@@ -48,15 +47,16 @@ import tempfile
 import urllib.error
 import urllib.request
 import wave
-import zlib
+from bisect import bisect_left
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
+from functools import cache
 from pathlib import Path
 
 import numpy as np
 
 from .lyrics import VOWELS
-from .vocal import SR, Sung
+from .vocal import SR, Sung, _pitch_line
 
 CACHE_DIR = Path("~/.cache/musicstudio/voicebank")
 ENDPOINT = "https://openrouter.ai/api/v1/audio/speech"
@@ -574,6 +574,14 @@ def word_units(word: str, syllables: list[tuple[str, str]], voice: str,
 # PSOLA: the recording, at another pitch and another length
 # --------------------------------------------------------------------------
 
+@cache
+def _hann(n: int) -> np.ndarray:
+    """``np.hanning(n)``, worked out once per length: a grain's window is as
+    long as two of the speaker's periods, so a phrase asks for the same few
+    hundred lengths a hundred thousand times. Never written to."""
+    return np.hanning(n)
+
+
 def psola(u: Unit, src: np.ndarray, f0: np.ndarray) -> np.ndarray:
     """Play ``u.x`` along the path ``src`` (a source position for every output
     sample) at pitch ``f0`` (Hz, per output sample).
@@ -595,27 +603,31 @@ def psola(u: Unit, src: np.ndarray, f0: np.ndarray) -> np.ndarray:
     pos = np.clip(src, 0, len(x) - 2)
     weight = u.voiced[pos.astype(np.int64)]
     out = np.zeros(n)
-    have_marks = len(u.marks) >= 2
+    # The loop below runs once per grain, a hundred thousand times in a song,
+    # so what it reads one value at a time it reads as plain numbers (``item``)
+    # and the pitch marks as a list: the same values, without numpy's cost of
+    # handing each one over.
+    marks = u.marks.tolist()
+    have_marks = len(marks) >= 2
     noise_half = 160                                 # 7 ms grains for noise
-    noise_win = np.hanning(2 * noise_half)
+    noise_win = _hann(2 * noise_half)
     t = 0.0
     while t < n:
         k = int(t)
-        p = pos[k]
-        if have_marks and weight[k] > 0.5:
-            T_out = SR / max(60.0, float(f0[k]))
-            j = int(np.searchsorted(u.marks, p))
-            j = min(max(j, 0), len(u.marks) - 1)
-            if j > 0 and abs(u.marks[j - 1] - p) < abs(u.marks[j] - p):
+        p = pos.item(k)
+        if have_marks and weight.item(k) > 0.5:
+            T_out = SR / max(60.0, f0.item(k))
+            j = min(bisect_left(marks, p), len(marks) - 1)
+            if j > 0 and abs(marks[j - 1] - p) < abs(marks[j] - p):
                 j -= 1
-            m = int(u.marks[j])
-            T_src = float(u.period[min(m, len(x) - 1)])
+            m = marks[j]
+            T_src = u.period.item(min(m, len(x) - 1))
             half = int(T_src)
             a, b = m - half, m + half
             if a >= 0 and b < len(x) and half > 8:
                 # More grains per second at a higher pitch: scale so the level
                 # stays where the recording had it.
-                grain = x[a:b] * np.hanning(2 * half) * min(1.6, T_out / T_src) ** 0.8
+                grain = x[a:b] * _hann(2 * half) * min(1.6, T_out / T_src) ** 0.8
                 o0 = k - half
                 g0, g1 = max(0, -o0), min(2 * half, n - o0)
                 if g1 > g0:
@@ -688,6 +700,28 @@ def _alias(ph: str) -> str:
     return ALIASES.get(ph, ph)
 
 
+def _recorded_words(sung: list[Sung], whole) -> dict[int, Unit]:
+    """Which notes belong to a word that was recorded whole, and for each the
+    unit of that recording it sings: ``{index in sung: Unit}``."""
+    recorded: dict[int, Unit] = {}
+    for i, first in enumerate(sung):
+        name, _, where = first.word.partition("#")
+        idx, _, cnt = where.partition("/")
+        if not name or first.hold or int(idx or 0) != 0:
+            continue
+        cnt = int(cnt or 1)
+        # The word's syllables, skipping any held notes sung inside it.
+        members = [j for j in range(i, len(sung)) if not sung[j].hold][:cnt]
+        members = [j for j in members if sung[j].word.startswith(name + "#")]
+        if len(members) == cnt:
+            shape = [(_alias(sung[j].onset[-1]) if sung[j].onset else "",
+                      _alias(sung[j].coda[0]) if sung[j].coda else "") for j in members]
+            units = whole(name, shape)
+            if units is not None:
+                recorded.update(zip(members, units))
+    return recorded
+
+
 def render_phrase(sung: list[Sung], bank: Bank, singer, seed: int,
                   whole=None) -> tuple[np.ndarray, float]:
     """Sing one phrase from the bank. Returns ``(samples, start time)``.
@@ -703,24 +737,7 @@ def render_phrase(sung: list[Sung], bank: Bank, singer, seed: int,
     out = np.zeros(n)
 
     # -- pitch: the score's ---------------------------------------------------
-    t = np.arange(n) / SR + t0
-    midi = np.full(n, sung[0].pitch, dtype=np.float64)
-    for i, s in enumerate(sung):
-        if i == 0:
-            continue
-        x = np.clip((t - (s.start - 0.012)) / (singer.glide / 4.0), -40.0, 40.0)
-        midi += (s.pitch - sung[i - 1].pitch) / (1.0 + np.exp(-x))
-    cents = -45.0 * np.exp(-np.maximum(t - sung[0].start, 0.0) / 0.05) * (t >= sung[0].start - 0.05)
-    for s in sung:
-        if s.end - s.start < 0.36:
-            continue
-        rate = singer.vibrato_rate * rng.uniform(0.95, 1.05)
-        rise = np.clip((t - s.start - 0.2) / 0.3, 0.0, 1.0) * (t < s.end)
-        cents += singer.vibrato * rise * np.sin(2 * np.pi * rate * (t - s.start)
-                                                + rng.uniform(0, 2 * np.pi))
-    drift = np.interp(t, np.linspace(t[0], t[-1], max(4, int(total * 3))),
-                      rng.normal(0.0, 4.0, max(4, int(total * 3))))
-    f0 = 440.0 * 2.0 ** ((midi - 69.0) / 12.0 + (cents + drift) / 1200.0)
+    f0 = _pitch_line(sung, singer, n, t0, rng, scoop=45.0, drift=4.0, total=total)
 
     fade = int(0.012 * SR)
 
@@ -761,27 +778,7 @@ def render_phrase(sung: list[Sung], bank: Bank, singer, seed: int,
         b = min(u.end, u.v_end + int(0.30 * SR))      # room for "-lz", "-nts"
         return [(u, a, b)] if b - a > int(0.012 * SR) else []
 
-    # Which notes belong to one recorded word, and that word's units.
-    recorded: dict[int, Unit] = {}
-    if whole is not None:
-        i = 0
-        while i < len(sung):
-            name, _, where = sung[i].word.partition("#")
-            idx, _, cnt = where.partition("/")
-            if not name or sung[i].hold or int(idx or 0) != 0:
-                i += 1
-                continue
-            cnt = int(cnt or 1)
-            # The word's syllables, skipping any held notes sung inside it.
-            members = [j for j in range(i, len(sung)) if not sung[j].hold][:cnt]
-            members = [j for j in members if sung[j].word.startswith(name + "#")]
-            if len(members) == cnt:
-                shape = [(_alias(sung[j].onset[-1]) if sung[j].onset else "",
-                          _alias(sung[j].coda[0]) if sung[j].coda else "") for j in members]
-                units = whole(name, shape)
-                if units is not None:
-                    recorded.update(zip(members, units))
-            i += 1
+    recorded = _recorded_words(sung, whole) if whole is not None else {}
 
     plans = []
     last_open: Unit | None = None
@@ -914,7 +911,7 @@ def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float], *,
     import warnings
     from . import neural
     from . import utau
-    from .vocal import SINGERS, phrases, plan
+    from .vocal import SINGERS, _voice_stem
     # A UTAU voicebank is a recorded voice too, of another make (`utau.py`).
     out: dict[str, tuple] = utau.voice_stems(piece, notes, to_sec, total, pans, strict=strict)
     for v in piece.voices:
@@ -935,19 +932,13 @@ def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float], *,
                           f"`ms voicebank build {voice_name}`.", stacklevel=2)
             continue
         singer = SINGERS[v.instrument]
-        mono = np.zeros(total)
-        for group in phrases(plan(mine, to_sec)):
-            seed = zlib.crc32(f"{v.name}|{group[0].start:.4f}|{group[0].pitch}".encode())
-            sig, t0 = render_phrase(
+
+        def sing(group, seed, bank=bank, singer=singer, voice_name=voice_name, model=model):
+            return render_phrase(
                 group, bank, singer, seed,
                 whole=lambda w, shape: word_units(w, shape, voice_name, model))
-            a = int(t0 * SR)
-            k = min(len(sig), total - a)
-            if k > 0:
-                mono[a:a + k] += sig[:k]
-        theta = (max(-1.0, min(1.0, pans.get(v.name, 0.0))) + 1.0) * math.pi / 4
-        out[v.name] = (mono * math.cos(theta) * math.sqrt(2),
-                       mono * math.sin(theta) * math.sqrt(2))
+
+        out[v.name] = _voice_stem(v.name, mine, to_sec, total, pans.get(v.name, 0.0), sing)
     return out
 
 
@@ -1034,16 +1025,23 @@ def transcribe_long(path: Path, *, chunk: float = 16.0, **kw) -> str:
     return " ".join(h for h in heard if h)
 
 
-def words_heard(written: list[str], heard: str) -> tuple[float, list[str]]:
-    """How much of a lyric survived: the share of written words the recogniser
-    also wrote, in order, and the ones it missed. Order matters -- a word heard
-    in the wrong line is not the word being understood."""
+def _aligned(written: list[str], heard: str) -> tuple[list[str], list[str], list]:
+    """The written words, the heard ones, and the runs of them that match in
+    order (``difflib`` blocks: ``a`` indexes the written, ``b`` the heard)."""
     import difflib
     want = [_clean(w) for w in written if _clean(w)]
     got = [_clean(w) for w in re.split(r"[^A-Za-z']+", heard) if _clean(w)]
     match = difflib.SequenceMatcher(a=want, b=got, autojunk=False)
+    return want, got, match.get_matching_blocks()
+
+
+def words_heard(written: list[str], heard: str) -> tuple[float, list[str]]:
+    """How much of a lyric survived: the share of written words the recogniser
+    also wrote, in order, and the ones it missed. Order matters -- a word heard
+    in the wrong line is not the word being understood."""
+    want, _, blocks = _aligned(written, heard)
     kept = [False] * len(want)
-    for block in match.get_matching_blocks():
+    for block in blocks:
         for i in range(block.a, block.a + block.size):
             kept[i] = True
     missed = [w for w, k in zip(want, kept) if not k]
@@ -1055,12 +1053,9 @@ def words_added(written: list[str], heard: str) -> list[str]:
     is recall, and recall alone is satisfied by a voice that sings every word
     among a lot of noise the recogniser also took for words; this is the other
     half of the score."""
-    import difflib
-    want = [_clean(w) for w in written if _clean(w)]
-    got = [_clean(w) for w in re.split(r"[^A-Za-z']+", heard) if _clean(w)]
-    match = difflib.SequenceMatcher(a=want, b=got, autojunk=False)
+    _, got, blocks = _aligned(written, heard)
     kept = [False] * len(got)
-    for block in match.get_matching_blocks():
+    for block in blocks:
         for i in range(block.b, block.b + block.size):
             kept[i] = True
     return [w for w, k in zip(got, kept) if not k]

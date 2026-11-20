@@ -73,9 +73,24 @@ def ticks(dur: str | int) -> int:
     return int(f)
 
 
+_METER_RE = re.compile(r"^(\d+)\s*/\s*(\d+)$")
+
+
 def parse_meter(meter: str) -> tuple[int, int]:
-    """``'4/4'`` -> ``(4, 4)``: that many beats of that note value per bar."""
-    m = re.match(r"^(\d+)\s*/\s*(\d+)$", str(meter).strip())
+    """``'4/4'`` -> ``(4, 4)``: that many beats of that note value per bar.
+
+    Memoized for strings: every position and every section length goes through
+    here, which made it the most-called function of a render (tens of thousands
+    of times for a handful of distinct meters). A bad meter raises and is not
+    remembered."""
+    if type(meter) is str:
+        return _parse_meter(meter)
+    return _parse_meter.__wrapped__(meter)
+
+
+@functools.lru_cache(maxsize=256)
+def _parse_meter(meter: str) -> tuple[int, int]:
+    m = _METER_RE.match(str(meter).strip())
     if not m:
         raise ValueError(f"bad meter {meter!r}; want something like '4/4', '6/8', '5/4'")
     return int(m.group(1)), int(m.group(2))
@@ -102,6 +117,8 @@ def parse_position(pos: str | int) -> tuple[int, Fraction]:
     every time anyone says it.
     """
     if isinstance(pos, int) and not isinstance(pos, bool):
+        if pos < 1:
+            raise ValueError(f"bar numbers start at 1, got {pos}")
         return pos, Fraction(1)
     m = _POS_RE.match(str(pos).strip())
     if not m:
@@ -292,6 +309,12 @@ QUALITY_SUFFIXES = ("maj9", "maj7", "sus4", "sus2", "add9", "b13", "#11", "b9", 
 #: ``9`` does -- ``V7b9`` and ``Vb9`` are the same chord.
 ALTERED_TENSIONS = {"b9": 13, "#9": 15, "#11": 18, "b13": 20}
 
+#: Every suffix that sits on top of a seventh, and the tones it adds above the
+#: root once the seventh is there: ``9``, ``11``, ``13`` and the altered ones.
+_TENSIONS: dict[str, tuple[int, ...]] = {
+    "9": (14,), "11": (14, 17), "13": (14, 21),
+    **{tok: (semitones,) for tok, semitones in ALTERED_TENSIONS.items()}}
+
 
 @dataclass(frozen=True, slots=True)
 class Chord:
@@ -462,24 +485,12 @@ def _parse_chord(numeral: str, key: Key) -> Chord:
             intervals += [11, 14]
         elif tok == "6":
             intervals.append(9)
-        elif tok == "9":
-            if seventh not in intervals and 11 not in intervals:
-                intervals.append(seventh)
-            intervals.append(14)
         elif tok == "add9":
             intervals.append(14)
-        elif tok in ALTERED_TENSIONS:
+        elif tok in _TENSIONS:
             if seventh not in intervals and 11 not in intervals:
                 intervals.append(seventh)
-            intervals.append(ALTERED_TENSIONS[tok])
-        elif tok == "11":
-            if seventh not in intervals and 11 not in intervals:
-                intervals.append(seventh)
-            intervals += [14, 17]
-        elif tok == "13":
-            if seventh not in intervals and 11 not in intervals:
-                intervals.append(seventh)
-            intervals += [14, 21]
+            intervals += _TENSIONS[tok]
 
     return Chord(numeral, root_offset, tuple(dict.fromkeys(intervals)), inversion)
 

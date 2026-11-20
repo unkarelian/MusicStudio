@@ -207,8 +207,13 @@ def _salience(x, harmonics: int = 8, decay: float = 0.8):
     frames = 1 + (len(x) - FFT) // HOP
     if frames < 2:
         raise ValueError("audio is too short to analyze")
-    idx = np.arange(FFT)[None, :] + HOP * np.arange(frames)[:, None]
-    mag = np.abs(np.fft.rfft(x[idx] * win, axis=1)).astype(np.float32)
+    # A block of frames at a time. Each frame's spectrum is its own, so the
+    # result is the same; all of them at once is every frame copied out and
+    # transformed in one piece -- 2 GB for a three-minute track.
+    mag = np.empty((frames, FFT // 2 + 1), dtype=np.float32)
+    for a in range(0, frames, 512):
+        idx = np.arange(FFT)[None, :] + HOP * np.arange(a, min(frames, a + 512))[:, None]
+        mag[a:a + len(idx)] = np.abs(np.fft.rfft(x[idx] * win, axis=1))
     pitches = np.arange(LOW_PITCH, HIGH_PITCH + 1)
     f0 = 440.0 * 2 ** ((pitches - 69) / 12.0)
     sal = np.zeros((frames, len(pitches)), dtype=np.float32)
@@ -368,14 +373,19 @@ KK_MAJOR = (6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.
 KK_MINOR = (6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17)
 
 
-def estimate_key(events: list[Event]) -> Key | None:
-    if not events:
-        return None
+def _pitch_class_weights(events: list[Event]) -> list[float]:
+    """The share of sounding time spent on each of the twelve pitch classes."""
     weight = [0.0] * 12
     for e in events:
         weight[e.pitch % 12] += e.dur
     total = sum(weight) or 1.0
-    weight = [w / total for w in weight]
+    return [w / total for w in weight]
+
+
+def estimate_key(events: list[Event]) -> Key | None:
+    if not events:
+        return None
+    weight = _pitch_class_weights(events)
 
     def corr(profile, shift):
         rot = [profile[(i - shift) % 12] for i in range(12)]
@@ -395,8 +405,4 @@ def estimate_key(events: list[Event]) -> Key | None:
 
 def pitch_class_profile(events: list[Event]) -> dict[str, float]:
     from .theory import SHARP_NAMES
-    weight = [0.0] * 12
-    for e in events:
-        weight[e.pitch % 12] += e.dur
-    total = sum(weight) or 1.0
-    return {SHARP_NAMES[i]: round(w / total, 4) for i, w in enumerate(weight)}
+    return {SHARP_NAMES[i]: round(w, 4) for i, w in enumerate(_pitch_class_weights(events))}

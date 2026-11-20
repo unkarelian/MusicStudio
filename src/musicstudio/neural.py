@@ -73,6 +73,8 @@ PITCH_PULL = 1.0
 #: phrases cached by an older version are not mistaken for current ones.
 ENGINE = 6
 HEAD = TAIL = 8                 # frames of silence the models expect around a phrase
+#: The curves an acoustic model may ask for and a variance model may predict.
+VARIANCES = ("energy", "breathiness", "voicing", "tension")
 LEAD_MS = 500.0                 # what the duration model is told came before the phrase
 #: How loud a neural voice is at full velocity: the level of its sung vowels
 #: (RMS), set where the synthesized singers sit. Banks come out anywhere within
@@ -289,43 +291,45 @@ def _unpack(archive: Path | bytes, dest: Path, inner: str = "",
     """Extract a zip into ``dest``, refusing any member that would land outside
     it. What is already at ``dest`` is replaced only once the new folder is
     whole and has one of the files in ``needs``: a bad archive must not cost
-    the user the working install it was meant to replace."""
+    the user the working install it was meant to replace. Nothing of a failed
+    unpack is left behind either: a half-unpacked folder that happens to hold
+    a ``dsconfig.yaml`` would be listed as a singer (`installed`)."""
     import io
-    z = zipfile.ZipFile(io.BytesIO(archive) if isinstance(archive, bytes) else archive)
-    if sum(info.file_size for info in z.infolist()) > UNPACK_LIMIT:
-        raise ValueError(f"archive unpacks to more than {UNPACK_LIMIT >> 30} GB; refusing")
     tmp = dest.with_name(dest.name + ".part")
-    if tmp.exists():
-        shutil.rmtree(tmp)
-    tmp.mkdir(parents=True)
-    root = tmp.resolve()
-    for info in z.infolist():
-        target = (tmp / info.filename).resolve()
-        if root != target and root not in target.parents:
+    with zipfile.ZipFile(io.BytesIO(archive) if isinstance(archive, bytes) else archive) as z:
+        if sum(info.file_size for info in z.infolist()) > UNPACK_LIMIT:
+            raise ValueError(f"archive unpacks to more than {UNPACK_LIMIT >> 30} GB; refusing")
+        if tmp.exists():
             shutil.rmtree(tmp)
-            raise ValueError(f"archive member escapes its folder: {info.filename!r}")
-        if info.is_dir():
-            target.mkdir(parents=True, exist_ok=True)
-        else:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            with z.open(info) as src, open(target, "wb") as out:
-                shutil.copyfileobj(src, out)
-    source = tmp / inner if inner else tmp
-    if not inner and not (source / "dsconfig.yaml").is_file() \
-            and not (source / "vocoder.yaml").is_file():
-        # One wrapping folder is usual.
-        inside = [d for d in tmp.iterdir() if d.is_dir()]
-        if len(inside) == 1:
-            source = inside[0]
-    if not any((source / n).is_file() for n in needs):
-        shutil.rmtree(tmp)
-        raise ValueError(f"not a DiffSinger voicebank: the archive has no "
-                         f"{' or '.join(needs)}")
-    if dest.exists():
-        shutil.rmtree(dest)
-    source.rename(dest)
-    if tmp.exists():
-        shutil.rmtree(tmp)
+        tmp.mkdir(parents=True)
+        try:
+            root = tmp.resolve()
+            for info in z.infolist():
+                target = (tmp / info.filename).resolve()
+                if root != target and root not in target.parents:
+                    raise ValueError(f"archive member escapes its folder: {info.filename!r}")
+                if info.is_dir():
+                    target.mkdir(parents=True, exist_ok=True)
+                else:
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    with z.open(info) as src, open(target, "wb") as out:
+                        shutil.copyfileobj(src, out)
+            source = tmp / inner if inner else tmp
+            if not inner and not (source / "dsconfig.yaml").is_file() \
+                    and not (source / "vocoder.yaml").is_file():
+                # One wrapping folder is usual.
+                inside = [d for d in tmp.iterdir() if d.is_dir()]
+                if len(inside) == 1:
+                    source = inside[0]
+            if not any((source / n).is_file() for n in needs):
+                raise ValueError(f"not a DiffSinger voicebank: the archive has no "
+                                 f"{' or '.join(needs)}")
+            if dest.exists():
+                shutil.rmtree(dest)
+            source.rename(dest)
+        finally:
+            if tmp.exists():
+                shutil.rmtree(tmp)
 
 
 def _download(url: str, sha256: str, dest: Path, inner: str, needs: tuple[str, ...],
@@ -435,12 +439,15 @@ BLEND_FILE = "blend.yaml"
 def _same_file(a: Path, b: Path) -> bool:
     if a.stat().st_size != b.stat().st_size:
         return False
-    ha, hb = hashlib.sha256(), hashlib.sha256()
-    for h, p in ((ha, a), (hb, b)):
-        with open(p, "rb") as f:
-            for chunk in iter(lambda: f.read(1 << 20), b""):
-                h.update(chunk)
-    return ha.digest() == hb.digest()
+    # Byte for byte, a megabyte at a time: nothing to hash, and two models
+    # that differ are told apart at the first block that does.
+    with open(a, "rb") as fa, open(b, "rb") as fb:
+        while True:
+            block = fa.read(1 << 20)
+            if block != fb.read(1 << 20):
+                return False
+            if not block:
+                return True
 
 
 def parse_recipe(recipe: str) -> list[tuple[str, str, float]]:
@@ -497,18 +504,25 @@ def blend(name: str, recipe: str, *, gender: float = 0.0, force: bool = False) -
         if (singer_dir(b) / BLEND_FILE).is_file():
             raise ValueError(f"{b!r} is itself a blend; blend from its sources instead")
     roots = {b: singer_dir(b) for b in banks}
-    models = {b: _Model(roots[b]) for b in banks}
+    read: dict[tuple[str, str], _Model] = {}
+
+    def model(b: str, sub: str = "") -> _Model:
+        """One model folder of a bank, read once however often it is asked for."""
+        if (b, sub) not in read:
+            read[b, sub] = _Model(roots[b] / sub)
+        return read[b, sub]
+
+    models = {b: model(b) for b in banks}
     base = banks[0]
     subs = [""] + [d for d in ("dsvariance", "dspitch", "dsdur")
                    if (roots[base] / d / "dsconfig.yaml").is_file()
-                   and _Model(roots[base] / d).speakers]
+                   and model(base, d).speakers]
     # The voices must be points in one space: the same model, to the byte.
     for sub in subs:
-        mine = _Model(roots[base] / sub) if sub else models[base]
+        mine = model(base, sub)
         keys = [k for k in ("acoustic", "variance", "pitch", "dur", "linguistic") if mine.path(k)]
         for b in banks[1:]:
-            folder = roots[b] / sub
-            other = _Model(folder) if (folder / "dsconfig.yaml").is_file() else None
+            other = model(b, sub) if (roots[b] / sub / "dsconfig.yaml").is_file() else None
             for k in keys:
                 if other is None or other.path(k) is None \
                         or not _same_file(mine.path(k), other.path(k)):
@@ -519,7 +533,7 @@ def blend(name: str, recipe: str, *, gender: float = 0.0, force: bool = False) -
     for sub in subs:
         total = None
         for b, voice, w in parts:
-            m = _Model(roots[b] / sub) if sub else models[b]
+            m = model(b, sub)
             pick = m._find(voice) if voice else (m.speakers[0] if m.speakers else None)
             if pick is None:
                 raise ValueError(f"the singer {b!r} has no voice {voice!r}; it has "
@@ -531,44 +545,50 @@ def blend(name: str, recipe: str, *, gender: float = 0.0, force: bool = False) -
     tmp = dest.with_name(dest.name + ".part")
     if tmp.exists():
         shutil.rmtree(tmp)
-    for src in sorted(roots[base].rglob("*")):
-        rel = src.relative_to(roots[base])
-        if src.is_dir():
-            (tmp / rel).mkdir(parents=True, exist_ok=True)
-            continue
-        # Not the source's embeddings, nor its name and portrait: this is not it.
-        if src.suffix.lower() in (".emb", ".bmp", ".png", ".jpg", ".jpeg") or src.name in (
-                "dsconfig.yaml", "SOURCE.txt", "character.txt", "character.yaml"):
-            continue
-        (tmp / rel).parent.mkdir(parents=True, exist_ok=True)
-        try:
-            os.link(src, tmp / rel)
-        except OSError:
-            shutil.copy2(src, tmp / rel)
-    for sub in ("", "dsvariance", "dspitch", "dsdur"):
-        cfg_path = roots[base] / sub / "dsconfig.yaml"
-        if not cfg_path.is_file():
-            continue
-        cfg = _yaml(cfg_path)
-        if sub in vectors:
-            cfg["speakers"] = [key]
-            (tmp / sub / f"{key}.emb").write_bytes(vectors[sub].tobytes())
-        (tmp / sub / "dsconfig.yaml").write_text(
-            yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True), encoding="utf-8")
-    sources = []
-    for b in banks:
-        e = CATALOGUE.get(b)
-        sources.append({"name": b, "title": e.title if e else b, "by": e.by if e else "",
-                        "homepage": e.homepage if e else "", "terms": e.terms if e else "",
-                        "asks": list(e.asks) if e else []})
-    (tmp / BLEND_FILE).write_text(yaml.safe_dump({
-        "name": key,
-        "recipe": [{"bank": b, "voice": v, "share": round(w, 4)} for b, v, w in parts],
-        "gender": max(-1.0, min(1.0, float(gender))),
-        "models_from": base,
-        "sources": sources,
-    }, sort_keys=False, allow_unicode=True), encoding="utf-8")
-    (tmp / "character.txt").write_text(f"name={key}\n", encoding="utf-8")
+    try:
+        for src in sorted(roots[base].rglob("*")):
+            rel = src.relative_to(roots[base])
+            if src.is_dir():
+                (tmp / rel).mkdir(parents=True, exist_ok=True)
+                continue
+            # Not the source's embeddings, nor its name and portrait: this is not it.
+            if src.suffix.lower() in (".emb", ".bmp", ".png", ".jpg", ".jpeg") or src.name in (
+                    "dsconfig.yaml", "SOURCE.txt", "character.txt", "character.yaml"):
+                continue
+            (tmp / rel).parent.mkdir(parents=True, exist_ok=True)
+            try:
+                os.link(src, tmp / rel)
+            except OSError:
+                shutil.copy2(src, tmp / rel)
+        for sub in ("", "dsvariance", "dspitch", "dsdur"):
+            cfg_path = roots[base] / sub / "dsconfig.yaml"
+            if not cfg_path.is_file():
+                continue
+            cfg = _yaml(cfg_path)
+            if sub in vectors:
+                cfg["speakers"] = [key]
+                (tmp / sub / f"{key}.emb").write_bytes(vectors[sub].tobytes())
+            (tmp / sub / "dsconfig.yaml").write_text(
+                yaml.safe_dump(cfg, sort_keys=False, allow_unicode=True), encoding="utf-8")
+        sources = []
+        for b in banks:
+            e = CATALOGUE.get(b)
+            sources.append({"name": b, "title": e.title if e else b, "by": e.by if e else "",
+                            "homepage": e.homepage if e else "", "terms": e.terms if e else "",
+                            "asks": list(e.asks) if e else []})
+        (tmp / BLEND_FILE).write_text(yaml.safe_dump({
+            "name": key,
+            "recipe": [{"bank": b, "voice": v, "share": round(w, 4)} for b, v, w in parts],
+            "gender": max(-1.0, min(1.0, float(gender))),
+            "models_from": base,
+            "sources": sources,
+        }, sort_keys=False, allow_unicode=True), encoding="utf-8")
+        (tmp / "character.txt").write_text(f"name={key}\n", encoding="utf-8")
+    except BaseException:
+        # A half-made blend holds a dsconfig.yaml and would be listed as a
+        # singer (`installed`); nothing of one is left behind.
+        shutil.rmtree(tmp, ignore_errors=True)
+        raise
     if dest.exists():
         shutil.rmtree(dest)
     tmp.rename(dest)
@@ -881,6 +901,17 @@ _seeding = threading.Lock()
 _trims: dict[tuple[str, str], float] = {}
 
 
+def _box(x: "np.ndarray", k: int) -> "np.ndarray":
+    """``x`` averaged over ``k`` samples either side, its ends held.
+
+    A running sum and not a convolution: the window is thousands of samples
+    wide and this runs on every phrase of every render, cached or not, where
+    the convolution was most of a warm render. The two agree to about 1e-11.
+    """
+    c = np.concatenate(([0.0], np.cumsum(np.pad(x, (k, k), mode="edge"))))
+    return (c[2 * k + 1:] - c[:-(2 * k + 1)]) / (2 * k + 1)
+
+
 def trim(singer: "Singer", speaker: str = "") -> float:
     """The gain that brings this bank (and voice colour) to `LEVEL`.
 
@@ -1102,7 +1133,7 @@ def time_phones(groups: list[Group], end: float, singer: Singer, seed: int) -> l
         for p, d in zip(g.phones, mine):
             p.start, p.end = at, at + d * ratio
             at = p.end
-    out = [p for g in groups for p in g.phones][1:]      # drop the leading silence
+    out = flat[1:]                                       # drop the leading silence
     for g in groups:
         for p in g.phones:
             p.pitch = g.pitch
@@ -1134,6 +1165,25 @@ def _sampling(model: _Model, names: set[str], steps: int, depth: float | None) -
     return feeds
 
 
+def _linguistic(singer: Singer, m: _Model, symbols: list[str], ph_dur: list[int],
+                phones: list[Phone], seed: int) -> dict:
+    """The pitch or variance model's own reading of the phonemes (its
+    ``encoder_out``), which the model proper is then run on."""
+    feeds = {"tokens": np.array([[m.tokens.get(s, m.tokens.get("SP", 0)) for s in symbols]]),
+             "languages": np.array([[m.lang_id(s) for s in symbols]]),
+             "ph_dur": np.array([ph_dur])}
+    lin_names = singer.inputs(m.path("linguistic"))
+    if "word_div" in lin_names:
+        vowels = [i + 1 for i, p in enumerate(phones) if p.vowel] or [len(symbols) - 2]
+        div = [vowels[0]] + [b - a for a, b in zip(vowels, vowels[1:])] + [len(symbols) - vowels[-1]]
+        dur, at = [], 0
+        for n in div:
+            dur.append(int(sum(ph_dur[at:at + n])))
+            at += n
+        feeds.update(word_div=np.array([div]), word_dur=np.array([dur]))
+    return singer.run(m.path("linguistic"), {k: v for k, v in feeds.items() if k in lin_names}, seed)
+
+
 def _pitch_curve(singer: Singer, sung, phones, seed: int, expression: float
                  ) -> tuple["np.ndarray", float, float]:
     """The sung pitch in semitones, per frame: ``(curve, frame_ms, start)``."""
@@ -1152,19 +1202,7 @@ def _pitch_curve(singer: Singer, sung, phones, seed: int, expression: float
             x = (t[mid] - lo) / (hi - lo)
             curve[mid] = a.pitch + (b.pitch - a.pitch) * (0.5 - 0.5 * np.cos(np.pi * x))
         return curve, fm, start
-    feeds = {"tokens": np.array([[m.tokens.get(s, m.tokens.get("SP", 0)) for s in symbols]]),
-             "languages": np.array([[m.lang_id(s) for s in symbols]]),
-             "ph_dur": np.array([ph_dur])}
-    lin_names = singer.inputs(m.path("linguistic"))
-    if "word_div" in lin_names:
-        vowels = [i + 1 for i, p in enumerate(phones) if p.vowel] or [len(symbols) - 2]
-        div = [vowels[0]] + [b - a for a, b in zip(vowels, vowels[1:])] + [len(symbols) - vowels[-1]]
-        dur, at = [], 0
-        for n in div:
-            dur.append(int(sum(ph_dur[at:at + n])))
-            at += n
-        feeds.update(word_div=np.array([div]), word_dur=np.array([dur]))
-    lin = singer.run(m.path("linguistic"), {k: v for k, v in feeds.items() if k in lin_names}, seed)
+    lin = _linguistic(singer, m, symbols, ph_dur, phones, seed)
     # The notes as the model wants them: rests before, between and after.
     ms, midi, rest = [(sung[0].start - start) * 1000.0], [float(sung[0].pitch)], [True]
     prev = sung[0].start
@@ -1250,21 +1288,9 @@ def _variances(singer: Singer, phones, midi, start, fm_ac, seed: int, speaker: s
     T = int(sum(ph_dur))
     t = v_start + np.arange(T) * fm / 1000.0
     pitch = np.interp(t, start + np.arange(len(midi)) * fm_ac / 1000.0, midi).astype(np.float32)
-    feeds = {"tokens": np.array([[m.tokens.get(s, m.tokens.get("SP", 0)) for s in symbols]]),
-             "languages": np.array([[m.lang_id(s) for s in symbols]]),
-             "ph_dur": np.array([ph_dur])}
-    lin_names = singer.inputs(m.path("linguistic"))
-    if "word_div" in lin_names:
-        vowels = [i + 1 for i, p in enumerate(phones) if p.vowel] or [len(symbols) - 2]
-        div = [vowels[0]] + [b - a for a, b in zip(vowels, vowels[1:])] + [len(symbols) - vowels[-1]]
-        dur, at = [], 0
-        for n in div:
-            dur.append(int(sum(ph_dur[at:at + n])))
-            at += n
-        feeds.update(word_div=np.array([div]), word_dur=np.array([dur]))
-    lin = singer.run(m.path("linguistic"), {k: v for k, v in feeds.items() if k in lin_names}, seed)
+    lin = _linguistic(singer, m, symbols, ph_dur, phones, seed)
     names = singer.inputs(m.path("variance"))
-    kinds = [v for v in ("energy", "breathiness", "voicing", "tension") if v in names]
+    kinds = [v for v in VARIANCES if v in names]
     feeds = {"encoder_out": lin["encoder_out"], "ph_dur": np.array([ph_dur]),
              "pitch": pitch[None, :], "retake": np.ones((1, T, len(kinds)), bool)}
     for v in kinds:
@@ -1346,7 +1372,7 @@ def render_phrase(sung, singer: Singer, seed: int, *, speaker: str = "", lang: s
     feeds.update(_sampling(ac, names, steps, depth))
     if ac.speakers:
         feeds["spk_embed"] = ac.embed(speaker, T)
-    wanted = [v for v in ("energy", "breathiness", "voicing", "tension") if v in names]
+    wanted = [v for v in VARIANCES if v in names]
     if wanted:
         pred = _variances(singer, phones, midi, start, fm, seed, speaker)
         for v in wanted:
@@ -1439,8 +1465,7 @@ def voice_stems(piece, notes, to_sec, total: int, pans: dict[str, float], *,
                     a = max(0, int((s.start - t0 - 0.03) * SR))
                     gain[a:] = (max(1, min(127, s.velocity)) / 127.0) ** 1.2
                 k = max(1, int(0.03 * SR))
-                gain = np.convolve(np.pad(gain, (k, k), mode="edge"),
-                                   np.ones(2 * k + 1) / (2 * k + 1), mode="same")[k:-k]
+                gain = _box(gain, k)
                 sig = sig * gain * level
                 a = int(round(t0 * SR))
                 if a < 0:

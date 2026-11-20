@@ -22,6 +22,7 @@ share a leitmotif when they do not is worse than one that says it cannot tell.
 from __future__ import annotations
 
 import random
+from collections import Counter
 from dataclasses import dataclass, field
 
 from .ingest import Event
@@ -149,11 +150,20 @@ def is_degenerate(pat: tuple[int, ...]) -> str | None:
 # discovery
 # --------------------------------------------------------------------------
 
+def _grams(seq: list[int], L: int):
+    """Every run of ``L`` consecutive items, in order, as tuples. The null
+    models below count these for every shuffle, so they are zipped out of
+    ``L`` offset copies of the list and not sliced one at a time."""
+    if L < 1:
+        return (tuple(seq[i:i + L]) for i in range(len(seq) - L + 1))
+    return zip(*(seq[k:] for k in range(L)))
+
+
 def _ngram_index(ivs: list[int], lo: int, hi: int) -> dict[tuple[int, ...], list[int]]:
     out: dict[tuple[int, ...], list[int]] = {}
     for L in range(lo, hi + 1):
-        for i in range(len(ivs) - L + 1):
-            out.setdefault(tuple(ivs[i:i + L]), []).append(i)
+        for i, g in enumerate(_grams(ivs, L)):
+            out.setdefault(g, []).append(i)
     return out
 
 
@@ -179,10 +189,7 @@ def _repeats_by_chance(ivs: list[int], lo: int, hi: int, floor: int, trials: int
         rng.shuffle(shuffled)
         best: dict[int, int] = {}
         for L in range(lo, hi + 1):
-            counts: dict[tuple[int, ...], int] = {}
-            for i in range(len(shuffled) - L + 1):
-                g = tuple(shuffled[i:i + L])
-                counts[g] = counts.get(g, 0) + 1
+            counts = Counter(_grams(shuffled, L))
             top = max(counts.values(), default=0)
             if top < floor:
                 break                       # nothing longer can repeat either
@@ -205,7 +212,7 @@ def _shared_by_chance(ivs: dict[str, list[int]], lo: int, hi: int, need: int,
         for L in range(lo, hi + 1):
             seen: dict[tuple[int, ...], int] = {}
             for v in pools.values():
-                for g in {tuple(v[i:i + L]) for i in range(len(v) - L + 1)}:
+                for g in set(_grams(v, L)):
                     seen[g] = seen.get(g, 0) + 1
             common = [g for g, c in seen.items() if c >= need]
             if not common:
@@ -214,6 +221,12 @@ def _shared_by_chance(ivs: dict[str, list[int]], lo: int, hi: int, need: int,
                 longest = L
         out.append(longest)
     return out
+
+
+def _within(inner: Pattern, outer: Pattern) -> bool:
+    """Whether one pattern's intervals occur, in a row, inside another's."""
+    needle = "," + ",".join(map(str, inner.intervals)) + ","
+    return needle in "," + ",".join(map(str, outer.intervals)) + ","
 
 
 def find_motifs(events: list[Event], *, source: str = "piece", min_notes: int = 4,
@@ -234,12 +247,18 @@ def find_motifs(events: list[Event], *, source: str = "piece", min_notes: int = 
     index = _ngram_index(ivs, lo, hi)
     null = _repeats_by_chance(ivs, lo, hi, min_occurrences, trials, rng)
     out: list[Pattern] = []
+    # The answer depends only on how long the shape is and how often it
+    # repeats, and many shapes share both.
+    chance: dict[tuple[int, int], int] = {}
     for pat, spots in index.items():
         if len(spots) < min_occurrences or is_degenerate(pat):
             continue
-        hits = sum(1 for best in null
-                   if any(c >= len(spots) for L, c in best.items() if L >= len(pat)))
-        p = _p(hits, trials)
+        asked = (len(pat), len(spots))
+        if asked not in chance:
+            chance[asked] = sum(1 for best in null
+                                if any(c >= len(spots) for L, c in best.items()
+                                       if L >= len(pat)))
+        p = _p(chance[asked], trials)
         if p > p_max:
             continue
         out.append(Pattern(pat, [Occurrence(source, i, line[i].start, line[i].pitch)
@@ -249,8 +268,7 @@ def find_motifs(events: list[Event], *, source: str = "piece", min_notes: int = 
     out.sort(key=lambda x: (-x.length, -len(x.occurrences), x.p_value))
     kept: list[Pattern] = []
     for cand in out:
-        needle = "," + ",".join(map(str, cand.intervals)) + ","
-        if any(needle in "," + ",".join(map(str, k.intervals)) + "," for k in kept):
+        if any(_within(cand, k) for k in kept):
             continue
         kept.append(cand)
         if len(kept) >= limit:
@@ -299,9 +317,7 @@ def shared_motifs(sources: dict[str, list[Event]], *, min_notes: int = 4,
     out.sort(key=lambda x: (-len(x.sources), -x.length, x.p_value))
     kept: list[Pattern] = []
     for cand in out:
-        needle = "," + ",".join(map(str, cand.intervals)) + ","
-        if any(needle in "," + ",".join(map(str, k.intervals)) + ","
-               and set(cand.sources) <= set(k.sources) for k in kept):
+        if any(_within(cand, k) and set(cand.sources) <= set(k.sources) for k in kept):
             continue
         kept.append(cand)
         if len(kept) >= limit:

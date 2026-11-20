@@ -383,7 +383,11 @@ for the bank a whole piece is played through
 level-matched against its own model (`listen.calibrate(font=)`), not centred
 like a General MIDI set. A kit that a bank keeps as an ordinary preset with its
 own layout carries a `keymap`, read out of the bank's zone table -- never
-guessed from how the drums sound. `SOUNDFONTS.md` lists every bank with its
+guessed from how the drums sound. A bank is asked for by name everywhere
+(`soundfonts.resolve`: a catalogue name, a path, or the file name of one the
+user installed): on a voice, by a render's `soundfont=`, and by the piece
+(`meta soundfont = "fluidr3"` in its score, read by `audio.piece_soundfont`),
+which a missing bank must only ever warn about. `SOUNDFONTS.md` lists every bank with its
 author and terms, and a test fails if one is missing from it. Left out on
 purpose: GeneralUser GS (its author asks not to be linked to directly) and
 anything ripped from a commercial instrument.

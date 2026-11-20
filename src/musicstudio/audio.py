@@ -45,6 +45,7 @@ import subprocess
 import tempfile
 import wave
 from array import array
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from .doc import Piece, Voice
@@ -468,12 +469,11 @@ def voice_fx(piece: Piece, to_sec, notes=()) -> dict[str, list[tuple]]:
             params = op.params
             if op.kind == "duck":
                 from .ensemble import KIT_DRUMS
-                piece.get_voice(params["source"])            # a typo fails here
+                source = piece.get_voice(params["source"])   # a typo fails here
                 drum = params.get("drum")
                 if drum is not None and drum not in KIT_DRUMS:
                     raise ValueError(f"duck drum {drum!r} is not a drum; a kit has "
                                      f"{sorted(KIT_DRUMS)}")
-                source = piece.get_voice(params["source"])
                 played = notes
                 if source.muted:
                     # A muted key still keys: a pad soloed (as `ms hear` does)
@@ -502,75 +502,142 @@ def voice_fx(piece: Piece, to_sec, notes=()) -> dict[str, list[tuple]]:
     return out
 
 
-def _sweep_filter(x, lo: int, hi: int, start: float, end: float, mode: str,
-                  resonance: float):
-    """A filter whose cutoff moves from ``start`` to ``end`` Hz across a span.
+#: How many frames of a filter sweep are transformed in one call. Enough to
+#: take the per-frame overhead out, few enough that a batch stays in cache.
+_SWEEP_BATCH = 32
+
+
+def _peak(left, right) -> float:
+    """The largest sample on either side, as a magnitude."""
+    np = _np
+    return float(max(np.abs(left).max(initial=0.0), np.abs(right).max(initial=0.0)))
+
+
+def _sweep_filter(chans, lo: int, hi: int, start: float, end: float, mode: str,
+                  resonance: float) -> None:
+    """A filter whose cutoff moves from ``start`` to ``end`` Hz across a span,
+    over every channel in ``chans``, in place.
 
     Done frame by frame in the frequency domain (overlap-add), because a
     cutoff that moves cannot be one convolution. The slope is about 24 dB per
     octave; resonance adds a peak at the cutoff, which is what makes a sweep
     audible as a sweep rather than as the sound getting duller.
+
+    The response of a frame depends only on where the frame is in the span, so
+    it is worked out once for all the channels (and once altogether when the
+    cutoff does not move), a batch of frames at a time. The frames are still
+    added back one by one, in order: that is the sum, sample for sample, that
+    a loop over single frames makes.
     """
     np = _np
-    hi = min(hi, len(x))
-    if hi - lo < 2048:
-        return x
+    lo, hi = max(0, lo), min(hi, len(chans[0]))
+    if hi <= lo:
+        return
     size, hop = 2048, 512
-    seg = x[lo:hi]
-    count = 1 + (len(seg) - size) // hop
+    span = hi - lo
+    # Silence is put before and after the span, so that every sample of it sits
+    # under as many frames as any other. Framed bare, the last frame stopped
+    # short of the end and up to 511 samples went through unfiltered -- a
+    # click of the dry sound wherever one filter handed over to the next --
+    # and a span shorter than one frame was not filtered at all.
+    front = size - hop
+    count = (front + span - 1) // hop + 1
+    padded = (count - 1) * hop + size
     window = np.sqrt(np.hanning(size + 1)[:size])
     f = np.fft.rfftfreq(size, 1.0 / SR)
-    out = np.zeros(len(seg))
-    norm = np.zeros(len(seg))
+    audible = np.maximum(f, 1.0)
     start, end = max(20.0, float(start)), max(20.0, float(end))
-    for k in range(count):
-        t = k / max(1, count - 1)
-        cut = start * (end / start) ** t                 # exponential: even in pitch
-        ratio = (f / cut) if mode == "lowpass" else (cut / np.maximum(f, 1.0))
+
+    def response(cuts):
+        cut = np.array(cuts)[:, None]                    # one row per frame
+        ratio = (f / cut) if mode == "lowpass" else (cut / audible)
         gain = 1.0 / np.sqrt(1.0 + ratio ** 8)
         if resonance:
             gain = gain * (1.0 + 3.0 * resonance
-                           * np.exp(-0.5 * (np.log2(np.maximum(f, 1.0) / cut) / 0.12) ** 2))
-        a = k * hop
-        frame = np.fft.irfft(np.fft.rfft(seg[a:a + size] * window) * gain, size)
-        out[a:a + size] += frame * window
-        norm[a:a + size] += window ** 2
-    covered = norm > 1e-3
-    seg = np.where(covered, out / np.maximum(norm, 1e-3), seg)
-    y = x.copy()
-    y[lo:hi] = seg
-    return y
+                           * np.exp(-0.5 * (np.log2(audible / cut) / 0.12) ** 2))
+        return gain
+
+    still = response([start])[0] if start == end else None
+    frames = []
+    for x in chans:
+        seg = np.zeros(padded)
+        seg[front:front + span] = x[lo:hi]
+        frames.append(np.lib.stride_tricks.sliding_window_view(seg, size)[::hop])
+    outs = [np.zeros(padded) for _ in chans]
+    for first in range(0, count, _SWEEP_BATCH):
+        batch = range(first, min(count, first + _SWEEP_BATCH))
+        gain = still if still is not None else response(
+            # exponential: even in pitch
+            [start * (end / start) ** (k / max(1, count - 1)) for k in batch])
+        for out, framed in zip(outs, frames):
+            wet = np.fft.irfft(np.fft.rfft(framed[batch.start:batch.stop] * window) * gain,
+                               size) * window
+            for k in batch:
+                out[k * hop:k * hop + size] += wet[k - first]
+    norm = np.zeros(padded)
+    power = window ** 2
+    for k in range(count):
+        norm[k * hop:k * hop + size] += power
+    norm = norm[front:front + span]
+    for x, out in zip(chans, outs):
+        x[lo:hi] = out[front:front + span] / norm
 
 
-def _bell(x, lo: int, hi: int, freq: float, db: float, width: float):
+def _fft_size(n: int) -> int:
+    """The next length from ``n`` up that a transform is quick at: one with no
+    prime factor above 5.
+
+    A transform's cost goes with the largest prime in its length, and the
+    length of a piece is whatever its last note makes it -- one of 11,537,262
+    samples has 19,423 in it and took four to eight times as long to
+    transform as the same piece padded by a few hundred samples.
+    """
+    best = 1 << max(0, n - 1).bit_length()
+    p5 = 1
+    while p5 < best:
+        p35 = p5
+        while p35 < best:
+            size = p35 << max(0, -(-n // p35) - 1).bit_length()
+            if size >= n:
+                best = min(best, size)
+            p35 *= 3
+        p5 *= 5
+    return best
+
+
+def _bell(chans, lo: int, hi: int, freq: float, db: float, width: float) -> None:
     """A bell-shaped boost or cut, ``width`` octaves across at half its depth,
-    over samples ``lo..hi``. Done on the spectrum, so it has no phase of its
-    own and a cut at 3 kHz leaves 300 Hz exactly as it was; the span is faded
-    in and out over 20 ms so it does not click."""
+    over samples ``lo..hi`` of every channel in ``chans``, in place. Done on
+    the spectrum, so it has no phase of its own and a cut at 3 kHz leaves
+    300 Hz exactly as it was; the span is faded in and out over 20 ms so it
+    does not click."""
     np = _np
-    lo, hi = max(0, lo), min(len(x), hi)
+    total = len(chans[0])
+    lo, hi = max(0, lo), min(total, hi)
     if hi - lo < 16:
-        return x
-    seg = x[lo:hi]
-    spec = np.fft.rfft(seg)
-    f = np.fft.rfftfreq(len(seg), 1.0 / SR)
+        return
+    # Transformed with silence after it, up to a length that is quick. That
+    # also means what the bell rings on past the end of the span is dropped
+    # and not wrapped round to its start, as it is at the span's own length.
+    size = _fft_size(hi - lo)
+    f = np.fft.rfftfreq(size, 1.0 / SR)
     octaves = np.log2(np.maximum(f, 1e-6) / freq)
     curve = 10 ** (db / 20.0 * np.exp(-0.5 * (octaves / (width / 2.355)) ** 2))
-    wet = np.fft.irfft(spec * curve, len(seg))
     k = min(int(0.02 * SR), (hi - lo) // 2)
-    mix = np.ones(len(seg))
+    mix = np.ones(hi - lo)
     if lo > 0:
         mix[:k] = np.linspace(0.0, 1.0, k)
-    if hi < len(x):
+    if hi < total:
         mix[-k:] = np.linspace(1.0, 0.0, k)
-    out = x.copy()
-    out[lo:hi] = seg + (wet - seg) * mix
-    return out
+    for x in chans:
+        seg = x[lo:hi]
+        wet = np.fft.irfft(np.fft.rfft(seg, size) * curve, size)[:len(seg)]
+        x[lo:hi] = seg + (wet - seg) * mix
 
 
 def _echo(left, right, lo: int, hi: int, delay: float, feedback: float, mix: float,
-          tone: float, spread: float):
-    """A feedback delay over samples ``lo..hi`` of a bus.
+          tone: float, spread: float) -> None:
+    """A feedback delay over samples ``lo..hi`` of a bus, in place.
 
     Each repeat is the one before it, quieter and duller, the way a tape or a
     bucket-brigade echo loses its top on every pass; with ``spread`` the
@@ -584,21 +651,21 @@ def _echo(left, right, lo: int, hi: int, delay: float, feedback: float, mix: flo
     lo, hi = max(0, lo), min(n, hi)
     step = int(round(delay * SR))
     if hi - lo < 16 or step < 1 or mix <= 0:
-        return left, right
+        return
     feedback = max(0.0, min(0.92, feedback))
     k = min(int(0.005 * SR), (hi - lo) // 2)
     gate = np.ones(hi - lo)
     gate[:k] = np.linspace(0.0, 1.0, k)
     gate[-k:] = np.linspace(1.0, 0.0, k)
-    tap = (0.5 * (left[lo:hi] + right[lo:hi]) * gate if spread
-           else None)
-    taps = [tap] if spread else [left[lo:hi] * gate, right[lo:hi] * gate]
+    # The taps are copies taken before anything is written, so a repeat that
+    # lands back inside the span is never itself repeated.
+    taps = ([0.5 * (left[lo:hi] + right[lo:hi]) * gate] if spread
+            else [left[lo:hi] * gate, right[lo:hi] * gate])
     # One-pole lowpass as a short kernel: applied once per repeat, so the
     # fifth echo has been through it five times.
     a = math.exp(-2.0 * math.pi * max(200.0, min(tone, SR / 2.2)) / SR)
     kernel = (1.0 - a) * a ** np.arange(64)
     kernel /= kernel.sum()
-    out_l, out_r = left.copy(), right.copy()
     level, at, count = mix, lo + step, 0
     while level > 1e-3 and at < n and count < 48:
         taps = [np.convolve(t, kernel)[:len(t)] for t in taps]
@@ -607,133 +674,218 @@ def _echo(left, right, lo: int, hi: int, delay: float, feedback: float, mix: flo
             side = 1.0 if count % 2 == 0 else -1.0     # first repeat to the left
             gl = math.sqrt(0.5 * (1.0 + side * spread))
             gr = math.sqrt(0.5 * (1.0 - side * spread))
-            out_l[at:end] += taps[0][:end - at] * level * gl * math.sqrt(2.0)
-            out_r[at:end] += taps[0][:end - at] * level * gr * math.sqrt(2.0)
+            repeat = taps[0][:end - at] * level
+            left[at:end] += repeat * gl * math.sqrt(2.0)
+            right[at:end] += repeat * gr * math.sqrt(2.0)
         else:
-            out_l[at:end] += taps[0][:end - at] * level
-            out_r[at:end] += taps[1][:end - at] * level
+            left[at:end] += taps[0][:end - at] * level
+            right[at:end] += taps[1][:end - at] * level
         level *= feedback
         at += step
         count += 1
-    return out_l, out_r
+
+
+# One function per kind of processing. Each takes the voice's bus and the op
+# as ``voice_fx`` handed it over -- ``(left, right, params, first sample, last
+# sample)`` -- and returns the bus. The bus belongs to the chain: a step may
+# change it in place, which on a buffer the length of a piece is most of what
+# a step costs.
+
+def _fx_filter(left, right, params, lo, hi):
+    start = float(params["start"])
+    end = float(params["end"]) if params.get("end") is not None else start
+    mode = params.get("mode") or "lowpass"
+    if mode not in ("lowpass", "highpass"):
+        raise ValueError(f"filter mode must be lowpass or highpass, got {mode!r}")
+    res = max(0.0, min(1.0, float(params.get("resonance") or 0.0)))
+    _sweep_filter((left, right), lo, hi, start, end, mode, res)
+    return left, right
+
+
+def _fx_cut(left, right, params, lo, hi):
+    lo, hi = max(0, lo), min(len(left), hi)
+    if hi > lo:
+        keep = _np.ones(hi - lo)
+        _fade_out(keep, 0, hi - lo)
+        left[lo:hi] *= keep
+        right[lo:hi] *= keep
+    return left, right
+
+
+def _fx_duck(left, right, params, lo, hi):
+    np = _np
+    depth = max(0.0, min(40.0, float(params.get("depth") or 8.0)))
+    release = max(0.01, float(params.get("release") or 0.18))
+    floor = 10 ** (-depth / 20.0)
+    # Down in 5 ms at each hit, back up along an exponential: the
+    # shape a compressor keyed from the kick draws.
+    n = int(release * 5 * SR)
+    swell = 1.0 - (1.0 - floor) * np.exp(-np.arange(n) / (release * SR))
+    attack = int(0.005 * SR)
+    curve = np.ones(len(left))
+    for hit in params.get("_hits") or ():
+        a = max(0, hit - attack)
+        if a >= len(curve):
+            continue
+        hit = min(hit, len(curve))
+        curve[a:hit] = np.minimum(curve[a:hit],
+                                  np.linspace(curve[a], floor, hit - a))
+        b = min(len(curve), hit + n)
+        curve[hit:b] = np.minimum(curve[hit:b], swell[:b - hit])
+    left *= curve
+    right *= curve
+    return left, right
+
+
+def _fx_eq(left, right, params, lo, hi):
+    freq = float(params["freq"])
+    db = max(-24.0, min(24.0, float(params["gain"])))
+    width = max(0.1, float(params.get("width") or 1.0))
+    if not 20.0 <= freq <= SR / 2:
+        raise ValueError(f"eq freq must be between 20 Hz and {SR // 2}, got {freq}")
+    if db:
+        _bell((left, right), lo, hi, freq, db, width)
+    return left, right
+
+
+def _fx_drive(left, right, params, lo, hi):
+    np = _np
+    amount = max(0.0, min(4.0, float(params.get("amount") or 0.0)))
+    mode = params.get("mode") or "soft"
+    if mode not in ("soft", "clip", "fold"):
+        raise ValueError(f"drive mode must be soft, clip or fold, got {mode!r}")
+    peak = _peak(left, right)
+    if amount and peak > 0:
+        g = 1.0 + amount * 9.0
+        for x in (left, right):
+            # Level-matched at the peak, so drive adds harmonics and
+            # density rather than simply turning the voice up.
+            x *= g
+            x /= peak
+            if mode == "soft":
+                np.tanh(x, out=x)
+                x *= peak
+                x /= math.tanh(g)
+            elif mode == "clip":                   # flat tops: square and brutal
+                np.clip(x, -1.0, 1.0, out=x)
+                x *= peak
+            else:
+                # fold: what goes over the top comes back down, again and
+                # again -- the harshest of the three, and nearly noise.
+                x -= 1.0
+                x %= 4.0
+                x -= 2.0
+                np.abs(x, out=x)
+                x -= 1.0
+                x *= peak
+    return left, right
+
+
+def _fx_compress(left, right, params, lo, hi):
+    np = _np
+    ratio = max(1.0, float(params.get("ratio") or 4.0))
+    thr_db = float(params.get("threshold") if params.get("threshold") is not None
+                   else -18.0)
+    peak = _peak(left, right)
+    if ratio > 1.0 and peak > 0:
+        # Level follower: a fast attack and a slower release, done on
+        # short blocks so it costs nothing, then interpolated.
+        block = 64
+        n = len(left)
+        mag = np.maximum(np.abs(left), np.abs(right))
+        env = np.pad(mag, (0, (-n) % block)).reshape(-1, block).max(axis=1)
+        rel = math.exp(-block / (0.08 * SR))
+        for i in range(1, len(env)):
+            env[i] = max(env[i], env[i - 1] * rel)
+        thr = peak * 10 ** (thr_db / 20.0)
+        over = np.maximum(env / thr, 1.0)
+        gain = over ** (1.0 / ratio - 1.0)
+        gain = np.interp(np.arange(n), np.arange(len(env)) * block + block / 2, gain)
+        # Make-up to the same power as before: compression is then a
+        # change of density and not of level, so it can be added to a
+        # voice without remixing the piece. `makeup` dB goes on top.
+        before = float(np.mean(left ** 2 + right ** 2))
+        left *= gain
+        right *= gain
+        after = float(np.mean(left ** 2 + right ** 2)) or 1.0
+        level = math.sqrt(before / after) * 10 ** (
+            float(params.get("makeup") or 0.0) / 20.0)
+        left *= level
+        right *= level
+    return left, right
+
+
+def _fx_gain(left, right, params, lo, hi):
+    level = 10 ** (float(params["db"]) / 20.0)
+    left *= level
+    right *= level
+    return left, right
+
+
+def _fx_echo(left, right, params, lo, hi):
+    def given(name: str, default: float) -> float:
+        return float(params[name] if params.get(name) is not None else default)
+    _echo(left, right, lo, hi, float(params.get("_delay") or 0.0),
+          given("feedback", 0.4), given("mix", 0.35),
+          float(params.get("tone") or 3000.0),
+          max(0.0, min(1.0, given("spread", 0.6))))
+    return left, right
+
+
+def _fx_crush(left, right, params, lo, hi):
+    np = _np
+    step = max(1, int(round(SR / max(500.0, float(params.get("rate") or SR)))))
+    levels = 2.0 ** (max(2, int(params.get("bits") or 16)) - 1)
+    peak = _peak(left, right) or 1.0
+    for buf in (left, right):
+        held = np.repeat(buf[::step], step)[:len(buf)]
+        buf[:len(held)] = np.round(held / peak * levels) / levels * peak
+    return left, right
+
+
+#: What ``_apply_fx`` runs for each kind in ``render.AUDIO_ONLY``. A kind that
+#: is not here (`tone`, which only a singer reads) passes through untouched.
+_FX = {"filter": _fx_filter, "cut": _fx_cut, "duck": _fx_duck, "eq": _fx_eq,
+       "drive": _fx_drive, "compress": _fx_compress, "gain": _fx_gain,
+       "echo": _fx_echo, "crush": _fx_crush}
 
 
 def _apply_fx(left, right, chain):
-    """Run a voice's processing chain over its own bus."""
-    np = _np
+    """Run a voice's processing chain over its own bus. The bus is changed in
+    place where a step can do that; use what is returned."""
     for kind, params, lo, hi in chain:
-        if kind == "filter":
-            start = float(params["start"])
-            end = float(params["end"]) if params.get("end") is not None else start
-            mode = params.get("mode") or "lowpass"
-            if mode not in ("lowpass", "highpass"):
-                raise ValueError(f"filter mode must be lowpass or highpass, got {mode!r}")
-            res = max(0.0, min(1.0, float(params.get("resonance") or 0.0)))
-            left = _sweep_filter(left, lo, hi, start, end, mode, res)
-            right = _sweep_filter(right, lo, hi, start, end, mode, res)
-        elif kind == "cut":
-            keep = np.ones(len(left))
-            _fade_out(keep, lo, hi)
-            left, right = left * keep, right * keep
-        elif kind == "duck":
-            depth = max(0.0, min(40.0, float(params.get("depth") or 8.0)))
-            release = max(0.01, float(params.get("release") or 0.18))
-            floor = 10 ** (-depth / 20.0)
-            # Down in 5 ms at each hit, back up along an exponential: the
-            # shape a compressor keyed from the kick draws.
-            n = int(release * 5 * SR)
-            swell = 1.0 - (1.0 - floor) * np.exp(-np.arange(n) / (release * SR))
-            attack = int(0.005 * SR)
-            curve = np.ones(len(left))
-            for hit in params.get("_hits") or ():
-                a = max(0, hit - attack)
-                if a >= len(curve):
-                    continue
-                curve[a:hit] = np.minimum(curve[a:hit],
-                                          np.linspace(curve[a], floor, hit - a))
-                b = min(len(curve), hit + n)
-                curve[hit:b] = np.minimum(curve[hit:b], swell[:b - hit])
-            left, right = left * curve, right * curve
-        elif kind == "eq":
-            freq = float(params["freq"])
-            db = max(-24.0, min(24.0, float(params["gain"])))
-            width = max(0.1, float(params.get("width") or 1.0))
-            if not 20.0 <= freq <= SR / 2:
-                raise ValueError(f"eq freq must be between 20 Hz and {SR // 2}, got {freq}")
-            if db:
-                left = _bell(left, lo, hi, freq, db, width)
-                right = _bell(right, lo, hi, freq, db, width)
-        elif kind == "drive":
-            amount = max(0.0, min(4.0, float(params.get("amount") or 0.0)))
-            mode = params.get("mode") or "soft"
-            if mode not in ("soft", "clip", "fold"):
-                raise ValueError(f"drive mode must be soft, clip or fold, got {mode!r}")
-            peak = float(max(np.abs(left).max(initial=0.0), np.abs(right).max(initial=0.0)))
-            if amount and peak > 0:
-                g = 1.0 + amount * 9.0
-
-                def shape(x):
-                    # Level-matched at the peak, so drive adds harmonics and
-                    # density rather than simply turning the voice up.
-                    if mode == "soft":
-                        return peak * np.tanh(g * x / peak) / math.tanh(g)
-                    if mode == "clip":                 # flat tops: square and brutal
-                        return peak * np.clip(g * x / peak, -1.0, 1.0)
-                    # fold: what goes over the top comes back down, again and
-                    # again -- the harshest of the three, and nearly noise.
-                    y = g * x / peak
-                    return peak * (np.abs((y - 1.0) % 4.0 - 2.0) - 1.0)
-
-                left, right = shape(left), shape(right)
-        elif kind == "compress":
-            ratio = max(1.0, float(params.get("ratio") or 4.0))
-            thr_db = float(params.get("threshold") if params.get("threshold") is not None
-                           else -18.0)
-            peak = float(max(np.abs(left).max(initial=0.0), np.abs(right).max(initial=0.0)))
-            if ratio > 1.0 and peak > 0:
-                # Level follower: a fast attack and a slower release, done on
-                # short blocks so it costs nothing, then interpolated.
-                block = 64
-                n = len(left)
-                mag = np.maximum(np.abs(left), np.abs(right))
-                env = np.pad(mag, (0, (-n) % block)).reshape(-1, block).max(axis=1)
-                rel = math.exp(-block / (0.08 * SR))
-                for i in range(1, len(env)):
-                    env[i] = max(env[i], env[i - 1] * rel)
-                thr = peak * 10 ** (thr_db / 20.0)
-                over = np.maximum(env / thr, 1.0)
-                gain = over ** (1.0 / ratio - 1.0)
-                gain = np.interp(np.arange(n), np.arange(len(env)) * block + block / 2, gain)
-                # Make-up to the same power as before: compression is then a
-                # change of density and not of level, so it can be added to a
-                # voice without remixing the piece. `makeup` dB goes on top.
-                before = float(np.mean(left ** 2 + right ** 2))
-                left, right = left * gain, right * gain
-                after = float(np.mean(left ** 2 + right ** 2)) or 1.0
-                level = math.sqrt(before / after) * 10 ** (
-                    float(params.get("makeup") or 0.0) / 20.0)
-                left, right = left * level, right * level
-        elif kind == "gain":
-            level = 10 ** (float(params["db"]) / 20.0)
-            left, right = left * level, right * level
-        elif kind == "echo":
-            left, right = _echo(left, right, lo, hi, float(params.get("_delay") or 0.0),
-                                float(params.get("feedback") if params.get("feedback")
-                                      is not None else 0.4),
-                                float(params.get("mix") if params.get("mix") is not None
-                                      else 0.35),
-                                float(params.get("tone") or 3000.0),
-                                max(0.0, min(1.0, float(
-                                    params.get("spread") if params.get("spread")
-                                    is not None else 0.6))))
-        elif kind == "crush":
-            step = max(1, int(round(SR / max(500.0, float(params.get("rate") or SR)))))
-            levels = 2.0 ** (max(2, int(params.get("bits") or 16)) - 1)
-            peak = float(max(np.abs(left).max(initial=0.0), np.abs(right).max(initial=0.0))) or 1.0
-            for buf in (left, right):
-                held = np.repeat(buf[::step], step)[:len(buf)]
-                buf[:len(held)] = np.round(held / peak * levels) / levels * peak
+        step = _FX.get(kind)
+        if step is not None:
+            left, right = step(left, right, params, lo, hi)
     return left, right
+
+
+def _oscillator_np(length: int, freq: float, spec: dict, timbre: str, rng):
+    """``length`` samples of a timbre's fixed oscillator at one pitch, before
+    its envelope: what plays a note when there is no instrument model for it.
+    ``rng`` is the render's one noise source, drawn from in note order."""
+    np = _np
+    if spec["partials"] is None:
+        return rng.uniform(-1.0, 1.0, length)
+    t = np.arange(length) / SR
+    depth = spec.get("vibrato", 0.0)
+    if depth and length > SR * 0.3:
+        # Vibrato fades in, as a player's does: a note that wobbles from
+        # its first instant sounds like a tape fault, not expression.
+        fade = np.clip((t - 0.18) / 0.35, 0.0, 1.0)
+        inst_freq = freq * (1.0 + depth * fade * np.sin(2 * np.pi * 5.3 * t))
+        cycles = np.cumsum(inst_freq) / SR
+    else:
+        cycles = freq * t
+    if _harmonic(spec):
+        table = np.frombuffer(_wavetable(timbre, freq), dtype=np.float64)
+        pos = (cycles * TABLE) % TABLE
+        i0 = pos.astype(np.int64)
+        frac = pos - i0
+        return table[i0] * (1 - frac) + table[(i0 + 1) % TABLE] * frac
+    parts = _partials_under(spec, freq)
+    norm = sum(a for _, a in parts) or 1.0
+    return sum((a / norm) * np.sin(2 * np.pi * p * cycles) for p, a in parts)
 
 
 def _synth_numpy(notes, voices, pans, to_sec, total, gain, models=False, width=1.0,
@@ -751,6 +903,9 @@ def _synth_numpy(notes, voices, pans, to_sec, total, gain, models=False, width=1
     if models:
         from . import synth
         links = synth.slur_links(notes, to_sec)
+    # The models are levelled for the default gain; at that gain the scale is
+    # exactly 1 and a note's signal is used as it comes.
+    scale = gain / 0.72
 
     # A voice with processing on it is rendered to its own bus first, so the
     # filter hears that voice alone; everyone else goes straight to the mix.
@@ -763,7 +918,7 @@ def _synth_numpy(notes, voices, pans, to_sec, total, gain, models=False, width=1
         send = 1.0
         if models:
             send = synth.send_of(voices[name].instrument)
-        buses[name] = [s_left * (gain / 0.72), s_right * (gain / 0.72), send]
+        buses[name] = [s_left * scale, s_right * scale, send]
         fx.setdefault(name, [])
 
     def place(sig, start, pan, send, voice=None):
@@ -777,10 +932,15 @@ def _synth_numpy(notes, voices, pans, to_sec, total, gain, models=False, width=1
             bus[1][start:start + length] += sig[:length] * gr
             bus[2] = send
             return
-        left[start:start + length] += sig[:length] * gl
-        right[start:start + length] += sig[:length] * gr
-        send_l[start:start + length] += sig[:length] * (gl * send)
-        send_r[start:start + length] += sig[:length] * (gr * send)
+        dry_l, dry_r = sig[:length] * gl, sig[:length] * gr
+        left[start:start + length] += dry_l
+        right[start:start + length] += dry_r
+        if send == 1.0:                    # all of it goes to the room
+            send_l[start:start + length] += dry_l
+            send_r[start:start + length] += dry_r
+        else:
+            send_l[start:start + length] += sig[:length] * (gl * send)
+            send_r[start:start + length] += sig[:length] * (gr * send)
 
     for n in notes:
         if n.voice in sampled:
@@ -799,44 +959,22 @@ def _synth_numpy(notes, voices, pans, to_sec, total, gain, models=False, width=1
             # ``width`` is 0 for a mono render: a section is spread around its
             # seat only when there is a stage to spread it on.
             for sig, offset in synth.render_note(ctx, total - start):
-                place(sig * (gain / 0.72), start, seat + offset * width,
-                      synth.send_of(voice.instrument), n.voice)
+                place(sig if scale == 1.0 else sig * scale, start,
+                      seat + offset * width, synth.send_of(voice.instrument), n.voice)
             continue
         plan = _note_plan(n, voice, to_sec, total, gain)
         if plan is None:
             continue
         start, length, amp, freq, spec, timbre = plan
         env = _envelope_np(length, spec["adsr"])
-        if spec["partials"] is None:
-            sig = rng.uniform(-1.0, 1.0, length)
-        else:
-            t = np.arange(length) / SR
-            depth = spec.get("vibrato", 0.0)
-            if depth and length > SR * 0.3:
-                # Vibrato fades in, as a player's does: a note that wobbles from
-                # its first instant sounds like a tape fault, not expression.
-                fade = np.clip((t - 0.18) / 0.35, 0.0, 1.0)
-                inst_freq = freq * (1.0 + depth * fade * np.sin(2 * np.pi * 5.3 * t))
-                cycles = np.cumsum(inst_freq) / SR
-            else:
-                cycles = freq * t
-            if _harmonic(spec):
-                table = np.frombuffer(_wavetable(timbre, freq), dtype=np.float64)
-                pos = (cycles * TABLE) % TABLE
-                i0 = pos.astype(np.int64)
-                frac = pos - i0
-                sig = table[i0] * (1 - frac) + table[(i0 + 1) % TABLE] * frac
-            else:
-                parts = _partials_under(spec, freq)
-                norm = sum(a for _, a in parts) or 1.0
-                sig = sum((a / norm) * np.sin(2 * np.pi * p * cycles) for p, a in parts)
+        sig = _oscillator_np(length, freq, spec, timbre, rng)
         place(sig * env * amp, start, pans.get(n.voice, 0.0), 1.0, n.voice)
     for name, (bus_l, bus_r, send) in buses.items():
         bus_l, bus_r = _apply_fx(bus_l, bus_r, fx[name])
         left += bus_l
         right += bus_r
-        send_l += bus_l * send
-        send_r += bus_r * send
+        send_l += bus_l if send == 1.0 else bus_l * send
+        send_r += bus_r if send == 1.0 else bus_r * send
     return left, right, (send_l, send_r)
 
 
@@ -875,7 +1013,7 @@ def _reverb(left, right, decay: float, wet: float, send=None):
                 out[at] += rng.choice((-1.0, 1.0)) * 0.34 * math.exp(-ms / 45.0)
         return out
 
-    size = 1 << int(math.ceil(math.log2(len(left) + n)))
+    size = _fft_size(len(left) + n)
     feeds = send if send is not None else (left, right)
     outs = []
     for dry, feed, h in ((left, feeds[0], ir()), (right, feeds[1], ir())):
@@ -899,7 +1037,7 @@ def _master(left, right, ceiling: float = 0.95, push: float = 3.5, clip: float =
     the ceiling is returned untouched: a quiet cue stays quiet.
     """
     np = _np
-    peak = float(max(np.abs(left).max(initial=0.0), np.abs(right).max(initial=0.0)))
+    peak = _peak(left, right)
     if clip > 0 and peak > 0:
         # Deliberate destruction: the mix is driven `clip` dB past full scale
         # and the tops are cut off flat. No limiter is involved, on purpose.
@@ -952,7 +1090,7 @@ def save_wav(piece: Piece, path: str | Path, rend: Render | None = None, *,
             # sound and still be handed over at a civil volume.
             trim = 10 ** (min(0.0, float(how["level"])) / 20.0)
             l_arr, r_arr = l_arr * trim, r_arr * trim
-        peak = float(max(_np.abs(l_arr).max(initial=0.0), _np.abs(r_arr).max(initial=0.0)))
+        peak = _peak(l_arr, r_arr)
         scale = 32767.0 * (0.95 / peak if peak > 0.95 else 1.0)
         frames = (_np.stack([l_arr, r_arr], 1) if stereo else l_arr[:, None])
         pcm = _np.clip(frames * scale, -32768, 32767).astype("<i2").tobytes()
@@ -999,13 +1137,21 @@ _SOUNDFONT_PREFERENCE = ("musescore_general_hq", "musescore_general_full",
 
 
 def find_soundfont(path: str | os.PathLike | None = None) -> Path:
-    """Resolve a SoundFont: an explicit path, ``$MUSICSTUDIO_SOUNDFONT``, or the
-    best General MIDI bank found in the usual system directories."""
+    """Resolve a SoundFont: an explicit path or name (``soundfonts.resolve``),
+    ``$MUSICSTUDIO_SOUNDFONT``, or the best General MIDI bank found in the
+    usual system directories."""
     chosen = path if path and str(path) != "auto" else os.environ.get("MUSICSTUDIO_SOUNDFONT")
     if chosen:
-        p = Path(chosen).expanduser()
-        if not p.is_file():
-            raise FileNotFoundError(f"no SoundFont at {p}")
+        from . import soundfonts
+        p = soundfonts.resolve(chosen)
+        if p is None:
+            if str(chosen) in soundfonts.BANKS:
+                raise FileNotFoundError(f"the SoundFont {str(chosen)!r} is not installed "
+                                        f"(`ms soundfont install {chosen}`)")
+            raise FileNotFoundError(
+                f"no SoundFont at or called {str(chosen)!r}; a bank is asked for by "
+                f"path or by name ({', '.join(soundfonts.BANKS)}, or the file name "
+                f"of one you installed)")
         return p
     found: list[Path] = []
     for d in SOUNDFONT_DIRS:
@@ -1026,6 +1172,28 @@ def find_soundfont(path: str | os.PathLike | None = None) -> Path:
                     len(_SOUNDFONT_PREFERENCE))
 
     return min(found, key=rank)
+
+
+def piece_soundfont(piece: Piece, *, strict: bool = False) -> Path | None:
+    """The General MIDI bank a piece asks to be sampled from: its
+    ``meta["soundfont"]`` (in a score file, ``meta soundfont = "fluidr3"``),
+    by name or path. ``None`` when it asks for none -- or for one that is not
+    here, which warns (or raises under ``strict``) and leaves the choice to
+    ``find_soundfont``, because a piece must still render on a machine
+    without its bank."""
+    asked = piece.meta.get("soundfont")
+    if not asked:
+        return None
+    from . import soundfonts
+    found = soundfonts.resolve(str(asked))
+    if found is None:
+        what = (f"the piece asks for the SoundFont {asked!r}, which is not installed"
+                + (f" (`ms soundfont install {asked}`)" if asked in soundfonts.BANKS else ""))
+        if strict:
+            raise RuntimeError(what)
+        import warnings
+        warnings.warn(what + "; the default bank is used instead", stacklevel=3)
+    return found
 
 
 def soundfont_available() -> bool:
@@ -1082,9 +1250,9 @@ def sampled_stems(piece: Piece, notes, to_sec, total: int, *,
     kit tuned up five semitones is shorter and higher exactly as a sped-up
     break is, and a roll that climbs is a set of such renders.
 
-    Which SoundFont: the voice's ``bank`` if it names one in
-    ``soundfonts.BANKS``, else the instrument's own ``font``, else the General
-    MIDI bank -- so one piece can draw on several. ``bare`` leaves out the
+    Which SoundFont: the voice's ``bank`` if it names one (``soundfonts.resolve``),
+    else the instrument's own ``font``, else the piece's (``piece_soundfont``),
+    else the General MIDI bank -- so one piece can draw on several. ``bare`` leaves out the
     level matching (it is what the level matching itself measures with).
 
     Without FluidSynth or a bank this returns nothing and the voices fall back
@@ -1102,39 +1270,12 @@ def sampled_stems(piece: Piece, notes, to_sec, total: int, *,
         warnings.warn("voices with engine='soundfont' are being played by the "
                       "instrument models: FluidSynth is missing", stacklevel=2)
         return {}
-    from . import soundfonts
     from .listen import calibrate
     from .midi import _chunk, _track
     import struct
-    general = find_soundfont() if soundfont_available() else None
-    # Which file each voice is played from, and which preset in it. A voice's
-    # own `bank` names a catalogued SoundFont and wins; otherwise the
-    # instrument's `font`; otherwise the General MIDI bank. A bank that is not
-    # installed falls back one step, and says so.
-    plan: dict[str, tuple[Path, str | None, int, int]] = {}
-    keymaps: dict[str, dict[int, int]] = {}
-    for v in wanted:
-        asked = None if v.inst.family == "voice" else v.bank   # a singer's is a voice
-        font = asked or v.inst.font
-        path = soundfonts.path_of(font) if font else None
-        if font and path is None:
-            what = (f"voice {v.name!r} ({v.instrument}) asks for the SoundFont "
-                    f"{font!r}, which is not installed (`ms soundfont install {font}`)")
-            if strict:
-                raise RuntimeError(what)
-            warnings.warn(what + "; " + ("the General MIDI bank plays it instead"
-                                         if general else "its model plays it instead"),
-                          stacklevel=2)
-        if path is not None:
-            own = font == v.inst.font and v.inst.preset is not None
-            bank_no, program = v.inst.preset if own else (
-                128 if v.inst.percussive else 0, v.inst.program)
-            plan[v.name] = (path, font, bank_no, program)
-            if own and v.inst.keymap:
-                keymaps[v.name] = dict(v.inst.keymap)
-        elif general is not None:
-            plan[v.name] = (general, None, 128 if v.inst.percussive else 0,
-                            v.inst.program)
+    general = piece_soundfont(piece, strict=strict) or (
+        find_soundfont() if soundfont_available() else None)
+    plan, keymaps = _sampler_plan(wanted, general, strict)
     if not plan:
         if strict:
             raise RuntimeError("voices with engine='soundfont' cannot be sampled: "
@@ -1146,14 +1287,13 @@ def sampled_stems(piece: Piece, notes, to_sec, total: int, *,
     wanted = [v for v in wanted if v.name in plan]
     pans = pan_positions(piece)
     out: dict[str, tuple] = {}
-    rate = 960                      # ticks per second: 480 per quarter at 120 bpm
     with tempfile.TemporaryDirectory() as tmp:
-        for v in wanted:
+        jobs = []
+        for i, v in enumerate(wanted):
             mine = [n for n in notes if n.voice == v.name]
             if not mine:
                 continue
             bank, font, bank_no, program = plan[v.name]
-            keymap = keymaps.get(v.name, {})
             if bare:
                 level, curve = 1.0, 1.0
             else:
@@ -1166,74 +1306,153 @@ def sampled_stems(piece: Piece, notes, to_sec, total: int, *,
                 key = v.instrument if own or not v.inst.percussive else "kit"
                 level = 10 ** ((cal.get("offset", 0.0) + cal["trim"].get(key, 0.0)) / 20.0)
                 curve = cal["curve"].get(key, SAMPLER_VELOCITY_CURVE)
-            groups: dict[float, list] = {}
-            for n in mine:
-                groups.setdefault(round(n.tune * 2) / 2, []).append(n)
-            # One FluidSynth run for the whole voice: every pitch group is laid
-            # end to end in a single file, each slowed by its own ratio, and
-            # cut apart again afterwards. Loading the bank is the slow part.
-            # Bank 128 is the drum channel's. A kit that a bank keeps as an
-            # ordinary preset (bank 0) is played on an ordinary channel.
-            ch = 9 if bank_no == 128 else 0
-            events: list[tuple[int, bytes]] = []
-            if ch != 9:
-                events.append((0, bytes([0xB0 | ch, 0, bank_no & 0x7F])))
-            events.append((0, bytes([0xC0 | ch, program & 0x7F])))
-            layout = []
-            cursor = 0.0
-            for tune, group in sorted(groups.items()):
-                ratio = 2.0 ** (tune / 12.0)
-                first = min(to_sec(n.start) for n in group)
-                last = max(to_sec(n.end) for n in group)
-                length = (last - first + 2.5) * ratio
-                # One note-off per pitch: a note struck again while it still
-                # rings ends where the next one starts, or its own later
-                # note-off would land inside the new note and silence it
-                # (the rule `midi._sounding_ends` applies to the MIDI export).
-                spans: list[list[int]] = []
-                ringing: dict[int, list[int]] = {}
-                for n in sorted(group, key=lambda n: n.start):
-                    on = int((cursor + (to_sec(n.start) - first) * ratio) * rate)
-                    off = max(on + 1, int((cursor + (to_sec(n.end) - first) * ratio) * rate))
-                    pitch = max(0, min(127, keymap.get(n.pitch, n.pitch)))
-                    before = ringing.get(pitch)
-                    if before is not None and before[1] > on:
-                        before[1] = max(before[0] + 1, on)
-                    vel = max(1, min(127, round(127 * (max(1, n.velocity) / 127) ** curve)))
-                    span = [on, off, pitch, vel]
-                    spans.append(span)
-                    ringing[pitch] = span
-                # Offs first, so an off and an on at one tick end the old note
-                # rather than the new one.
-                events += [(off, bytes([0x80 | ch, pitch, 0])) for _, off, pitch, _ in spans]
-                events += [(on, bytes([0x90 | ch, pitch, vel])) for on, _, pitch, vel in spans]
-                layout.append((ratio, first, cursor, length))
-                cursor += length
+            events, layout = _stem_events(mine, to_sec, keymaps.get(v.name, {}),
+                                          bank_no, program, curve)
             meta = _track([(0, b"\xff\x51\x03" + struct.pack(">I", 500000)[1:])])
-            mid = Path(tmp) / "stem.mid"
+            mid = Path(tmp) / f"stem{i}.mid"
             mid.write_bytes(_chunk(b"MThd", struct.pack(">HHH", 1, 2, 480))
                             + meta + _track(events))
-            wav = Path(tmp) / "stem.wav"
+            jobs.append((v, mid, bank, layout, level))
+
+        def sample(job) -> Path:
+            _, mid, bank, _, _ = job
+            wav = mid.with_suffix(".wav")
             _fluidsynth(mid, wav, bank, gain=0.4, room=None)
-            with wave.open(str(wav), "rb") as w:
-                raw = np.frombuffer(w.readframes(w.getnframes()), dtype="<i2")
-                data = raw.reshape(-1, w.getnchannels()).astype(np.float64) / 32768.0
-            if data.shape[1] == 1:
-                data = np.repeat(data, 2, axis=1)
-            left, right = np.zeros(total), np.zeros(total)
-            gl, gr = (1.0, 1.0) if v.inst.percussive else \
-                tuple(g * math.sqrt(2) for g in _gains(pans.get(v.name, 0.0)))
-            for ratio, first, at, length in layout:
-                seg = data[int(at * SR):int((at + length) * SR)]
-                start = int(first * SR)
-                for x, buf, g in ((seg[:, 0], left, gl), (seg[:, 1], right, gr)):
-                    if ratio != 1.0 and len(x) > 1:
-                        x = np.interp(np.arange(0.0, len(x) - 1, ratio), np.arange(len(x)), x)
-                    k = min(total - start, len(x))
-                    if k > 0:
-                        buf[start:start + k] += x[:k] * (level * g)
-            out[v.name] = (left, right)
+            return wav
+
+        # The runs do not depend on each other, and nearly all of each is
+        # FluidSynth loading its bank, so several go at once. The stems are
+        # still taken in the order of the voices.
+        with ThreadPoolExecutor(max_workers=min(_SAMPLER_JOBS, max(1, len(jobs)))) as pool:
+            for (v, _, _, layout, level), wav in zip(jobs, pool.map(sample, jobs)):
+                with wave.open(str(wav), "rb") as w:
+                    raw = np.frombuffer(w.readframes(w.getnframes()), dtype="<i2")
+                    data = raw.reshape(-1, w.getnchannels()).astype(np.float64) / 32768.0
+                wav.unlink()
+                if data.shape[1] == 1:
+                    data = np.repeat(data, 2, axis=1)
+                gl, gr = (1.0, 1.0) if v.inst.percussive else \
+                    tuple(g * math.sqrt(2) for g in _gains(pans.get(v.name, 0.0)))
+                out[v.name] = _lay_stem(data, layout, total, level * gl, level * gr)
     return out
+
+
+#: How many FluidSynth runs go at once. Each holds its whole bank in memory
+#: while it runs (one run was measured at 4 GB resident), so this is a bound
+#: on memory and not on cores.
+_SAMPLER_JOBS = 2
+
+
+def _sampler_plan(wanted, general: Path | None, strict: bool):
+    """Which file each voice is played from, and which preset in it:
+    ``({voice: (path, font, bank number, program)}, {voice: keymap})``.
+
+    A voice's own `bank` names a catalogued SoundFont and wins; otherwise the
+    instrument's `font`; otherwise the General MIDI bank. A bank that is not
+    installed falls back one step, and says so. A voice no bank can play is
+    left out, and its model plays it.
+    """
+    import warnings
+
+    from . import soundfonts
+    plan: dict[str, tuple[Path, str | None, int, int]] = {}
+    keymaps: dict[str, dict[int, int]] = {}
+    for v in wanted:
+        asked = None if v.inst.family == "voice" else v.bank   # a singer's is a voice
+        font = asked or v.inst.font
+        path = soundfonts.resolve(font) if font else None
+        if font and path is None:
+            what = (f"voice {v.name!r} ({v.instrument}) asks for the SoundFont "
+                    f"{font!r}, which is not installed"
+                    + (f" (`ms soundfont install {font}`)" if font in soundfonts.BANKS
+                       else " and is not a bank the studio lists (`ms soundfont banks`)"))
+            if strict:
+                raise RuntimeError(what)
+            warnings.warn(what + "; " + ("the General MIDI bank plays it instead"
+                                         if general else "its model plays it instead"),
+                          stacklevel=3)
+        if path is not None:
+            own = font == v.inst.font and v.inst.preset is not None
+            bank_no, program = v.inst.preset if own else (
+                128 if v.inst.percussive else 0, v.inst.program)
+            plan[v.name] = (path, font, bank_no, program)
+            if own and v.inst.keymap:
+                keymaps[v.name] = dict(v.inst.keymap)
+        elif general is not None:
+            plan[v.name] = (general, None, 128 if v.inst.percussive else 0,
+                            v.inst.program)
+    return plan, keymaps
+
+
+def _stem_events(mine, to_sec, keymap: dict[int, int], bank_no: int, program: int,
+                 curve: float):
+    """One voice's notes as the MIDI events of a single FluidSynth run, and
+    where each pitch group lies in it: ``(events, [(ratio, first second in the
+    piece, second in the run, length)])``.
+
+    Every pitch group is laid end to end in a single file, each slowed by its
+    own ratio, and cut apart again afterwards (:func:`_lay_stem`). Loading the
+    bank is the slow part, so a voice is one run however many groups it has.
+    """
+    rate = 960                      # ticks per second: 480 per quarter at 120 bpm
+    groups: dict[float, list] = {}
+    for n in mine:
+        groups.setdefault(round(n.tune * 2) / 2, []).append(n)
+    # Bank 128 is the drum channel's. A kit that a bank keeps as an
+    # ordinary preset (bank 0) is played on an ordinary channel.
+    ch = 9 if bank_no == 128 else 0
+    events: list[tuple[int, bytes]] = []
+    if ch != 9:
+        events.append((0, bytes([0xB0 | ch, 0, bank_no & 0x7F])))
+    events.append((0, bytes([0xC0 | ch, program & 0x7F])))
+    layout = []
+    cursor = 0.0
+    for tune, group in sorted(groups.items()):
+        ratio = 2.0 ** (tune / 12.0)
+        first = min(to_sec(n.start) for n in group)
+        last = max(to_sec(n.end) for n in group)
+        length = (last - first + 2.5) * ratio
+        # One note-off per pitch: a note struck again while it still
+        # rings ends where the next one starts, or its own later
+        # note-off would land inside the new note and silence it
+        # (the rule `midi._sounding_ends` applies to the MIDI export).
+        spans: list[list[int]] = []
+        ringing: dict[int, list[int]] = {}
+        for n in sorted(group, key=lambda n: n.start):
+            on = int((cursor + (to_sec(n.start) - first) * ratio) * rate)
+            off = max(on + 1, int((cursor + (to_sec(n.end) - first) * ratio) * rate))
+            pitch = max(0, min(127, keymap.get(n.pitch, n.pitch)))
+            before = ringing.get(pitch)
+            if before is not None and before[1] > on:
+                before[1] = max(before[0] + 1, on)
+            vel = max(1, min(127, round(127 * (max(1, n.velocity) / 127) ** curve)))
+            span = [on, off, pitch, vel]
+            spans.append(span)
+            ringing[pitch] = span
+        # Offs first, so an off and an on at one tick end the old note
+        # rather than the new one.
+        events += [(off, bytes([0x80 | ch, pitch, 0])) for _, off, pitch, _ in spans]
+        events += [(on, bytes([0x90 | ch, pitch, vel])) for on, _, pitch, vel in spans]
+        layout.append((ratio, first, cursor, length))
+        cursor += length
+    return events, layout
+
+
+def _lay_stem(data, layout, total: int, gain_l: float, gain_r: float):
+    """Cut a FluidSynth run back into its pitch groups and lay each where it
+    belongs in the piece, played back faster by its ratio: ``(left, right)``."""
+    np = _np
+    left, right = np.zeros(total), np.zeros(total)
+    for ratio, first, at, length in layout:
+        seg = data[int(at * SR):int((at + length) * SR)]
+        start = int(first * SR)
+        for x, buf, g in ((seg[:, 0], left, gain_l), (seg[:, 1], right, gain_r)):
+            if ratio != 1.0 and len(x) > 1:
+                x = np.interp(np.arange(0.0, len(x) - 1, ratio), np.arange(len(x)), x)
+            k = min(total - start, len(x))
+            if k > 0:
+                buf[start:start + k] += x[:k] * g
+    return left, right
 
 
 def _fluidsynth(mid: Path, out: Path, bank: Path, *, gain: float,
@@ -1281,7 +1500,10 @@ def save_wav_soundfont(piece: Piece, path: str | Path, soundfont: str | Path | N
     velocity curve is used for everything.
     """
     from .midi import save_midi
-    sf = find_soundfont(soundfont)
+    sf = None
+    if soundfont is None or str(soundfont) == "auto":
+        sf = piece_soundfont(piece)             # the piece's own choice, if it made one
+    sf = sf or find_soundfont(soundfont)
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
     trims = None

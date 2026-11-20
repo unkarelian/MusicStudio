@@ -20,7 +20,7 @@ from mcp.server.mcpserver import MCPServer
 
 from . import __version__
 from .lint import report
-from .studio import Studio
+from .studio import EXPECTED_ERRORS, Studio, error_text
 
 INSTRUCTIONS = """\
 MusicStudio is a studio for instrumental score writing -- OST rather than songs.
@@ -77,6 +77,15 @@ The vocabulary and the order of work are the same either way:
   9. ms_hear -- measure the render: is the tune clear, did every note sound?
  10. ms_export_wav -- render it and have the human actually listen
 
+What it sounds like is a choice too. Every instrument has a built-in model;
+ms_soundfonts lists the banks of recorded instruments installed beside them
+(two orchestral General MIDI sets, an FM chip, analog drum machines, recorded
+guitars, basses, organs, a grand piano, a rock kit). A voice line in the score
+takes `engine=soundfont bank=NAME`; `meta soundfont = "NAME"` sets the piece's
+bank; soundfont=NAME on ms_export_wav / ms_hear renders the whole piece through
+one. Measure whichever render the listener will hear: they can disagree.
+ms_check_words asks a speech recogniser whether a sung line is understood.
+
 Every change is a checkpoint. If an idea does not work, ms_undo takes it back
 (and ms_redo re-applies it), so try the bold version first.
 
@@ -103,10 +112,22 @@ def _guard(fn, *args, **kwargs) -> str:
     """Return errors as readable text; a traceback teaches an agent nothing."""
     try:
         return fn(*args, **kwargs)
-    except (KeyError, ValueError, TypeError, IndexError, RuntimeError, ImportError,
-            OSError) as exc:
-        msg = exc.args[0] if isinstance(exc, KeyError) and exc.args else exc
-        return f"error: {msg}"
+    except EXPECTED_ERRORS as exc:
+        return f"error: {error_text(exc)}"
+
+
+def _with_warnings(fn) -> str:
+    """Run a render and say what it had to fall back on. A bank that is not
+    installed or a singer that could not be run is a `warnings.warn`, which a
+    terminal shows and a tool result does not -- and a voice quietly played by
+    something else is exactly what the caller needs to be told."""
+    import warnings
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        out = str(fn())
+    said = list(dict.fromkeys(str(w.message) for w in caught
+                              if issubclass(w.category, UserWarning)))
+    return "\n".join([out] + [f"render warning: {m}" for m in said])
 
 
 # -- discovery -------------------------------------------------------------
@@ -158,17 +179,23 @@ def ms_list() -> str:
     "with ordinary text edits, then build. Nothing is saved unless the whole "
     "file parses, validates and renders; errors name the line. `path` is a "
     "file or the name of one in the project's scores/; `text` compiles a "
-    "string. Returns the chart, lint, and with hear=true the measured mix."))
+    "string. Returns the chart, lint, and with hear=true the measured mix. "
+    "soundfont (a name from ms_soundfonts, or 'auto') makes wav and hear the "
+    "whole-piece sampled render instead of the built-in one. The file itself "
+    "chooses SoundFonts too: `engine=soundfont bank=NAME` on a voice line, "
+    "`meta soundfont = \"NAME\"` for the piece."))
 def ms_build(path: str | None = None, text: str | None = None, wav: bool = False,
-             hear: bool = False) -> str:
+             hear: bool = False, soundfont: str | None = None) -> str:
     def run() -> str:
         res = _studio.build(path, text=text)
-        name = res.message.split("'")[1]
+        name = res.piece
         out = [str(res)]
         if wav:
-            out.append(f"wav: {_studio.export_wav(name)}")
+            out.append(_with_warnings(
+                lambda: f"wav: {_studio.export_wav(name, soundfont=soundfont)}"))
         if hear:
-            out.append(_studio.hear(name))
+            out.append(_with_warnings(lambda: _studio.hear(
+                name, source="soundfont" if soundfont else "models", soundfont=soundfont)))
         return "\n\n".join(out)
     return _guard(run)
 
@@ -215,14 +242,9 @@ def ms_new(name: str, key: str = "C major", tempo: int = 90, meter: str = "4/4",
            style: str = "orchestral", form: str | None = None,
            sections: list | None = None, overwrite: bool = False,
            loop: bool = False) -> str:
-    def go():
-        p = _studio.create(name, key=key, tempo=tempo, meter=meter, style=style,
-                           form=form, sections=sections, overwrite=overwrite, loop=loop)
-        return (f"created {p.name}: {p.key.name}, q={p.tempo}, {p.meter}, "
-                f"style={p.style}{', loop' if p.loop else ''}\n"
-                f"sections: {[(s.name, s.bars) for s in p.sections] or 'none yet'}\n"
-                f"file: {_studio.path_for(p.name)}")
-    return _guard(go)
+    return _guard(lambda: _studio.describe_new(_studio.create(
+        name, key=key, tempo=tempo, meter=meter, style=style, form=form,
+        sections=sections, overwrite=overwrite, loop=loop)))
 
 
 @mcp.tool(description="Delete a piece from the project. Undoable with ms_undo.")
@@ -299,18 +321,24 @@ def ms_set_harmony(name: str, entries: list, replace: bool = True) -> str:
     "register and what the critique pass expects of it. engine='soundfont' plays "
     "the voice from the installed SoundFont inside the built-in render, keeping "
     "drum tuning and the filter/drive/compress/crush ops -- use it for a kit when "
-    "the drums should sound like a recorded break."))
+    "the drums should sound like a recorded break. With it, bank= names which "
+    "SoundFont (ms_soundfonts lists them: bank='fluidr3', 'opl3', ...); left "
+    "out, the instrument's own bank or the piece's plays it. On a singer, bank "
+    "is a voice instead (ms_singers)."))
 def ms_add_voice(name: str, voice: str, instrument: str, role: str = "melody",
                  octave: int | None = None, dynamic: str | None = None,
-                 pan: float | None = None, engine: str | None = None) -> str:
+                 pan: float | None = None, engine: str | None = None,
+                 bank: str | None = None) -> str:
     return _guard(lambda: str(_studio.add_voice(name, voice, instrument, role=role,
                                                 octave=octave, dynamic=dynamic, pan=pan,
-                                                engine=engine)))
+                                                engine=engine, bank=bank)))
 
 
 @mcp.tool(description=(
-    "Change a voice's instrument, role, octave, dynamic, muted state or pan "
-    "(-1 left .. 1 right; by default voices are seated like an orchestra)."))
+    "Change a voice's instrument, role, octave, dynamic, muted state, pan "
+    "(-1 left .. 1 right; by default voices are seated like an orchestra), "
+    "engine or bank -- {'engine': 'soundfont', 'bank': 'fluidr3'} moves a voice "
+    "onto another SoundFont (ms_soundfonts lists them)."))
 def ms_set_voice(name: str, voice: str, fields: dict) -> str:
     return _guard(lambda: str(_studio.set_voice(name, voice, **fields)))
 
@@ -568,6 +596,40 @@ def ms_singers() -> str:
 
 
 @mcp.tool(description=(
+    "SoundFonts: the banks of recorded instruments a render can draw on. Lists "
+    "every one installed (and the listed ones that are not), each with the name "
+    "to ask for it by, whether it is a whole General MIDI set or a bank for "
+    "particular instruments, which instruments it plays by default, and what "
+    "its licence asks -- credit the ones that ask for it. Three ways to choose "
+    "one: a voice (engine='soundfont', bank=NAME -- sampled inside the built-in "
+    "render, so its fx ops still apply); a piece (in its score file, `meta "
+    "soundfont = \"NAME\"` -- the bank for its sampled voices and for "
+    "soundfont='auto'); one render (soundfont=NAME on ms_export_wav, ms_hear "
+    "or ms_build -- the whole piece through that one bank, no singing, no fx "
+    "ops). installed_only=false also shows what `ms soundfont install <name>` "
+    "could fetch; this tool never downloads."))
+def ms_soundfonts(installed_only: bool = True) -> str:
+    def run() -> str:
+        info = _studio.soundfonts()
+        if installed_only:
+            info["banks"] = [b for b in info["banks"] if b["installed"]]
+        return _j(info)
+    return _guard(run)
+
+
+@mcp.tool(description=(
+    "Whether the singing can be understood: render one sung voice alone, give "
+    "it to a speech recogniser, and compare what it heard with the words on "
+    "the notes. Returns the transcript, the share of words understood, the "
+    "words missed, and words heard that were never written. The only objective "
+    "test of intelligibility there is -- but it calls a paid service (a few "
+    "cents, needs OPENROUTER_API_KEY in the server's environment), so run it "
+    "when a sung line is finished, not after every edit."))
+def ms_check_words(name: str, voice: str | None = None) -> str:
+    return _guard(lambda: _j(_studio.check_words(name, voice)))
+
+
+@mcp.tool(description=(
     "How hard the finished mix is hit. push is dB into the limiter (default 3.5, "
     "9 for electronic). clip instead drives the mix that many dB past full scale "
     "and cuts the tops off flat -- a deliberate sound in breakcore and noise, a "
@@ -599,22 +661,29 @@ def ms_tension(name: str) -> str:
     "it before handing a render to a person -- an accompaniment as loud as the "
     "tune, or a note that was cut off, is in these numbers and in no score view. "
     "soundfont='auto' measures the sampled render, which can differ from the "
-    "built-in one. Takes as long as a render."))
+    "built-in one; a name from ms_soundfonts measures it through that bank. "
+    "Takes as long as a render."))
 def ms_hear(name: str, soundfont: str | None = None) -> str:
-    return _guard(lambda: _studio.hear(
-        name, source="soundfont" if soundfont else "models", soundfont=soundfont))
+    return _guard(lambda: _with_warnings(lambda: _studio.hear(
+        name, source="soundfont" if soundfont else "models", soundfont=soundfont)))
 
 
 @mcp.tool(description=(
     "Render to a WAV and return its path, so a person can actually listen. The "
     "ASCII views tell you whether the writing is correct; only this tells you "
     "whether the music works. Voices are played through instrument models by "
-    "default. soundfont='auto' (or a path to an .sf2/.sf3) renders sampled "
-    "instruments through FluidSynth instead, when both are installed."))
+    "default. soundfont='auto' renders sampled instruments through FluidSynth "
+    "instead (the piece's own bank if its score names one, else the default); "
+    "soundfont='fluidr3' or any other name from ms_soundfonts, or a path to an "
+    ".sf2/.sf3, chooses the bank. That render is one bank for every voice and "
+    "does not sing or apply fx ops -- to mix banks, or keep those, set "
+    "engine='soundfont' and bank= on the voices and render without soundfont. "
+    "Lines after the path starting `render warning:` say what fell back (a bank "
+    "that is not installed, a singer that could not be run)."))
 def ms_export_wav(name: str, path: str | None = None, stereo: bool = True,
                   reverb: bool | None = None, soundfont: str | None = None) -> str:
-    return _guard(lambda: str(_studio.export_wav(name, path, stereo=stereo,
-                                                 reverb=reverb, soundfont=soundfont)))
+    return _guard(lambda: _with_warnings(lambda: _studio.export_wav(
+        name, path, stereo=stereo, reverb=reverb, soundfont=soundfont)))
 
 
 def main() -> None:

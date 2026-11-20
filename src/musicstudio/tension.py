@@ -27,15 +27,17 @@ level. They are not a verdict, and nothing here is a lint finding.
 from __future__ import annotations
 
 import math
+from bisect import bisect_left, bisect_right
 from dataclasses import dataclass, field
 
 from .doc import Piece
+from .ingest import KK_MAJOR, KK_MINOR
 from .render import Note, Render, render
 from .theory import Chord, Key
 
-#: Krumhansl & Kessler (1982): how well each chromatic degree fits a key.
-_MAJOR_PROFILE = (6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88)
-_MINOR_PROFILE = (6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17)
+#: Krumhansl & Kessler (1982): how well each chromatic degree fits a key. The
+#: tables themselves are the ones the key finder in ``ingest`` correlates against.
+_MAJOR_PROFILE, _MINOR_PROFILE = KK_MAJOR, KK_MINOR
 
 #: Root motion in semitones upward -> how often tonal music does it. Down a
 #: fifth is the engine of the style; a tritone or a held root is rare.
@@ -66,17 +68,26 @@ def followers(piece: Piece) -> dict[str, set[str]]:
     return out
 
 
+def op_kinds(piece: Piece) -> dict[str, str]:
+    """``op id -> kind``, which is how a note is known to be a doubling."""
+    return {op.id: op.kind for _, op in piece.all_ops()}
+
+
 def tune_at(piece: Piece, notes: list[Note], lo: int, hi: int,
-            doubles: dict[str, set[str]] | None = None) -> tuple[str | None, set[str]]:
+            doubles: dict[str, set[str]] | None = None,
+            kinds: dict[str, str] | None = None) -> tuple[str | None, set[str]]:
     """The voice carrying the tune between two ticks, and everyone doubling it.
 
     A voice counts if it is a melody or counter-melody part sounding for at
     least a quarter of the span on its own material. Among those the melody
     role wins, then a voice stating a motif, then the highest. Voices that are
     only doubling the winner here are returned with it: they are the tune too.
+
+    ``doubles`` and ``kinds`` are ``followers(piece)`` and ``op_kinds(piece)``;
+    a caller asking bar after bar passes them so they are built once.
     """
     doubles = followers(piece) if doubles is None else doubles
-    kinds = {op.id: op.kind for _, op in piece.all_ops()}
+    kinds = op_kinds(piece) if kinds is None else kinds
     sounding: dict[str, list[Note]] = {}
     for n in notes:
         if n.percussive or n.ornament or n.end <= lo or n.start >= hi:
@@ -212,17 +223,47 @@ class BarTension:
     moment: tuple[float, str] | None = None
 
 
+def _notes_by_bar(notes: list[Note], edges: list[int]) -> tuple[list[list[Note]],
+                                                                list[list[Note]]]:
+    """Per bar, the notes sounding in it and the notes that begin in it (an
+    onset is judged ``EARLY`` ahead), each in the order the render gave them.
+    ``edges`` is every bar's first tick and then the end of the piece. One
+    pass over the notes, where a scan a bar is bars times notes."""
+    bars = len(edges) - 1
+    sounding: list[list[Note]] = [[] for _ in range(bars)]
+    starting: list[list[Note]] = [[] for _ in range(bars)]
+    for n in notes:
+        first = max(0, bisect_right(edges, n.start) - 1)
+        last = min(bars, bisect_left(edges, n.end)) - 1
+        for i in range(first, last + 1):
+            sounding[i].append(n)
+        i = bisect_right(edges, _when(n)) - 1
+        if 0 <= i < bars:
+            starting[i].append(n)
+    return sounding, starting
+
+
 def analyze(piece: Piece, rend: Render | None = None) -> list[BarTension]:
     r = rend if rend is not None else render(piece)
     home = piece.key
     doubles = followers(piece)
+    kinds = op_kinds(piece)
+    # The same tick is asked for by every note that starts on it, and each
+    # answer is a walk through the harmony and a chord parsed.
+    chords: dict[int, tuple] = {}
+
+    def chord_at(tick: int):
+        if tick not in chords:
+            chords[tick] = piece.chord_at(tick)
+        return chords[tick]
     out: list[BarTension] = []
     previous_root: int | None = None
     prev_tune: tuple[str, int, int | None] | None = None   # voice, pitch, interval
     bars = piece.total_bars
+    edges = [piece.tick_of(bar) for bar in range(1, bars + 1)] + [piece.total_ticks]
+    sounding, starting = _notes_by_bar(r.notes, edges)
     for bar in range(1, bars + 1):
-        lo = piece.tick_of(bar)
-        hi = piece.tick_of(bar + 1) if bar < bars else piece.total_ticks
+        lo, hi = edges[bar - 1], edges[bar]
         sec = piece.section_of_tick(lo)
         key = piece.key_at(lo)
         b = BarTension(bar)
@@ -232,7 +273,7 @@ def analyze(piece: Piece, rend: Render | None = None) -> list[BarTension]:
         dist, events = [], []
         label = ""
         for tick in range(lo, hi, beat):
-            chord, _ = piece.chord_at(tick)
+            chord, _ = chord_at(tick)
             if chord is None:
                 continue
             f, name = chord_function(chord, key)
@@ -249,11 +290,11 @@ def analyze(piece: Piece, rend: Render | None = None) -> list[BarTension]:
         b.function = label
 
         # -- surface dissonance ---------------------------------------------
-        here = [n for n in r.notes if n.start < hi and n.end > lo and not n.percussive]
+        here = [n for n in sounding[bar - 1] if not n.percussive]
         total = off = 0.0
         for n in here:
             length = min(n.end, hi) - max(n.start, lo)
-            chord, k = piece.chord_at(max(n.start, lo))
+            chord, k = chord_at(max(n.start, lo))
             if chord is None:
                 continue
             total += length
@@ -264,15 +305,16 @@ def analyze(piece: Piece, rend: Render | None = None) -> list[BarTension]:
         b.dissonance = min(1.0, off / total) if total else 0.0
 
         # -- the tune: height and expectation -------------------------------
-        b.tune, _ = tune_at(piece, r.notes, lo, hi, doubles)
-        line = sorted((n for n in r.notes if n.voice == b.tune and lo <= _when(n) < hi
-                       and not n.ornament), key=lambda n: (n.start, -n.pitch))
+        b.tune, _ = tune_at(piece, sounding[bar - 1], lo, hi, doubles, kinds)
+        onsets = starting[bar - 1]
+        line = sorted((n for n in onsets if n.voice == b.tune and not n.ornament),
+                      key=lambda n: (n.start, -n.pitch))
         seen = set()
         line = [n for n in line if not (n.start in seen or seen.add(n.start))]
         if line:
             b.height = sum(n.pitch for n in line) / len(line)
         for n in line:
-            chord, k = piece.chord_at(_when(n))
+            chord, k = chord_at(_when(n))
             fit = -math.log2(_degree_prob(n.pitch, k, chord))
             bits = fit
             what = "a note outside the chord" if (
@@ -293,7 +335,6 @@ def analyze(piece: Piece, rend: Render | None = None) -> list[BarTension]:
             b.moment = max(events)
 
         # -- energy -----------------------------------------------------------
-        onsets = [n for n in r.notes if lo <= _when(n) < hi]
         loud = sum(n.velocity for n in onsets) / len(onsets) / 127 if onsets else 0.0
         busy = min(1.0, len(onsets) / (12.0 * max(1, (hi - lo) // 480)))
         b.energy = 0.6 * loud + 0.4 * busy if onsets else 0.0

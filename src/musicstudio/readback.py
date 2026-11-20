@@ -17,9 +17,19 @@ Four views, each answering a different question:
 
 from __future__ import annotations
 
+from bisect import bisect_right
+from collections import Counter
+
 from .doc import Piece
 from .render import Note, Render, render
-from .theory import chord_symbol, parse_chord, spell_pitch, velocity_dynamic
+from .theory import (
+    chord_symbol,
+    parse_chord,
+    spell_pitch,
+    ticks,
+    ticks_to_dur,
+    velocity_dynamic,
+)
 
 GUTTER = 7
 MAX_ROWS = 46
@@ -44,7 +54,8 @@ def _bar_range(piece: Piece, bars) -> tuple[int, int]:
     if bars is None:
         return 1, max(1, piece.total_bars)
     if isinstance(bars, int):
-        return bars, bars
+        bar = min(max(1, bars), max(1, piece.total_bars))
+        return bar, bar
     lo, hi = bars
     return max(1, int(lo)), min(max(1, piece.total_bars), int(hi))
 
@@ -92,8 +103,6 @@ def score(piece: Piece, rend: Render | None = None, *, bars=None, res: str = "1/
         c1 = min(cols - 1, (max(n.end - 1, n.start) - start) // step)
         mark = glyph[n.voice] if glyphs == "voice" else _degree_glyph(piece, n)
         for c in range(c0, c1 + 1):
-            if c >= cols:
-                break
             cur = grid[row_of[n.pitch]][c]
             ch = mark if c == c0 else mark.lower()
             # An onset always wins over a neighbour's sustain; two onsets on the
@@ -116,10 +125,11 @@ def score(piece: Piece, rend: Render | None = None, *, bars=None, res: str = "1/
     if legend:
         out.append("")
         out.append("voices:")
+        count = Counter(x.voice for x in r.notes)
         for v in piece.voices:
             if wanted and v.name not in wanted:
                 continue
-            n = sum(1 for x in r.notes if x.voice == v.name)
+            n = count[v.name]
             mute = "  (muted)" if v.muted else ""
             out.append(f"  {glyph[v.name]} = {v.name:<14} {v.instrument:<16} "
                        f"{v.role:<10} {n:>5} notes{mute}")
@@ -127,7 +137,6 @@ def score(piece: Piece, rend: Render | None = None, *, bars=None, res: str = "1/
 
 
 def _res_ticks(res: str) -> int:
-    from .theory import ticks
     t = ticks(res)
     if t < 1:
         raise ValueError(f"resolution {res!r} is too fine")
@@ -179,7 +188,7 @@ def chart(piece: Piece, rend: Render | None = None) -> str:
     r = rend if rend is not None else render(piece)
     out = [f"{piece.name}  {piece.key.name}  q={piece.tempo}  {piece.meter}  "
            f"style={piece.style}",
-           f"{piece.total_bars} bars, {_mmss(piece, r)}, {len(r.notes)} notes, "
+           f"{piece.total_bars} bars, {_mmss(piece)}, {len(r.notes)} notes, "
            f"{len(piece.voices)} voices, {len(piece.motifs)} motifs", ""]
     glyph = voice_glyphs(piece)
     head = f"  {'section':<10} {'bars':<9} {'meter':<6} {'q':<5} {'key':<12} {'dyn':<4} voices"
@@ -187,9 +196,9 @@ def chart(piece: Piece, rend: Render | None = None) -> str:
     out.append("  " + "-" * (len(head) - 2))
     for sec, first, tick in piece.section_bounds():
         last = first + sec.bars - 1
-        active = "".join(glyph[v.name] for v in piece.voices
-                         if any(n.voice == v.name and tick <= n.start < tick + sec.length
-                                for n in r.notes))
+        end = tick + sec.length
+        playing = {n.voice for n in r.notes if tick <= n.start < end}
+        active = "".join(glyph[v.name] for v in piece.voices if v.name in playing)
         key = sec.key or ""
         out.append(f"  {sec.name:<10} {f'{first}-{last}':<9} {sec.meter:<6} "
                    f"{piece.tempo_of(sec):<5} {key:<12} {sec.dynamic:<4} {active or '-'}"
@@ -208,7 +217,7 @@ def chart(piece: Piece, rend: Render | None = None) -> str:
     return "\n".join(out)
 
 
-def _mmss(piece: Piece, r: Render) -> str:
+def _mmss(piece: Piece) -> str:
     seconds = 0.0
     for sec, _, _ in piece.section_bounds():
         seconds += sec.length / 480 * 60 / max(1, piece.tempo_of(sec))
@@ -239,13 +248,16 @@ def motif_map(piece: Piece, rend: Render | None = None) -> str:
 
     seen: dict[tuple[str, str], list[tuple[int, str]]] = {}
     played: set[str] = set()
+    bar_of: dict[int, int] = {}        # by onset: the notes of a chord share one
     for n in r.notes:
         if not n.motif:
             continue
         if n.played:
             played.add(n.played)
         key = (n.motif, n.form or "as written")
-        bar, _ = piece.position_of(n.start)
+        if n.start not in bar_of:
+            bar_of[n.start] = piece.position_of(n.start)[0]
+        bar = bar_of[n.start]
         entries = seen.setdefault(key, [])
         if not entries or entries[-1] != (bar, n.voice):
             entries.append((bar, n.voice))
@@ -287,10 +299,16 @@ def squint(piece: Piece, rend: Render | None = None) -> str:
     bars = max(1, piece.total_bars)
     ramp = " .:-=+*#%@"
     density, register, dynamic, voices = [], [], [], []
-    for bar in range(1, bars + 1):
-        lo = piece.tick_of(bar)
-        hi = piece.tick_of(bar + 1) if bar < bars else piece.total_ticks
-        here = [n for n in r.notes if lo <= n.start < hi]
+    # Each bar runs from its own first tick to the next bar's; the notes are
+    # dealt into them in one pass, in the render's order.
+    starts = [piece.tick_of(bar) for bar in range(1, bars + 1)]
+    ends = starts[1:] + [piece.total_ticks]
+    in_bar: list[list[Note]] = [[] for _ in starts]
+    for n in r.notes:
+        i = bisect_right(starts, n.start) - 1
+        if i >= 0 and n.start < ends[i]:
+            in_bar[i].append(n)
+    for here in in_bar:
         density.append(len(here))
         register.append(sum(n.pitch for n in here) / len(here) if here else None)
         dynamic.append(sum(n.velocity for n in here) / len(here) if here else 0)
@@ -345,7 +363,6 @@ def voice_view(piece: Piece, name: str, rend: Render | None = None, *, bars=None
            f"range {v.inst.low}-{v.inst.high} (comfort {v.inst.comfort_low}-"
            f"{v.inst.comfort_high})",
            f"  {'pos':<9} {'pitch':<6} {'deg':<5} {'dur':<8} {'dyn':<5} {'motif':<18} op"]
-    from .theory import ticks_to_dur
     for n in sorted(r.by_voice(name), key=lambda n: n.start):
         if not (lo <= n.start < hi):
             continue
@@ -369,22 +386,26 @@ def stats(piece: Piece, rend: Render | None = None) -> dict:
     r = rend if rend is not None else render(piece)
     notes = r.notes
     per_voice = {}
+    by_voice: dict[str, list[Note]] = {}
+    for n in notes:
+        by_voice.setdefault(n.voice, []).append(n)
     for v in piece.voices:
-        vn = [n for n in notes if n.voice == v.name]
+        vn = by_voice.get(v.name, [])
         per_voice[v.name] = {
             "instrument": v.instrument, "role": v.role, "notes": len(vn),
             "range": [spell_pitch(min(n.pitch for n in vn), piece.key),
                       spell_pitch(max(n.pitch for n in vn), piece.key)] if vn else None,
             "ops": len(v.ops),
         }
+    by_motif = Counter(n.motif for n in notes)
     motif_notes = sum(1 for n in notes if n.motif)
     return {
         "bars": piece.total_bars,
-        "duration": _mmss(piece, r),
+        "duration": _mmss(piece),
         "notes": len(notes),
         "voices": per_voice,
         "sections": [s.name for s in piece.sections],
-        "motifs": {m: sum(1 for n in notes if n.motif == m) for m in piece.motifs},
+        "motifs": {m: by_motif[m] for m in piece.motifs},
         "motif_coverage": round(motif_notes / len(notes), 3) if notes else 0.0,
         "pitch_range": ([spell_pitch(min(n.pitch for n in notes), piece.key),
                          spell_pitch(max(n.pitch for n in notes), piece.key)]

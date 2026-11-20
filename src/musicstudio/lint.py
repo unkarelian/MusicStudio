@@ -20,7 +20,9 @@ four-part writing must come back clean, and there is a test that says so.
 
 from __future__ import annotations
 
+from bisect import bisect_right
 from dataclasses import dataclass, field
+from functools import cached_property
 from statistics import mean
 
 from .doc import Piece
@@ -67,9 +69,7 @@ class Finding:
 def report(findings: list[Finding]) -> str:
     if not findings:
         return "clean - no findings"
-    n = {s: sum(1 for f in findings if f.severity == s) for s in ("error", "warn", "info")}
-    return (f"{n['error']} error, {n['warn']} warn, {n['info']} info\n"
-            + "\n".join(str(f) for f in findings))
+    return summary(findings) + "\n" + "\n".join(str(f) for f in findings)
 
 
 def summary(findings: list[Finding]) -> str:
@@ -118,7 +118,57 @@ def sonorities(notes: list[Note]) -> list[Slice]:
     return out
 
 
-def _monophonic_voices(piece: Piece, r: Render) -> set[str]:
+def _voices_in(s: Slice) -> dict[str, list[Note]]:
+    """A slice's notes by voice: ``Slice.voice`` for every voice in one pass."""
+    out: dict[str, list[Note]] = {}
+    for n in s.notes:
+        out.setdefault(n.voice, []).append(n)
+    return out
+
+
+class _Index:
+    """What several checks ask of one render, worked out once per ``lint``.
+
+    Lint runs after every mutation. Each check scanning the whole note list
+    once per voice, and cutting the timeline into sonorities again for itself,
+    was most of what it cost; these are the same answers, kept. Nothing here
+    may be changed by a check that reads it.
+    """
+
+    def __init__(self, piece: Piece, r: Render) -> None:
+        self.piece, self.r = piece, r
+
+    @cached_property
+    def by_voice(self) -> dict[str, list[Note]]:
+        out: dict[str, list[Note]] = {}
+        for n in self.r.notes:
+            out.setdefault(n.voice, []).append(n)
+        return out
+
+    def voice(self, name: str) -> list[Note]:
+        """``Render.by_voice``, without the scan."""
+        return self.by_voice.get(name, [])
+
+    @cached_property
+    def slices(self) -> list[Slice]:
+        return sonorities(self.r.notes)
+
+    @cached_property
+    def moments(self) -> list[Slice]:
+        """The slices long enough to be heard as a sonority (see ``MIN_MOMENT``)."""
+        return [s for s in self.slices if s.end - s.start >= MIN_MOMENT]
+
+    @cached_property
+    def moment_voices(self) -> list[dict[str, list[Note]]]:
+        """``_voices_in`` each of ``moments``, in the same order."""
+        return [_voices_in(s) for s in self.moments]
+
+    @cached_property
+    def mono(self) -> set[str]:
+        return _monophonic_voices(self.piece, self)
+
+
+def _monophonic_voices(piece: Piece, ix: _Index) -> set[str]:
     """Voices that only ever sound one note at a time.
 
     Voice-leading rules are about independent lines. Running them over a piano
@@ -127,12 +177,11 @@ def _monophonic_voices(piece: Piece, r: Render) -> set[str]:
     """
     out = set()
     for v in piece.voices:
-        notes = r.by_voice(v.name)
+        notes = ix.voice(v.name)
         if not notes:
             continue
-        overlaps = sum(1 for a, b in zip(sorted(notes, key=lambda n: n.start),
-                                         sorted(notes, key=lambda n: n.start)[1:])
-                       if b.start < a.end - 1)
+        line = sorted(notes, key=lambda n: n.start)
+        overlaps = sum(1 for a, b in zip(line, line[1:]) if b.start < a.end - 1)
         if overlaps <= len(notes) * 0.05:
             out.add(v.name)
     return out
@@ -156,7 +205,8 @@ def _doubling_pairs(piece: Piece) -> set[frozenset[str]]:
 # checks
 # --------------------------------------------------------------------------
 
-def check_structure(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
+def check_structure(piece: Piece, r: Render, st: StyleProfile,
+                    ix: _Index | None = None) -> list[Finding]:
     out: list[Finding] = []
     if not piece.sections:
         out.append(Finding("no_form", "error", "the piece has no sections",
@@ -170,7 +220,9 @@ def check_structure(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
     if not r.notes:
         out.append(Finding("silent", "error", "nothing sounds anywhere in the piece"))
         return out
-    over = [n for n in r.notes if n.start >= piece.total_ticks]
+    ix = ix or _Index(piece, r)
+    total = piece.total_ticks
+    over = [n for n in r.notes if n.start >= total]
     if over:
         out.append(Finding("overruns_form", "error",
                            f"{len(over)} note(s) start after the last bar of the form",
@@ -181,7 +233,7 @@ def check_structure(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
             out.append(Finding("orphan_voice", "info",
                                f"voice {v.name!r} ({v.instrument}) has no ops",
                                hint="give it something to play, or remove it"))
-        elif not r.by_voice(v.name) and not v.muted:
+        elif not ix.voice(v.name) and not v.muted:
             out.append(Finding("orphan_voice", "warn",
                                f"voice {v.name!r} has {len(v.ops)} op(s) but produces "
                                f"no notes",
@@ -200,16 +252,19 @@ def check_structure(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
     return out
 
 
-def check_ranges(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
+def check_ranges(piece: Piece, r: Render, st: StyleProfile,
+                 ix: _Index | None = None) -> list[Finding]:
+    ix = ix or _Index(piece, r)
     out: list[Finding] = []
     for v in piece.voices:
-        notes = [n for n in r.by_voice(v.name) if not n.percussive]
+        notes = [n for n in ix.voice(v.name) if not n.percussive]
         if not notes:
             continue
         inst = v.inst
-        bad = [n for n in notes if not (inst.lo <= n.pitch <= inst.hi)]
+        lo, hi = inst.lo, inst.hi          # each is a parse of the pitch name: once a voice
+        bad = [n for n in notes if not (lo <= n.pitch <= hi)]
         if bad:
-            worst = min(bad, key=lambda n: min(abs(n.pitch - inst.lo), abs(n.pitch - inst.hi)))
+            worst = min(bad, key=lambda n: min(abs(n.pitch - lo), abs(n.pitch - hi)))
             out.append(Finding(
                 "range_violation", "error",
                 f"{v.name} ({v.instrument}) has {len(bad)} note(s) outside its range "
@@ -222,9 +277,10 @@ def check_ranges(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
             continue
         # A single note outside the sweet spot is expressive; a sustained run of
         # them is a line written in the wrong register, so only runs are reported.
-        outside = [n for n in notes if not (inst.clo <= n.pitch <= inst.chi)]
+        clo, chi = inst.clo, inst.chi
+        outside = [n for n in notes if not (clo <= n.pitch <= chi)]
         if len(outside) >= max(6, len(notes) * 0.4):
-            where = "below" if mean(n.pitch for n in outside) < inst.clo else "above"
+            where = "below" if mean(n.pitch for n in outside) < clo else "above"
             out.append(Finding(
                 "out_of_tessitura", "warn",
                 f"{len(outside)} of {v.name}'s {len(notes)} notes sit {where} its "
@@ -235,25 +291,29 @@ def check_ranges(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
     return out
 
 
-def check_polyphony(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
+def check_polyphony(piece: Piece, r: Render, st: StyleProfile,
+                    ix: _Index | None = None) -> list[Finding]:
+    ix = ix or _Index(piece, r)
     out: list[Finding] = []
-    slices = [s for s in sonorities(r.notes) if s.end - s.start >= MIN_MOMENT]
+    slices = ix.moments
     for v in piece.voices:
         cap = v.inst.polyphony
-        bad = [s for s in slices if len(s.voice(v.name)) > cap]
+        # Every moment this voice sounds in, with its notes there.
+        mine = [(s, ns) for s, by in zip(slices, ix.moment_voices) if (ns := by.get(v.name))]
+        bad = [(s, ns) for s, ns in mine if len(ns) > cap]
         if bad:
-            worst = max(len(s.voice(v.name)) for s in bad)
+            worst = max(len(ns) for _, ns in bad)
             out.append(Finding(
                 "polyphony_exceeded", "error",
                 f"{v.name} ({v.instrument}) is asked for up to {worst} simultaneous "
                 f"notes but can play {cap}",
-                [_spot(piece, s.start) for s in bad[:MAX_SPOTS]],
+                [_spot(piece, s.start) for s, _ in bad[:MAX_SPOTS]],
                 hint=("this instrument is monophonic -- split the chord across voices, "
                       "or arpeggiate it" if cap == 1 else
                       "thin the voicing, or move a tone to another voice")))
         if st.max_hand_span and cap > 2:
-            wide = [s for s in bad or slices
-                    if (ns := s.voice(v.name)) and len(ns) > 1
+            wide = [s for s, ns in bad or mine
+                    if len(ns) > 1
                     and max(n.pitch for n in ns) - min(n.pitch for n in ns) > st.max_hand_span]
             if wide:
                 out.append(Finding(
@@ -274,7 +334,8 @@ def check_polyphony(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
     return out
 
 
-def check_voice_leading(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
+def check_voice_leading(piece: Piece, r: Render, st: StyleProfile,
+                        ix: _Index | None = None) -> list[Finding]:
     """Parallel perfect intervals and sustained voice crossing.
 
     Only between two independent monophonic lines that are not explicitly
@@ -283,30 +344,42 @@ def check_voice_leading(piece: Piece, r: Render, st: StyleProfile) -> list[Findi
     """
     if not st.voice_leading:
         return []
-    mono = _monophonic_voices(piece, r)
+    ix = ix or _Index(piece, r)
+    mono = ix.mono
     skip = _doubling_pairs(piece)
     names = [v.name for v in piece.voices
-             if v.name in mono and not v.inst.percussive and r.by_voice(v.name)]
+             if v.name in mono and not v.inst.percussive and ix.voice(v.name)]
+    if len(names) < 2:
+        return []
     out: list[Finding] = []
     # Judge the written lines, not the decoration on them: a trill against a
     # held fifth is not a run of parallel fifths, and reporting it as one would
     # punish exactly the writing an ornament is for.
-    slices = sonorities([n for n in r.notes if not n.ornament])
+    lines = _lines(sonorities([n for n in r.notes if not n.ornament]), names)
     for i, a in enumerate(names):
         for b in names[i + 1:]:
             if frozenset({a, b}) in skip:
                 continue
-            out += _parallels(piece, slices, a, b)
-            out += _crossing(piece, slices, a, b, piece.get_voice(a), piece.get_voice(b))
+            out += _parallels(piece, lines, a, b)
+            out += _crossing(piece, lines, a, b, piece.get_voice(a), piece.get_voice(b))
     return out
 
 
-def _line(slices: list[Slice], name: str) -> list[tuple[int, int | None]]:
-    return [(s.start, ns[0].pitch if (ns := s.voice(name)) else None) for s in slices]
+def _lines(slices: list[Slice], names: list[str]) -> dict[str, list[tuple[int, int | None]]]:
+    """For each voice, ``(slice start, its pitch there)`` at every slice: the
+    pitch of its first note in the slice, or None where it rests."""
+    out: dict[str, list[tuple[int, int | None]]] = {name: [] for name in names}
+    for s in slices:
+        first: dict[str, int] = {}
+        for n in s.notes:
+            first.setdefault(n.voice, n.pitch)
+        for name, line in out.items():
+            line.append((s.start, first.get(name)))
+    return out
 
 
-def _parallels(piece: Piece, slices, a: str, b: str) -> list[Finding]:
-    la, lb = _line(slices, a), _line(slices, b)
+def _parallels(piece: Piece, lines, a: str, b: str) -> list[Finding]:
+    la, lb = lines[a], lines[b]
     fifths, octaves = [], []
     prev = None
     for (t, pa), (_, pb) in zip(la, lb):
@@ -338,28 +411,26 @@ def _parallels(piece: Piece, slices, a: str, b: str) -> list[Finding]:
     return out
 
 
-def _crossing(piece: Piece, slices, a: str, b: str, va, vb) -> list[Finding]:
+def _crossing(piece: Piece, lines, a: str, b: str, va, vb) -> list[Finding]:
     """Sustained crossing only. A single crossed note is a normal thing to write."""
     order = {"melody": 3, "counter": 2, "ornament": 3, "harmony": 1, "pad": 1,
              "bass": 0, "percussion": 0}
     if order.get(va.role, 1) == order.get(vb.role, 1):
         return []
     upper, lower = (a, b) if order.get(va.role, 1) > order.get(vb.role, 1) else (b, a)
-    la, lb = dict(_line(slices, upper)), dict(_line(slices, lower))
     bad, total = [], 0
-    for t, pu in la.items():
-        pl = lb.get(t)
+    for (t, pu), (_, pl) in zip(lines[upper], lines[lower]):
         if pu is None or pl is None:
             continue
         total += 1
         if pl > pu:
-            bad.append(_spot(piece, t, upper, lower))
+            bad.append(t)
     if total and len(bad) > max(3, total * 0.15):
         return [Finding(
             "voice_crossing", "warn",
             f"{lower} sits above {upper} for {len(bad)} of {total} shared moments, "
             f"even though {upper} is the {piece.get_voice(upper).role} voice",
-            bad[:MAX_SPOTS],
+            [_spot(piece, t, upper, lower) for t in bad[:MAX_SPOTS]],
             hint="drop the lower part an octave, or swap what the two are doing")]
     return []
 
@@ -379,12 +450,17 @@ LOW_INTERVAL_LIMITS = {
 }
 
 
-def check_low_interval_limit(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
+def check_low_interval_limit(piece: Piece, r: Render, st: StyleProfile,
+                             ix: _Index | None = None) -> list[Finding]:
     if not st.low_interval_limit:
         return []
-    bad: list[str] = []
-    worst = ""
-    for s in sonorities(r.notes):
+    ix = ix or _Index(piece, r)
+    # The threshold for the widest tabulated interval each gap covers, so a
+    # tritone is judged by the fourth's limit rather than the fifth's.
+    floors = {gap: LOW_INTERVAL_LIMITS[max(k for k in LOW_INTERVAL_LIMITS if k <= gap)]
+              for gap in range(1, 13)}
+    bad: list[tuple[int, int, int]] = []          # (tick, lower pitch, upper pitch)
+    for s in ix.slices:
         if s.end - s.start < 120:      # shorter than a 16th: a passing collision
             continue
         pitches = sorted({n.pitch for n in s.notes if not n.percussive})
@@ -392,26 +468,26 @@ def check_low_interval_limit(piece: Piece, r: Render, st: StyleProfile) -> list[
             gap = hi - lo
             if gap == 0 or gap > 12:
                 continue          # unisons double, and nothing wider than an octave muds
-            # The threshold for the widest tabulated interval this one covers, so a
-            # tritone is judged by the fourth's limit rather than the fifth's.
-            floor = LOW_INTERVAL_LIMITS[max(k for k in LOW_INTERVAL_LIMITS if k <= gap)]
-            if lo < floor:
-                bad.append(_spot(piece, s.start,
-                                 f"{spell_pitch(lo, piece.key)}+{spell_pitch(hi, piece.key)}"))
-                worst = worst or f"{spell_pitch(lo, piece.key)}/{spell_pitch(hi, piece.key)}"
+            if lo < floors[gap]:
+                bad.append((s.start, lo, hi))
                 break
     if not bad:
         return []
+    key = piece.key
+    _, lo, hi = bad[0]
+    worst = f"{spell_pitch(lo, key)}/{spell_pitch(hi, key)}"
     return [Finding(
         "low_interval_limit", "warn",
         f"{len(bad)} sonority/sonorities put a narrow interval too low to stay clear "
         f"(e.g. {worst})",
-        bad[:MAX_SPOTS],
+        [_spot(piece, tick, f"{spell_pitch(lo, key)}+{spell_pitch(hi, key)}")
+         for tick, lo, hi in bad[:MAX_SPOTS]],
         hint="a third needs to be above C3 and a second above Eb3; lower than that, "
              "open the voicing upward rather than dropping the top note")]
 
 
-def check_harmony(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
+def check_harmony(piece: Piece, r: Render, st: StyleProfile,
+                  ix: _Index | None = None) -> list[Finding]:
     out: list[Finding] = []
     spans = piece.harmony_spans()
     if not spans:
@@ -462,11 +538,11 @@ def check_harmony(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
                 hint="end V -> i; or, if this is game music that repeats, mark it "
                      "as a loop (update_piece loop=true) and this check stands down"))
 
-    out += _clashes(piece, r)
+    out += _clashes(piece, r, ix or _Index(piece, r))
     return out
 
 
-def _clashes(piece: Piece, r: Render) -> list[Finding]:
+def _clashes(piece: Piece, r: Render, ix: _Index) -> list[Finding]:
     """Long, dissonant, unresolved non-chord tones.
 
     All three conditions matter. Passing tones are short, colour tones are
@@ -477,45 +553,54 @@ def _clashes(piece: Piece, r: Render) -> list[Finding]:
     by_voice: dict[str, list[Note]] = {}
     for n in sorted(r.notes, key=lambda n: n.start):
         by_voice.setdefault(n.voice, []).append(n)
-    slices = sonorities(r.notes)
-    bad: list[str] = []
+    slices = ix.slices
+    starts = [s.start for s in slices]
+    chords: dict[int, tuple] = {}       # chord_at by tick: many notes share an onset
+    bad: list[tuple] = []               # (note, key, chord)
     for notes in by_voice.values():
         for i, n in enumerate(notes):
             if n.percussive or n.dur < 360:
                 continue
             # A note that arrives a hair before the barline belongs to the chord
             # it is arriving on: a humanized downbeat is not an anticipation.
-            chord, key = piece.chord_at(n.start + EARLY)
+            at = n.start + EARLY
+            if at not in chords:
+                chords[at] = piece.chord_at(at)
+            chord, key = chords[at]
             if chord is None or n.pitch % 12 in chord.pitch_classes(key):
                 continue
             nxt = notes[i + 1] if i + 1 < len(notes) else None
             if nxt is not None and abs(nxt.pitch - n.pitch) <= 2:
                 continue          # resolves by step: a suspension or appoggiatura
-            here = next((s for s in slices if s.start <= n.start < s.end), None)
-            if here is None:
+            # The slice this note starts in; slices are in order and do not overlap.
+            k = bisect_right(starts, n.start) - 1
+            if k < 0 or n.start >= slices[k].end:
                 continue
+            here = slices[k]
             others = {o.pitch for o in here.notes if o is not n and not o.percussive}
             harsh = any(abs(n.pitch - p) % 12 in (1, 11, 6) for p in others)
             if harsh:
-                bad.append(_spot(piece, n.start,
-                                 f"{n.voice}:{spell_pitch(n.pitch, key)}/{chord.numeral}"))
+                bad.append((n, key, chord))
     if not bad:
         return []
     return [Finding(
         "chord_clash", "warn",
         f"{len(bad)} long note(s) sit outside the chord, grind against something "
         f"sounding, and never resolve",
-        bad[:MAX_SPOTS],
+        [_spot(piece, n.start, f"{n.voice}:{spell_pitch(n.pitch, key)}/{chord.numeral}")
+         for n, key, chord in bad[:MAX_SPOTS]],
         hint="resolve it down by step, shorten it to a passing tone, or change the "
              "chord underneath to admit it")]
 
 
-def check_melody(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
+def check_melody(piece: Piece, r: Render, st: StyleProfile,
+                 ix: _Index | None = None) -> list[Finding]:
+    ix = ix or _Index(piece, r)
     out: list[Finding] = []
     for v in piece.voices:
         if v.role not in ("melody", "counter") or v.inst.percussive:
             continue
-        notes = sorted(r.by_voice(v.name), key=lambda n: n.start)
+        notes = sorted(ix.voice(v.name), key=lambda n: n.start)
         if len(notes) < 4:
             continue
         # Only leaps beyond an octave. A sixth or a seventh left hanging is
@@ -531,14 +616,13 @@ def check_melody(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
                 continue
             recovers = (c.pitch - b.pitch) * jump < 0 and abs(c.pitch - b.pitch) <= 2
             if not recovers:
-                leaps.append(_spot(piece, b.start,
-                                   f"{v.name}:{abs(jump)}st"))
+                leaps.append((b.start, abs(jump)))
         if leaps:
             out.append(Finding(
                 "unresolved_leap", "warn",
                 f"{v.name} leaps more than an octave without stepping back at "
                 f"{len(leaps)} place(s)",
-                leaps[:MAX_SPOTS],
+                [_spot(piece, tick, f"{v.name}:{jump}st") for tick, jump in leaps[:MAX_SPOTS]],
                 hint="follow a big leap with a step in the opposite direction, or "
                      "fill it in -- motif.fill() does exactly that"))
         span = max(n.pitch for n in notes) - min(n.pitch for n in notes)
@@ -551,12 +635,14 @@ def check_melody(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
     return out
 
 
-def check_dynamics(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
+def check_dynamics(piece: Piece, r: Render, st: StyleProfile,
+                   ix: _Index | None = None) -> list[Finding]:
     if not st.min_dynamic_range or len(piece.sections) < 2 or not r.notes:
         return []
     levels = []
     for sec, _, tick in piece.section_bounds():
-        here = [n.velocity for n in r.notes if tick <= n.start < tick + sec.length]
+        end = tick + sec.length
+        here = [n.velocity for n in r.notes if tick <= n.start < end]
         if here:
             levels.append((sec.name, mean(here)))
     if len(levels) < 2:
@@ -572,7 +658,8 @@ def check_dynamics(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
              "start= and end= to shape a crescendo into the climax")]
 
 
-def check_material(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
+def check_material(piece: Piece, r: Render, st: StyleProfile,
+                   ix: _Index | None = None) -> list[Finding]:
     """Whether the piece is actually made of themes, and whether they develop."""
     out: list[Finding] = []
     if not piece.motifs:
@@ -585,8 +672,9 @@ def check_material(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
                      "without a theme is texture"))
         return out
 
-    melodic = [n for n in r.notes
-               if piece.get_voice(n.voice).role in ("melody", "counter")]
+    carries_tune = {name: piece.get_voice(name).role in ("melody", "counter")
+                    for name in {n.voice for n in r.notes}}
+    melodic = [n for n in r.notes if carries_tune[n.voice]]
     if melodic and st.min_motif_coverage:
         share = sum(1 for n in melodic if n.motif) / len(melodic)
         if share < st.min_motif_coverage:
@@ -624,7 +712,8 @@ def check_material(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
     return out
 
 
-def check_repetition(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
+def check_repetition(piece: Piece, r: Render, st: StyleProfile,
+                     ix: _Index | None = None) -> list[Finding]:
     """Sections that are literally the same music, bar for bar.
 
     Deliberately independent of the motif checks: a piece with no motifs at all
@@ -632,8 +721,9 @@ def check_repetition(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]
     """
     sigs: dict[tuple, list[str]] = {}
     for sec, _, tick in piece.section_bounds():
+        end = tick + sec.length
         sig = tuple(sorted((n.start - tick, n.pitch, n.dur, n.voice) for n in r.notes
-                           if tick <= n.start < tick + sec.length))
+                           if tick <= n.start < end))
         if sig:
             sigs.setdefault(sig, []).append(sec.name)
     return [Finding(
@@ -644,8 +734,10 @@ def check_repetition(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]
         for names in sigs.values() if len(names) > 1]
 
 
-def check_breathing(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
+def check_breathing(piece: Piece, r: Render, st: StyleProfile,
+                    ix: _Index | None = None) -> list[Finding]:
     """Whether anything ever stops. Players breathe, and textures need holes."""
+    ix = ix or _Index(piece, r)
     out: list[Finding] = []
     bar = piece.sections[0].bar_ticks if piece.sections else 1920
     for v in piece.voices:
@@ -657,7 +749,7 @@ def check_breathing(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
         if v.role not in ("melody", "counter") and v.inst.family not in (
                 "winds", "brass", "voice"):
             continue
-        notes = sorted(r.by_voice(v.name), key=lambda n: n.start)
+        notes = sorted(ix.voice(v.name), key=lambda n: n.start)
         if len(notes) < 8:
             continue
         gaps = [b.start - a.end for a, b in zip(notes, notes[1:])]
@@ -676,7 +768,8 @@ def check_breathing(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
 ACCOMPANIMENT_ROLES = ("harmony", "pad", "bass")
 
 
-def check_masking(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
+def check_masking(piece: Piece, r: Render, st: StyleProfile,
+                  ix: _Index | None = None) -> list[Finding]:
     """An accompaniment sitting just above the tune, so the tune is buried.
 
     The orchestral house note calls this the commonest scoring error, and it is
@@ -687,13 +780,14 @@ def check_masking(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
     share, over at least two bars. A halo two octaves up does not mask, and a
     single crossed chord is ordinary writing.
     """
-    mono = _monophonic_voices(piece, r)
+    ix = ix or _Index(piece, r)
+    mono = ix.mono
     skip = _doubling_pairs(piece)
     melodies = [v for v in piece.voices
-                if v.role == "melody" and not v.inst.percussive and r.by_voice(v.name)]
+                if v.role == "melody" and not v.inst.percussive and ix.voice(v.name)]
     if not melodies:
         return []
-    slices = [s for s in sonorities(r.notes) if s.end - s.start >= MIN_MOMENT]
+    slices = ix.moments
     # While a melody instrument is doubling someone else it is reinforcing
     # their line, usually an octave below it; the tune is the line on top, and
     # that voice is checked in its own right.
@@ -707,8 +801,8 @@ def check_masking(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
                 continue
             shared = above = 0
             first = None
-            for s in slices:
-                mn, an = s.voice(m.name), s.voice(a.name)
+            for s, by in zip(slices, ix.moment_voices):
+                mn, an = by.get(m.name), by.get(a.name)
                 if not mn or not an or all(n.op in doubling for n in mn):
                     continue
                 tune = max(n.pitch for n in mn)
@@ -731,7 +825,8 @@ def check_masking(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
     return out
 
 
-def check_untracked_quotes(piece: Piece, r: Render, st: StyleProfile) -> list[Finding]:
+def check_untracked_quotes(piece: Piece, r: Render, st: StyleProfile,
+                           ix: _Index | None = None) -> list[Finding]:
     """A ``phrase`` that restates a motif by hand, so the studio cannot see it.
 
     Retyping a theme is the exact failure the motif system exists to prevent:
@@ -792,8 +887,9 @@ def lint(piece: Piece, rend: Render | None = None,
     """Run every check. Findings come back ordered error -> warn -> info."""
     r = rend if rend is not None else render(piece)
     st = style or get_style(piece.style)
+    ix = _Index(piece, r)
     findings: list[Finding] = []
     for check in CHECKS:
-        findings += check(piece, r, st)
+        findings += check(piece, r, st, ix)
     rank = {"error": 0, "warn": 1, "info": 2}
     return sorted(findings, key=lambda f: (rank[f.severity], f.code))

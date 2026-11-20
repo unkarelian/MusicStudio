@@ -49,6 +49,12 @@ named lane sets, constants (``set NAME = value``, used as ``$NAME``), and
 ``for``/``on`` blocks. ``compile_score`` builds the piece in memory and
 nothing is written unless all of it parses, validates and renders.
 
+What a voice is played by is written on its line like everything else:
+``voice drums kit role=percussion engine=soundfont bank=fluidr3`` samples it
+from that SoundFont (`ms soundfont banks` lists them), and ``meta soundfont =
+"fluidr3"`` names the bank for the piece -- its sampled voices that name none,
+and the whole-piece ``--soundfont`` render.
+
 Motif identity is kept the way the studio keeps it: ``<`` derives, through the
 same transforms, and the lineage is recorded by them. (``recorded`` exists so a
 piece written before the language can be written out as text when a transform
@@ -64,7 +70,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .doc import HarmonyEntry, OP_SPECS, Piece, Section, Voice
-from .ensemble import KIT_DRUMS
+from .ensemble import KIT_DRUMS, ROLES, get_instrument
 from .motif import Motif, apply_transform, make_motif
 
 
@@ -95,6 +101,8 @@ class _Line:
 # --------------------------------------------------------------------------
 
 def _strip_comment(raw: str) -> str:
+    if "#" not in raw:
+        return raw.rstrip()
     out, quote = [], False
     for i, ch in enumerate(raw):
         if ch == '"' and (i == 0 or raw[i - 1] != "\\"):
@@ -298,6 +306,14 @@ def _pairs(text: str, line: _Line) -> tuple[list[str], dict[str, Any]]:
     return words, pairs
 
 
+def _statement(node: _Line) -> tuple[list[str], dict[str, Any], str]:
+    """``HEAD word … key=value …   -- note`` -> the bare words and pairs after
+    the head word, and the note."""
+    text, note = _split_note(node.text)
+    words, kv = _pairs(text.split(None, 1)[1] if " " in text else "", node)
+    return words, kv, note
+
+
 # --------------------------------------------------------------------------
 # the compiler
 # --------------------------------------------------------------------------
@@ -310,6 +326,7 @@ class _Compiler:
         self.pending_ops: list[tuple[str, _Line]] = []
         self.harmony: list[_Line] = []
         self.master: dict = {}
+        self.stop_lines: list[_Line] = []       # one per stop in ``master``
         self.auto: dict[str, int] = {}
 
     # -- positions ---------------------------------------------------------
@@ -399,8 +416,7 @@ class _Compiler:
     def _do_piece(self, node: _Line) -> None:
         if self.piece is not None:
             raise ScoreError("one piece to a file", node.no, node.text)
-        text, _ = _split_note(node.text)
-        words, kv = _pairs(text.split(None, 1)[1] if " " in text else "", node)
+        words, kv, _ = _statement(node)
         if len(words) != 1 and not (len(words) == 2 and words[1] == "loop"):
             raise ScoreError("piece NAME key=\"C major\" tempo=90 style=orchestral",
                              node.no, node.text)
@@ -421,8 +437,7 @@ class _Compiler:
             raise ScoreError(f"piece does not take {sorted(kv)}", node.no, node.text)
 
     def _do_master(self, node: _Line) -> None:
-        text, _ = _split_note(node.text)
-        words, kv = _pairs(text.split(None, 1)[1] if " " in text else "", node)
+        words, kv, _ = _statement(node)
         if words:
             raise ScoreError(f"stray word {words[0]!r} on a master line", node.no, node.text)
         for key, value in kv.items():
@@ -435,8 +450,7 @@ class _Compiler:
                                  f"room.wet -- not {key}", node.no, node.text)
 
     def _do_stop(self, node: _Line) -> None:
-        text, _ = _split_note(node.text)
-        _, kv = _pairs(text.split(None, 1)[1] if " " in text else "", node)
+        _, kv, _ = _statement(node)
         if "in" in kv:
             kv["from"], kv["until"] = self.span(kv.pop("in"), node)
         if "from" not in kv or "until" not in kv:
@@ -445,6 +459,7 @@ class _Compiler:
             {"from": str(self.position(kv["from"], node)),
              "until": str(self.position(kv["until"], node)),
              "keep": list(kv.get("keep") or [])})
+        self.stop_lines.append(node)
 
     def _do_meta(self, node: _Line) -> None:
         m = re.fullmatch(r"meta\s+(\w+)\s*=\s*(.+)", node.text)
@@ -464,8 +479,7 @@ class _Compiler:
         self.consts[m.group(1)] = kv["v"]
 
     def _do_section(self, node: _Line) -> None:
-        text, note = _split_note(node.text)
-        words, kv = _pairs(text.split(None, 1)[1] if " " in text else "", node)
+        words, kv, note = _statement(node)
         if len(words) != 1:
             raise ScoreError("section NAME bars=8 dynamic=mf", node.no, node.text)
         if any(s.name == words[0] for s in self.piece.sections):
@@ -487,6 +501,7 @@ class _Compiler:
 
     def _harmony(self) -> None:
         entries: list[HarmonyEntry] = []
+        written: dict[int, _Line] = {}          # which line wrote each entry
         for line in self.harmony:
             text, note = _split_note(line.text)
             m = re.match(r"(@[\w.]+(?::[\d.]+)?|\d+(?::[\d.]+)?)\s*:\s*(.+)", text)
@@ -500,19 +515,23 @@ class _Compiler:
                     raise ScoreError("a line that starts inside a bar holds one chord",
                                      line.no, line.text)
                 entries.append(HarmonyEntry(at, chords[0][0], chords[0][1], note))
+                written[id(entries[-1])] = line
                 continue
             bar = int(at)
             for chord, dur in chords:
                 if chord != ".":                   # `.`: the chord before carries on
                     entries.append(HarmonyEntry(str(bar), chord, dur, note))
+                    written[id(entries[-1])] = line
                 bar += 1
-        entries.sort(key=lambda e: self.piece.tick_of(e.at))
-        self.piece.harmony = entries
-        for e in entries:
+        placed = sorted(((self.piece.tick_of(e.at), e) for e in entries),
+                        key=lambda t: t[0])
+        self.piece.harmony = [e for _, e in placed]
+        for tick, e in placed:
             try:
-                self.piece.chord_at(self.piece.tick_of(e.at))
+                self.piece.chord_at(tick)
             except (ValueError, KeyError) as exc:
-                raise ScoreError(f"harmony at {e.at}: {exc}") from None
+                line = written[id(e)]
+                raise ScoreError(f"harmony at {e.at}: {exc}", line.no, line.text) from None
 
     def _chords(self, text: str, line: _Line) -> list[tuple[str, str | None]]:
         text = text.replace("|", " ")
@@ -601,8 +620,7 @@ class _Compiler:
         self.lanes[words[1]] = lanes
 
     def _do_voice(self, node: _Line) -> None:
-        text, _ = _split_note(node.text)
-        words, kv = _pairs(text.split(None, 1)[1] if " " in text else "", node)
+        words, kv, _ = _statement(node)
         if len(words) != 2:
             raise ScoreError("voice NAME INSTRUMENT role=melody [octave= pan= engine= "
                              "bank= dynamic= muted=]", node.no, node.text)
@@ -610,7 +628,6 @@ class _Compiler:
         if any(v.name == name for v in self.piece.voices):
             raise ScoreError(f"voice {name!r} is declared twice; to add ops to it from "
                              f"elsewhere in the file use `on {name}`", node.no, node.text)
-        from .ensemble import ROLES, get_instrument
         try:
             get_instrument(instrument)
         except KeyError as exc:
@@ -701,14 +718,17 @@ class _Compiler:
         if not self.piece.sections:
             raise ScoreError("a piece needs at least one `section`")
         self._harmony()
+        voices = {v.name for v in self.piece.voices}
         for voice, line in self.pending_ops:
-            if voice not in {v.name for v in self.piece.voices}:
+            if voice not in voices:
                 raise ScoreError(f"no voice {voice!r}", line.no, line.text)
             self._op(voice, line)
         if self.master:
-            for stop in self.master.get("stops", []):
+            for stop, line in zip(self.master.get("stops", []), self.stop_lines):
                 for name in stop["keep"]:
-                    self.piece.get_voice(name)
+                    if name not in voices:
+                        raise ScoreError(f"no voice {name!r}; have {sorted(voices)}",
+                                         line.no, line.text)
             self.piece.meta["master"] = self.master
 
 
@@ -739,6 +759,61 @@ def _kv(pairs: dict) -> str:
     return " ".join(f"{k}={_value(v)}" for k, v in pairs.items() if v is not None)
 
 
+def _harmony_lines(piece: Piece) -> list[str]:
+    """The scaffold as harmony lines: a run of whole-bar chords in consecutive
+    bars is one line, and anything else (a change inside a bar, a chord with a
+    note) is a line of its own."""
+    out: list[str] = []
+    run: list[str] = []
+    start = None
+    expect = None
+
+    def flush() -> None:
+        nonlocal run, start
+        if run:
+            out.append(f"  {start}: {' '.join(run)}")
+        run, start = [], None
+
+    for e in piece.harmony:
+        chord = e.chord + (f"~{e.dur}" if e.dur else "")
+        whole = ":" not in str(e.at)
+        if whole and not e.note and expect == int(e.at) and run:
+            run.append(chord)
+            expect += 1
+            continue
+        flush()
+        if whole and not e.note:
+            start, run, expect = str(e.at), [chord], int(e.at) + 1
+        else:
+            out.append(f"  {e.at}: {chord}" + (f"   -- {e.note}" if e.note else ""))
+            expect = None
+    flush()
+    return out
+
+
+def _motif_line(piece: Piece, m: Motif) -> str:
+    tail = "".join(f" {k}={_value(v)}" for k, v in
+                   (("anchor", m.anchor if m.anchor != "scale" else None),
+                    ("unit", m.unit if m.unit != "1/8" else None),
+                    ("scale", m.scale)) if v)
+    note = f"   -- {m.note}" if m.note else ""
+    if not m.derived_from:
+        return f"motif {m.name} = {m.source()}{tail}{note}"
+    line = None
+    try:                                         # re-derive it, if that is possible
+        made = piece.get_motif(m.derived_from)
+        for t in m.lineage:
+            made = apply_transform(made, t, resolve=piece.get_motif)
+        if made.steps == m.steps and made.lineage == tuple(m.lineage):
+            line = f"motif {m.name} < {m.derived_from} : {' > '.join(m.lineage)}"
+    except Exception:
+        line = None
+    if line is None:
+        line = (f'motif {m.name} < {m.derived_from} recorded '
+                f'"{" + ".join(m.lineage)}" = {m.source()}{tail}')
+    return line + note
+
+
 def decompile(piece: Piece) -> str:
     """A piece as score text. ``compile_score(decompile(p))`` is ``p``."""
     out: list[str] = []
@@ -766,55 +841,11 @@ def decompile(piece: Piece) -> str:
         out.append(f"section {sec.name} {_kv(fields)}"
                    + (f"   -- {sec.note}" if sec.note else ""))
     if piece.harmony:
-        out += ["", "harmony"]
-        run: list[str] = []
-        start = None
-        expect = None
-
-        def flush() -> None:
-            nonlocal run, start
-            if run:
-                out.append(f"  {start}: {' '.join(run)}")
-            run, start = [], None
-
-        for e in piece.harmony:
-            chord = e.chord + (f"~{e.dur}" if e.dur else "")
-            whole = ":" not in str(e.at)
-            if whole and not e.note and expect == int(e.at) and run:
-                run.append(chord)
-                expect += 1
-                continue
-            flush()
-            if whole and not e.note:
-                start, run, expect = str(e.at), [chord], int(e.at) + 1
-            else:
-                out.append(f"  {e.at}: {chord}" + (f"   -- {e.note}" if e.note else ""))
-                expect = None
-        flush()
+        out += ["", "harmony"] + _harmony_lines(piece)
     if piece.motifs:
         out.append("")
     for m in piece.motifs.values():
-        tail = "".join(f" {k}={_value(v)}" for k, v in
-                       (("anchor", m.anchor if m.anchor != "scale" else None),
-                        ("unit", m.unit if m.unit != "1/8" else None),
-                        ("scale", m.scale)) if v)
-        note = f"   -- {m.note}" if m.note else ""
-        if not m.derived_from:
-            out.append(f"motif {m.name} = {m.source()}{tail}{note}")
-            continue
-        line = None
-        try:                                         # re-derive it, if that is possible
-            made = piece.get_motif(m.derived_from)
-            for t in m.lineage:
-                made = apply_transform(made, t, resolve=piece.get_motif)
-            if made.steps == m.steps and made.lineage == tuple(m.lineage):
-                line = f"motif {m.name} < {m.derived_from} : {' > '.join(m.lineage)}"
-        except Exception:
-            line = None
-        if line is None:
-            line = (f'motif {m.name} < {m.derived_from} recorded '
-                    f'"{" + ".join(m.lineage)}" = {m.source()}{tail}')
-        out.append(line + note)
+        out.append(_motif_line(piece, m))
     for v in piece.voices:
         fields = {"role": v.role, "octave": v.octave, "dynamic": v.dynamic,
                   "muted": True if v.muted else None, "pan": v.pan, "engine": v.engine,

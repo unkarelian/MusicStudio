@@ -210,8 +210,8 @@ def spread(hits: int, steps: int, turn: int = 0) -> list[bool]:
 
 def events(node: Node, cycle: int = 0) -> list[Event]:
     """What the pattern plays in one cycle, in order, rests left out. Chance
-    is *not* applied here: an event that might not sound carries its odds in
-    ``chances(node)`` -- see ``play``."""
+    is *not* applied here, so an event that only might sound is listed like
+    any other -- ``play`` is the one that decides."""
     return [e for e, _ in _walk(node, cycle, Fraction(0), Fraction(1), ())]
 
 

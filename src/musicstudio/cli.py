@@ -8,7 +8,7 @@ import shutil
 import sys
 
 from .lint import report
-from .studio import Studio
+from .studio import EXPECTED_ERRORS, Studio, error_text
 
 
 def _val(raw: str):
@@ -81,6 +81,8 @@ def _utau(a) -> int:
 
 def _singer(s, a) -> int:
     """`ms singer ...`: the neural singers and what their terms ask."""
+    if a.action == "check":
+        return _check_words(s, a)
     from . import soundfonts
 
     def show(i: dict) -> None:
@@ -352,7 +354,8 @@ def main(argv: list[str] | None = None) -> int:
                                     "the tune clear, did every note sound")
     p.add_argument("name")
     p.add_argument("--soundfont", "-s", nargs="?", const="auto", metavar="SF2",
-                   help="measure the sampled render instead of the built-in models")
+                   help="measure the sampled render instead of the built-in models "
+                        "(a path or a bank's name, as for `wav`)")
 
     p = sub.add_parser("at", help="one moment, by clock or by bar: what is sounding, "
                                   "which op wrote it, which line of the score")
@@ -393,8 +396,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--plain", action="store_true",
                    help="fixed oscillators instead of the instrument models")
     p.add_argument("--soundfont", "-s", nargs="?", const="auto", metavar="SF2",
-                   help="render sampled instruments through FluidSynth; with no "
-                        "path, uses $MUSICSTUDIO_SOUNDFONT or one found on the system")
+                   help="render sampled instruments through FluidSynth: a path, or a "
+                        "name `ms soundfont banks` lists; with neither, the piece's "
+                        "own (meta soundfont), $MUSICSTUDIO_SOUNDFONT or one found "
+                        "on the system")
 
     p = sub.add_parser("soundfont", help="show or download the SoundFont used by "
                                          "`wav --soundfont`")
@@ -412,296 +417,286 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         return _dispatch(s, args)
-    except (KeyError, ValueError, IndexError, TypeError, RuntimeError, ImportError,
-            OSError) as exc:
-        msg = exc.args[0] if isinstance(exc, KeyError) and exc.args else exc
-        print(f"error: {msg}", file=sys.stderr)
+    except EXPECTED_ERRORS as exc:
+        print(f"error: {error_text(exc)}", file=sys.stderr)
         return 2
+
+
+def _styles(s: Studio, a) -> int:
+    for st in s.describe_styles():
+        print(f"{st['name']}: {st['summary']}")
+        print(f"  forms: {', '.join(st['forms'])}")
+        for n in st["notes"]:
+            print(f"  - {n}")
+        print()
+    return 0
+
+
+def _ops(s: Studio, a) -> int:
+    for op in s.describe_ops():
+        print(f"{op['kind']:<12} [{op['kind_of']}] {op['doc']}")
+        print(f"{'':<12} required: {op['required']}  optional: {sorted(op['optional'])}")
+    return 0
+
+
+def _transforms(s: Studio, a) -> int:
+    for k, v in s.describe_transforms().items():
+        print(f"{k:<12} {v}")
+    notation = s.describe_notation()
+    print("\nornaments, written on a note as '4:1/4@tr':")
+    for k, v in notation["ornaments"].items():
+        print(f"{'@' + k:<12} {v}")
+    print("articulations: " + " ".join("@" + x for x in notation["articulations"]))
+    return 0
+
+
+def _instruments(s: Studio, a) -> int:
+    d = s.describe_instruments(a.family)
+    for i in d["instruments"]:
+        print(f"{i['name']:<18} {i['family']:<9} {i['range'][0]:>4}-{i['range'][1]:<4} "
+              f"comfort {i['comfort'][0]:>4}-{i['comfort'][1]:<4} poly={i['polyphony']}")
+    print(f"\nroles: {', '.join(d['roles'])}")
+    return 0
+
+
+def _ls(s: Studio, a) -> int:
+    for row in s.list_pieces():
+        print(json.dumps(row))
+    return 0
+
+
+def _new(s: Studio, a) -> int:
+    print(s.describe_new(s.create(a.name, key=a.key, tempo=a.tempo, meter=a.meter,
+                                  style=a.style, form=a.form, overwrite=a.overwrite,
+                                  loop=a.loop)))
+    return 0
+
+
+def _delete(s: Studio, a) -> int:
+    s.delete(a.name)
+    print(f"deleted {a.name} (undo brings it back)")
+    return 0
+
+
+def _harmony(s: Studio, a) -> int:
+    entries = []
+    for pair in a.chords:
+        if "=" not in pair:
+            raise ValueError(f"expected BAR=NUMERAL, got {pair!r}")
+        at, numeral = pair.split("=", 1)
+        entries.append([at, numeral])
+    print(s.set_harmony(a.name, entries, replace=not a.add))
+    return 0
+
+
+def _list(s: Studio, a) -> int:
+    for row in s.list_ops(a.name, a.voice):
+        print(json.dumps(row))
+    return 0
+
+
+def _import(s: Studio, a) -> int:
+    r = s.import_music(a.name, a.path, kind=a.kind, instrument=a.instrument,
+                       tempo=a.tempo, overwrite=a.overwrite)
+    print(r["summary"])
+    print(f"trust: {r['trust']}")
+    for w in r["warnings"]:
+        print(f"  ! {w}")
+    return 0
+
+
+def _lint(s: Studio, a) -> int:
+    findings = s.lint(a.name)
+    print(report(findings))
+    return 1 if any(f.severity == "error" for f in findings) else 0
+
+
+def _lyrics(s: Studio, a) -> int:
+    from . import lyrics
+    if a.text == ["install"]:
+        print(lyrics.install_dictionary())
+        return 0
+    syllables, warnings = lyrics.parse(" ".join(a.text), a.lang)
+    for syl in syllables:
+        print(f"  {syl.text:<12} {syl.to_json()}")
+    for w in warnings:
+        print(f"warning: {w}")
+    print(f"{len(syllables)} syllables: one note each")
+    return 0
+
+
+def _pattern(s: Studio, a) -> int:
+    from . import pattern
+    print(pattern.describe(" ".join(a.text), a.cycles, a.steps))
+    return 0
+
+
+def _check_words(s: Studio, a) -> int:
+    """`ms singer check` and `ms voicebank check`: what a recogniser hears."""
+    r = s.check_words(a.name)
+    print(f"{r['voice']}: a recogniser understood {r['understood']:.0%} of "
+          f"{r['words']} words")
+    print(f"  heard:  {r['heard']}")
+    if r["missed"]:
+        print(f"  missed: {' '.join(r['missed'])}")
+    if r.get("extra"):
+        print(f"  heard but not written ({len(r['extra'])}): {' '.join(r['extra'])}")
+    return 0
+
+
+def _voicebank(s: Studio, a) -> int:
+    if a.action == "check":
+        return _check_words(s, a)
+
+    def tick(done, total, word):
+        print(f"\r  {done}/{total} {word:<12}", end="", file=sys.stderr, flush=True)
+    info = s.voicebank(a.name, build=a.action == "build", model=a.model,
+                       words=a.words, progress=tick if a.action == "build" else None)
+    if a.action == "build":
+        print(file=sys.stderr)
+    print(f"{info['voice']} ({info['model']}): {info['recorded']} of "
+          f"{info['words']} unit words recorded, {info['vocabulary']} words in all"
+          + ("" if info["complete"] else f"; missing {' '.join(info['missing'][:12])}"
+             + (" ..." if len(info["missing"]) > 12 else "")))
+    print(f"  kept in {info['where']}")
+    return 0
+
+
+def _build(s: Studio, a) -> int:
+    from .score import ScoreError
+    try:
+        res = s.build(a.file)
+    except (ScoreError, FileNotFoundError) as exc:
+        print(exc, file=sys.stderr)
+        return 1
+    print(res.message)
+    for w in res.warnings:
+        print(f"  note: {w}")
+    print(report(res.findings))
+    name = res.piece
+    if a.wav:
+        print(f"wav: {s.export_wav(name)}")
+    if a.hear:
+        print(s.hear(name))
+    return 0
+
+
+def _source(s: Studio, a) -> int:
+    text = s.source(a.name, write=a.write)
+    print(s.scores_dir / f"{a.name}.ms" if a.write else text, end="" if not a.write else "\n")
+    return 0
+
+
+def _soundfont(s: Studio, a) -> int:
+    from . import audio, soundfonts
+    if a.action == "banks":
+        for b in soundfonts.BANKS.values():
+            mark = " (default)" if b.name == soundfonts.DEFAULT_BANK else ""
+            here = "installed" if soundfonts.path_of(b.name) else "         "
+            print(f"{b.name:<14}{b.size_mb:>4} MB  {here}  {b.summary}{mark}")
+            if b.terms:
+                print(f"{'':<34}{b.terms}")
+        return 0
+    if a.action == "install":
+        bank = a.bank or soundfonts.DEFAULT_BANK
+        if not a.url and bank in soundfonts.BANKS:
+            b = soundfonts.BANKS[bank]
+            print(f"fetching {b.filename} ({b.size_mb} MB) from "
+                  f"{b.url.split('/')[2]}", file=sys.stderr)
+        path = soundfonts.install(bank, url=a.url, sha256=a.sha256, force=a.force)
+        print(path)
+        return 0
+    try:
+        print(f"in use:    {audio.find_soundfont()}")
+    except FileNotFoundError as exc:
+        print(f"in use:    none -- {exc}")
+    for f in soundfonts.installed():
+        print(f"installed: {f}")
+    print(f"fluidsynth: {shutil.which('fluidsynth') or 'not found on PATH'}")
+    return 0
+
+
+#: Verbs whose result is its own text: a mutation's `OpResult` (message, view,
+#: lint), a view, a report or a path prints as it comes back.
+_PRINTED = {
+    "piece": lambda s, a: s.update_piece(a.name, key=a.key, tempo=a.tempo, style=a.style,
+                                         loop=a.loop),
+    "undo": lambda s, a: s.undo(a.name),
+    "redo": lambda s, a: s.redo(a.name),
+    "section": lambda s, a: s.add_section(a.name, a.section, bars=a.bars, meter=a.meter,
+                                          tempo=a.tempo, key=a.key, dynamic=a.dynamic,
+                                          note=a.note),
+    "setsection": lambda s, a: s.update_section(a.name, a.section, **_kwargs(a.fields)),
+    "rmsection": lambda s, a: s.remove_section(a.name, a.section),
+    "voice": lambda s, a: s.add_voice(a.name, a.voice, a.instrument, role=a.role,
+                                      octave=a.octave, dynamic=a.dynamic, pan=a.pan),
+    "setvoice": lambda s, a: s.set_voice(a.name, a.voice, **_kwargs(a.fields)),
+    "rmvoice": lambda s, a: s.remove_voice(a.name, a.voice),
+    "op": lambda s, a: s.add_op(a.name, a.voice, a.kind, id=a.id, index=a.index,
+                                note=a.note, **_kwargs(a.params)),
+    "update": lambda s, a: s.update_op(a.name, a.op_id, **_kwargs(a.params)),
+    "move": lambda s, a: s.move_op(a.name, a.op_id, a.bars, a.beats),
+    "rm": lambda s, a: s.remove_op(a.name, a.op_id),
+    "toggle": lambda s, a: s.set_op_enabled(a.name, a.op_id, a.state == "on"),
+    "reorder": lambda s, a: s.reorder_op(a.name, a.op_id, a.index, a.voice),
+    "master": lambda s, a: s.set_master(a.name, push=a.push, clip=a.clip, level=a.level),
+    "show": lambda s, a: s.score(a.name, bars=_bars(a.bars), res=a.res,
+                                 glyphs="degree" if a.degrees else "voice",
+                                 voices=a.voices or None, upto=a.upto),
+    "chart": lambda s, a: s.chart(a.name),
+    "motifs": lambda s, a: s.motifs(a.name),
+    "squint": lambda s, a: s.squint(a.name),
+    "part": lambda s, a: s.voice(a.name, a.voice, bars=_bars(a.bars)),
+    "tension": lambda s, a: s.tension(a.name),
+    "hear": lambda s, a: s.hear(a.name, source="soundfont" if a.soundfont else "models",
+                                soundfont=a.soundfont),
+    "at": lambda s, a: s.at(a.name, **({"bar": a.where} if a.bar else {"time": a.where})),
+    "match": lambda s, a: s.match(a.name, a.reference, slices=a.slices, stems=a.stems),
+    "findmotifs": lambda s, a: s.find_motifs(a.name, min_notes=a.min_notes,
+                                             max_notes=a.max_notes, p_max=a.p_max)["report"],
+    "compare": lambda s, a: s.compare(a.names, require=a.require, p_max=a.p_max)["report"],
+    "midi": lambda s, a: s.export_midi(a.name, a.out),
+    "ust": lambda s, a: s.export_ust(a.name, a.voice, a.out),
+    "wav": lambda s, a: s.export_wav(a.name, a.out, stereo=not a.mono,
+                                     reverb=False if a.dry else None,
+                                     models=False if a.plain else None,
+                                     soundfont=a.soundfont),
+}
+
+#: Verbs whose result is printed as JSON: the indent it is printed with, and the verb.
+_PRINTED_AS_JSON = {
+    "history": (None, lambda s, a: s.history(a.name)),
+    "stats": (2, lambda s, a: s.stats(a.name)),
+    "motif": (2, lambda s, a: s.add_motif(a.name, a.motif, a.source, anchor=a.anchor,
+                                          unit=a.unit, scale=a.scale, note=a.note)),
+    "derive": (2, lambda s, a: s.derive_motif(a.name, a.motif, a.source_motif,
+                                              a.transforms, note=a.note)),
+    "rmmotif": (None, lambda s, a: s.remove_motif(a.name, a.motif)),
+    "adopt": (2, lambda s, a: s.adopt_pattern(a.name, a.motif, a.index)),
+}
+
+#: Verbs that print something of their own; each returns the exit status.
+_COMMANDS = {
+    "styles": _styles, "ops": _ops, "transforms": _transforms,
+    "instruments": _instruments, "ls": _ls, "new": _new, "delete": _delete,
+    "harmony": _harmony, "list": _list, "import": _import, "lint": _lint,
+    "lyrics": _lyrics, "pattern": _pattern, "singer": _singer,
+    "voicebank": _voicebank, "build": _build, "source": _source,
+    "utau": lambda s, a: _utau(a), "soundfont": _soundfont,
+}
 
 
 def _dispatch(s: Studio, a) -> int:
     c = a.cmd
-    if c == "styles":
-        for st in s.describe_styles():
-            print(f"{st['name']}: {st['summary']}")
-            print(f"  forms: {', '.join(st['forms'])}")
-            for n in st["notes"]:
-                print(f"  - {n}")
-            print()
+    if c in _PRINTED:
+        print(_PRINTED[c](s, a))
         return 0
-    if c == "ops":
-        for op in s.describe_ops():
-            print(f"{op['kind']:<12} [{op['kind_of']}] {op['doc']}")
-            print(f"{'':<12} required: {op['required']}  optional: {sorted(op['optional'])}")
+    if c in _PRINTED_AS_JSON:
+        indent, verb = _PRINTED_AS_JSON[c]
+        print(json.dumps(verb(s, a), indent=indent))
         return 0
-    if c == "transforms":
-        for k, v in s.describe_transforms().items():
-            print(f"{k:<12} {v}")
-        notation = s.describe_notation()
-        print("\nornaments, written on a note as '4:1/4@tr':")
-        for k, v in notation["ornaments"].items():
-            print(f"{'@' + k:<12} {v}")
-        print("articulations: " + " ".join("@" + a for a in notation["articulations"]))
-        return 0
-    if c == "instruments":
-        d = s.describe_instruments(a.family)
-        for i in d["instruments"]:
-            print(f"{i['name']:<18} {i['family']:<9} {i['range'][0]:>4}-{i['range'][1]:<4} "
-                  f"comfort {i['comfort'][0]:>4}-{i['comfort'][1]:<4} poly={i['polyphony']}")
-        print(f"\nroles: {', '.join(d['roles'])}")
-        return 0
-    if c == "ls":
-        for row in s.list_pieces():
-            print(json.dumps(row))
-        return 0
-    if c == "new":
-        p = s.create(a.name, key=a.key, tempo=a.tempo, meter=a.meter, style=a.style,
-                     form=a.form, overwrite=a.overwrite, loop=a.loop)
-        print(f"created {p.name}: {p.key.name}, q={p.tempo}, {p.meter}, style={p.style}"
-              + (", loop" if p.loop else ""))
-        print(f"sections: {[(x.name, x.bars) for x in p.sections] or 'none yet'}")
-        print(f"file: {s.path_for(p.name)}")
-        return 0
-    if c == "piece":
-        print(s.update_piece(a.name, key=a.key, tempo=a.tempo, style=a.style, loop=a.loop))
-        return 0
-    if c == "delete":
-        s.delete(a.name)
-        print(f"deleted {a.name} (undo brings it back)")
-        return 0
-    if c == "undo":
-        print(s.undo(a.name))
-        return 0
-    if c == "redo":
-        print(s.redo(a.name))
-        return 0
-    if c == "history":
-        print(json.dumps(s.history(a.name)))
-        return 0
-    if c == "setsection":
-        print(s.update_section(a.name, a.section, **_kwargs(a.fields)))
-        return 0
-    if c == "rmsection":
-        print(s.remove_section(a.name, a.section))
-        return 0
-    if c == "setvoice":
-        print(s.set_voice(a.name, a.voice, **_kwargs(a.fields)))
-        return 0
-    if c == "rmvoice":
-        print(s.remove_voice(a.name, a.voice))
-        return 0
-    if c == "rmmotif":
-        print(json.dumps(s.remove_motif(a.name, a.motif)))
-        return 0
-    if c == "toggle":
-        print(s.set_op_enabled(a.name, a.op_id, a.state == "on"))
-        return 0
-    if c == "reorder":
-        print(s.reorder_op(a.name, a.op_id, a.index, a.voice))
-        return 0
-    if c == "section":
-        print(s.add_section(a.name, a.section, bars=a.bars, meter=a.meter, tempo=a.tempo,
-                            key=a.key, dynamic=a.dynamic, note=a.note))
-        return 0
-    if c == "harmony":
-        entries = []
-        for pair in a.chords:
-            if "=" not in pair:
-                raise ValueError(f"expected BAR=NUMERAL, got {pair!r}")
-            at, numeral = pair.split("=", 1)
-            entries.append([at, numeral])
-        print(s.set_harmony(a.name, entries, replace=not a.add))
-        return 0
-    if c == "voice":
-        print(s.add_voice(a.name, a.voice, a.instrument, role=a.role, octave=a.octave,
-                          dynamic=a.dynamic, pan=a.pan))
-        return 0
-    if c == "motif":
-        print(json.dumps(s.add_motif(a.name, a.motif, a.source, anchor=a.anchor,
-                                     unit=a.unit, scale=a.scale, note=a.note), indent=2))
-        return 0
-    if c == "derive":
-        print(json.dumps(s.derive_motif(a.name, a.motif, a.source_motif, a.transforms,
-                                        note=a.note), indent=2))
-        return 0
-    if c == "op":
-        print(s.add_op(a.name, a.voice, a.kind, id=a.id, index=a.index, note=a.note,
-                       **_kwargs(a.params)))
-        return 0
-    if c == "update":
-        print(s.update_op(a.name, a.op_id, **_kwargs(a.params)))
-        return 0
-    if c == "move":
-        print(s.move_op(a.name, a.op_id, a.bars, a.beats))
-        return 0
-    if c == "rm":
-        print(s.remove_op(a.name, a.op_id))
-        return 0
-    if c == "list":
-        for row in s.list_ops(a.name, a.voice):
-            print(json.dumps(row))
-        return 0
-    if c == "show":
-        print(s.score(a.name, bars=_bars(a.bars), res=a.res,
-                      glyphs="degree" if a.degrees else "voice",
-                      voices=a.voices or None, upto=a.upto))
-        return 0
-    if c == "import":
-        r = s.import_music(a.name, a.path, kind=a.kind, instrument=a.instrument,
-                           tempo=a.tempo, overwrite=a.overwrite)
-        print(r["summary"])
-        print(f"trust: {r['trust']}")
-        for w in r["warnings"]:
-            print(f"  ! {w}")
-        return 0
-    if c == "findmotifs":
-        print(s.find_motifs(a.name, min_notes=a.min_notes, max_notes=a.max_notes,
-                            p_max=a.p_max)["report"])
-        return 0
-    if c == "compare":
-        print(s.compare(a.names, require=a.require, p_max=a.p_max)["report"])
-        return 0
-    if c == "adopt":
-        print(json.dumps(s.adopt_pattern(a.name, a.motif, a.index), indent=2))
-        return 0
-    if c == "chart":
-        print(s.chart(a.name))
-        return 0
-    if c == "motifs":
-        print(s.motifs(a.name))
-        return 0
-    if c == "squint":
-        print(s.squint(a.name))
-        return 0
-    if c == "stats":
-        print(json.dumps(s.stats(a.name), indent=2))
-        return 0
-    if c == "part":
-        print(s.voice(a.name, a.voice, bars=_bars(a.bars)))
-        return 0
-    if c == "lint":
-        findings = s.lint(a.name)
-        print(report(findings))
-        return 1 if any(f.severity == "error" for f in findings) else 0
-    if c == "lyrics":
-        from . import lyrics
-        if a.text == ["install"]:
-            print(lyrics.install_dictionary())
-            return 0
-        syllables, warnings = lyrics.parse(" ".join(a.text), a.lang)
-        for syl in syllables:
-            print(f"  {syl.text:<12} {syl.to_json()}")
-        for w in warnings:
-            print(f"warning: {w}")
-        print(f"{len(syllables)} syllables: one note each")
-        return 0
-    if c == "pattern":
-        from . import pattern
-        print(pattern.describe(" ".join(a.text), a.cycles, a.steps))
-        return 0
-    if c == "singer" and a.action != "check":
-        return _singer(s, a)
-    if c in ("voicebank", "singer") and a.action == "check":
-        r = s.check_words(a.name)
-        print(f"{r['voice']}: a recogniser understood {r['understood']:.0%} of "
-              f"{r['words']} words")
-        print(f"  heard:  {r['heard']}")
-        if r["missed"]:
-            print(f"  missed: {' '.join(r['missed'])}")
-        if r.get("extra"):
-            print(f"  heard but not written ({len(r['extra'])}): {' '.join(r['extra'])}")
-        return 0
-    if c == "voicebank":
-        def tick(done, total, word):
-            print(f"\r  {done}/{total} {word:<12}", end="", file=sys.stderr, flush=True)
-        info = s.voicebank(a.name, build=a.action == "build", model=a.model,
-                           words=a.words, progress=tick if a.action == "build" else None)
-        if a.action == "build":
-            print(file=sys.stderr)
-        print(f"{info['voice']} ({info['model']}): {info['recorded']} of "
-              f"{info['words']} unit words recorded, {info['vocabulary']} words in all"
-              + ("" if info["complete"] else f"; missing {' '.join(info['missing'][:12])}"
-                 + (" ..." if len(info["missing"]) > 12 else "")))
-        print(f"  kept in {info['where']}")
-        return 0
-    if c == "master":
-        print(s.set_master(a.name, push=a.push, clip=a.clip, level=a.level))
-        return 0
-    if c == "tension":
-        print(s.tension(a.name))
-        return 0
-    if c == "hear":
-        print(s.hear(a.name, source="soundfont" if a.soundfont else "models",
-                     soundfont=a.soundfont))
-        return 0
-    if c == "at":
-        print(s.at(a.name, **({"bar": a.where} if a.bar else {"time": a.where})))
-        return 0
-    if c == "match":
-        print(s.match(a.name, a.reference, slices=a.slices, stems=a.stems))
-        return 0
-    if c == "build":
-        from .score import ScoreError
-        try:
-            res = s.build(a.file)
-        except (ScoreError, FileNotFoundError) as exc:
-            print(exc, file=sys.stderr)
-            return 1
-        print(res.message)
-        for w in res.warnings:
-            print(f"  note: {w}")
-        print(report(res.findings))
-        name = res.message.split("'")[1]
-        if a.wav:
-            print(f"wav: {s.export_wav(name)}")
-        if a.hear:
-            print(s.hear(name))
-        return 0
-    if c == "source":
-        text = s.source(a.name, write=a.write)
-        print(s.scores_dir / f"{a.name}.ms" if a.write else text, end="" if not a.write else "\n")
-        return 0
-    if c == "midi":
-        print(s.export_midi(a.name, a.out))
-        return 0
-    if c == "ust":
-        print(s.export_ust(a.name, a.voice, a.out))
-        return 0
-    if c == "utau":
-        return _utau(a)
-    if c == "soundfont":
-        from . import audio, soundfonts
-        if a.action == "banks":
-            for b in soundfonts.BANKS.values():
-                mark = " (default)" if b.name == soundfonts.DEFAULT_BANK else ""
-                here = "installed" if soundfonts.path_of(b.name) else "         "
-                print(f"{b.name:<14}{b.size_mb:>4} MB  {here}  {b.summary}{mark}")
-                if b.terms:
-                    print(f"{'':<34}{b.terms}")
-            return 0
-        if a.action == "install":
-            bank = a.bank or soundfonts.DEFAULT_BANK
-            if not a.url and bank in soundfonts.BANKS:
-                b = soundfonts.BANKS[bank]
-                print(f"fetching {b.filename} ({b.size_mb} MB) from "
-                      f"{b.url.split('/')[2]}", file=sys.stderr)
-            path = soundfonts.install(bank, url=a.url, sha256=a.sha256, force=a.force)
-            print(path)
-            return 0
-        try:
-            print(f"in use:    {audio.find_soundfont()}")
-        except FileNotFoundError as exc:
-            print(f"in use:    none -- {exc}")
-        for f in soundfonts.installed():
-            print(f"installed: {f}")
-        print(f"fluidsynth: {shutil.which('fluidsynth') or 'not found on PATH'}")
-        return 0
-    if c == "wav":
-        print(s.export_wav(a.name, a.out, stereo=not a.mono,
-                           reverb=False if a.dry else None,
-                           models=False if a.plain else None,
-                           soundfont=a.soundfont))
-        return 0
+    if c in _COMMANDS:
+        return _COMMANDS[c](s, a)
     raise ValueError(f"unhandled command {c!r}")  # pragma: no cover
 
 
