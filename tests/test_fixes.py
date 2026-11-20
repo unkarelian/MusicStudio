@@ -97,6 +97,7 @@ def test_a_build_knows_its_piece_whatever_it_is_called(tmp_path, capsys):
     s.create("it's", sections=[("A", 2)])
     s.source("it's", write=True)
     assert s.build("it's").piece == "it's"
+    pytest.importorskip("numpy")  # --hear measures the render
     assert main(["-p", str(tmp_path), "build", "it's", "--hear"]) == 0
     assert "error" not in capsys.readouterr().err
 
